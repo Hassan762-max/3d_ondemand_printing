@@ -128,6 +128,9 @@ async function main() {
     { email: "customer@printora.pk", name: "Ayesha Khan", role: "CUSTOMER", city: "Lahore" },
     { email: "designer@printora.pk", name: "Hassan Ali", role: "DESIGNER", city: "Karachi" },
     { email: "vendor@printora.pk", name: "Print Hub PK", role: "VENDOR", city: "Faisalabad" },
+    { email: "vendor.khi@printora.pk", name: "Sea Port Prints", role: "VENDOR", city: "Karachi" },
+    { email: "vendor.lhe@printora.pk", name: "Canal Wear Lab", role: "VENDOR", city: "Lahore" },
+    { email: "vendor.isb@printora.pk", name: "Capital DTG", role: "VENDOR", city: "Islamabad" },
     { email: "admin@printora.pk", name: "Printora Admin", role: "ADMIN", city: "Islamabad" },
   ];
 
@@ -145,31 +148,109 @@ async function main() {
     });
   }
 
-  const vendorUser = await prisma.user.findUniqueOrThrow({
-    where: { email: "vendor@printora.pk" },
-  });
-
-  await prisma.vendor.upsert({
-    where: { userId: vendorUser.id },
-    update: {},
-    create: {
-      userId: vendorUser.id,
+  const vendorSeeds: {
+    email: string;
+    businessName: string;
+    city: string;
+    province: string;
+    phone: string;
+    capacityDaily: number;
+    baseCostFactor: number;
+    qualityScore: number;
+    deliveryScore: number;
+    categories: ProductCategory[];
+  }[] = [
+    {
+      email: "vendor@printora.pk",
       businessName: "Print Hub Faisalabad",
       city: "Faisalabad",
       province: "Punjab",
-      phone: "+92-300-0000000",
+      phone: "+92-300-1111111",
       capacityDaily: 120,
-      capabilities: {
-        create: [
-          { category: "T_SHIRT" },
-          { category: "OVERSIZED_T_SHIRT" },
-          { category: "HOODIE" },
-          { category: "SWEATSHIRT" },
-          { category: "CAP" },
-        ],
-      },
+      baseCostFactor: 0.95,
+      qualityScore: 4.2,
+      deliveryScore: 4.0,
+      categories: ["T_SHIRT", "OVERSIZED_T_SHIRT", "HOODIE", "SWEATSHIRT", "CAP"],
     },
-  });
+    {
+      email: "vendor.khi@printora.pk",
+      businessName: "Sea Port Prints Karachi",
+      city: "Karachi",
+      province: "Sindh",
+      phone: "+92-300-2222222",
+      capacityDaily: 90,
+      baseCostFactor: 1.05,
+      qualityScore: 4.4,
+      deliveryScore: 4.1,
+      categories: ["T_SHIRT", "OVERSIZED_T_SHIRT", "POLO", "HOODIE", "CAP"],
+    },
+    {
+      email: "vendor.lhe@printora.pk",
+      businessName: "Canal Wear Lab Lahore",
+      city: "Lahore",
+      province: "Punjab",
+      phone: "+92-300-3333333",
+      capacityDaily: 100,
+      baseCostFactor: 1.0,
+      qualityScore: 4.6,
+      deliveryScore: 4.5,
+      categories: ["T_SHIRT", "OVERSIZED_T_SHIRT", "POLO", "HOODIE", "SWEATSHIRT", "CAP"],
+    },
+    {
+      email: "vendor.isb@printora.pk",
+      businessName: "Capital DTG Islamabad",
+      city: "Islamabad",
+      province: "ICT",
+      phone: "+92-300-4444444",
+      capacityDaily: 60,
+      baseCostFactor: 1.1,
+      qualityScore: 4.3,
+      deliveryScore: 4.2,
+      categories: ["T_SHIRT", "POLO", "HOODIE", "CAP"],
+    },
+  ];
+
+  for (const v of vendorSeeds) {
+    const vendorUser = await prisma.user.findUniqueOrThrow({
+      where: { email: v.email },
+    });
+    const existing = await prisma.vendor.findUnique({
+      where: { userId: vendorUser.id },
+    });
+    if (existing) {
+      await prisma.vendor.update({
+        where: { id: existing.id },
+        data: {
+          businessName: v.businessName,
+          city: v.city,
+          province: v.province,
+          phone: v.phone,
+          capacityDaily: v.capacityDaily,
+          baseCostFactor: v.baseCostFactor,
+          qualityScore: v.qualityScore,
+          deliveryScore: v.deliveryScore,
+          active: true,
+        },
+      });
+      continue;
+    }
+    await prisma.vendor.create({
+      data: {
+        userId: vendorUser.id,
+        businessName: v.businessName,
+        city: v.city,
+        province: v.province,
+        phone: v.phone,
+        capacityDaily: v.capacityDaily,
+        baseCostFactor: v.baseCostFactor,
+        qualityScore: v.qualityScore,
+        deliveryScore: v.deliveryScore,
+        capabilities: {
+          create: v.categories.map((category) => ({ category })),
+        },
+      },
+    });
+  }
 
   for (const p of products) {
     const product = await prisma.product.upsert({
