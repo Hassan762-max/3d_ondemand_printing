@@ -41,7 +41,7 @@ AI-powered 3D custom clothing & print-on-demand for Pakistan.
 | 5 | Virtual try-on loop + review/recommendations (**done**) |
 | 6 | Checkout: Rs.500 advance + COD remainder, orders, tracking (**done**) |
 | 7 | Multi-vendor fulfillment router (PK cities) (**done**) |
-| 8 | Returns/refunds/reprints/QC + ops dashboards |
+| 8 | Returns/refunds/reprints/QC + ops dashboards (**done**) |
 | 9 | Creator marketplace, reviews, notifications, hardening |
 
 ## 3. Primary customer flow
@@ -86,7 +86,11 @@ React Three Fiber scene + garment GLB per product category. Design as textured d
 
 ## 9. Vendor / fulfillment
 
-Score vendors by: customer city proximity, stock/capability, unit cost, capacity, SLA, quality metrics. Auto-assign best; allow ops override. Vendor gets production package (artwork + placement + size + color + shipping label data).
+Score vendors by: customer city proximity, stock/capability, unit cost, capacity, SLA, quality metrics. Auto-assign best; allow ops override. Vendor gets production package (artwork + placement + size + color + shipping label data). Metrics (`returnRate`, `defectRate`, `qcFailRate`) update from ops resolutions and QC fails.
+
+## 9b. Returns & ops (Phase 8)
+
+Custom prints: no change-of-mind returns. Eligible reasons: defect, damage, wrong item, vendor mistake, failed delivery / COD refusal. Window: 7 days after delivery. Resolutions: refund (pending finance approval), reprint, replacement, reject. `/ops` serves Support / QC / Finance / Admin queues.
 
 ## 10. Payment / order flow
 

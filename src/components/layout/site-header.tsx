@@ -18,6 +18,17 @@ export async function SiteHeader() {
     ? await prisma.cartItem.count({ where: { cart: { userId: session.user.id } } })
     : 0;
   const isVendor = session?.user?.role === "VENDOR";
+  const opsRoles = new Set([
+    "ADMIN",
+    "SUPER_ADMIN",
+    "SUPPORT_MANAGER",
+    "QC_MANAGER",
+    "FINANCE_MANAGER",
+    "PRODUCTION_MANAGER",
+  ]);
+  const isOps = session?.user?.role
+    ? opsRoles.has(session.user.role)
+    : false;
 
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--ink)]/8 bg-[var(--paper)]/85 backdrop-blur-md">
@@ -52,6 +63,11 @@ export async function SiteHeader() {
               {isVendor ? (
                 <Link href="/vendor" className="hidden text-sm text-[var(--muted)] hover:text-[var(--ink)] sm:inline">
                   Vendor
+                </Link>
+              ) : null}
+              {isOps ? (
+                <Link href="/ops" className="hidden text-sm text-[var(--muted)] hover:text-[var(--ink)] sm:inline">
+                  Ops
                 </Link>
               ) : null}
               <Link href="/account">

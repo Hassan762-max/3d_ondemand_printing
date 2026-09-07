@@ -1,0 +1,250 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import {
+  ApproveRefundButton,
+  QcDecisionForm,
+  ResolveReturnForm,
+} from "@/components/ops/ops-actions";
+import { Button } from "@/components/ui/button";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { hasAnyPermission, hasPermission } from "@/lib/rbac";
+import { statusLabel } from "@/lib/orders/tracking";
+import { formatPkr } from "@/lib/utils";
+
+export const dynamic = "force-dynamic";
+export const metadata = { title: "Ops" };
+
+export default async function OpsPage() {
+  const session = await auth();
+  if (!session?.user) redirect("/auth/sign-in?callbackUrl=/ops");
+
+  const role = session.user.role;
+  const canOps = hasAnyPermission(role, [
+    "support:manage",
+    "qc:manage",
+    "order:refund",
+    "finance:manage",
+    "order:read_all",
+    "production:manage",
+    "vendor:assign",
+  ]);
+  if (!canOps && role !== "ADMIN" && role !== "SUPER_ADMIN") {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
+        <h1 className="font-[family-name:var(--font-display)] text-4xl tracking-tight">Ops</h1>
+        <p className="mt-4 text-sm text-[var(--muted)]">
+          This account does not have operations access.
+        </p>
+      </div>
+    );
+  }
+
+  const [openReturns, pendingRefunds, qcOrders, vendors, recentOrders] =
+    await Promise.all([
+      prisma.returnRequest.findMany({
+        where: { status: "open" },
+        include: { order: true },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+      }),
+      prisma.paymentLedger.findMany({
+        where: { kind: "REFUND", status: "PENDING" },
+        include: { order: true },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+      }),
+      prisma.order.findMany({
+        where: { status: { in: ["QC", "REPRINT", "REPLACEMENT", "IN_PRODUCTION"] } },
+        orderBy: { updatedAt: "desc" },
+        take: 20,
+        include: { vendor: true },
+      }),
+      prisma.vendor.findMany({
+        where: { active: true },
+        orderBy: { qualityScore: "desc" },
+      }),
+      prisma.order.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 8,
+        include: { vendor: true },
+      }),
+    ]);
+
+  const showSupport = hasPermission(role, "support:manage") || role === "ADMIN";
+  const showFinance =
+    hasPermission(role, "order:refund") ||
+    hasPermission(role, "finance:manage") ||
+    role === "ADMIN";
+  const showQc = hasPermission(role, "qc:manage") || role === "ADMIN";
+
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+      <p className="text-xs uppercase tracking-[0.16em] text-[var(--accent)]">Operations</p>
+      <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl tracking-tight">
+        Returns, QC & finance
+      </h1>
+      <p className="mt-2 text-sm text-[var(--muted)]">
+        Signed in as {role.replaceAll("_", " ")}
+      </p>
+
+      <div className="mt-8 grid gap-4 sm:grid-cols-4">
+        <Stat label="Open returns" value={String(openReturns.length)} />
+        <Stat label="Pending refunds" value={String(pendingRefunds.length)} />
+        <Stat label="QC / reprint queue" value={String(qcOrders.length)} />
+        <Stat label="Active vendors" value={String(vendors.length)} />
+      </div>
+
+      {showSupport ? (
+        <section className="mt-12">
+          <h2 className="text-lg font-medium tracking-tight">Support · open returns</h2>
+          {openReturns.length === 0 ? (
+            <p className="mt-3 text-sm text-[var(--muted)]">No open returns.</p>
+          ) : (
+            <ul className="mt-4 space-y-4">
+              {openReturns.map((ret) => (
+                <li
+                  key={ret.id}
+                  className="grid gap-4 rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-4 lg:grid-cols-[1.2fr_0.8fr]"
+                >
+                  <div>
+                    <Link href={`/orders/${ret.orderId}`} className="font-medium underline">
+                      {ret.order.orderNumber}
+                    </Link>
+                    <p className="mt-2 text-sm text-[var(--muted)]">{ret.reason}</p>
+                    <p className="mt-1 text-xs text-[var(--muted)]">
+                      {ret.createdAt.toLocaleString("en-PK")} ·{" "}
+                      {statusLabel(ret.order.status)}
+                    </p>
+                  </div>
+                  <ResolveReturnForm returnId={ret.id} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
+
+      {showQc ? (
+        <section className="mt-12">
+          <h2 className="text-lg font-medium tracking-tight">QC queue</h2>
+          {qcOrders.length === 0 ? (
+            <p className="mt-3 text-sm text-[var(--muted)]">No QC items.</p>
+          ) : (
+            <ul className="mt-4 space-y-4">
+              {qcOrders.map((order) => (
+                <li
+                  key={order.id}
+                  className="rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-4"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <Link href={`/orders/${order.id}`} className="font-medium underline">
+                        {order.orderNumber}
+                      </Link>
+                      <p className="mt-1 text-xs uppercase tracking-[0.12em] text-[var(--muted)]">
+                        {statusLabel(order.status)}
+                        {order.vendor ? ` · ${order.vendor.businessName}` : ""}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <QcDecisionForm orderId={order.id} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
+
+      {showFinance ? (
+        <section className="mt-12">
+          <h2 className="text-lg font-medium tracking-tight">Finance · pending refunds</h2>
+          {pendingRefunds.length === 0 ? (
+            <p className="mt-3 text-sm text-[var(--muted)]">No pending refunds.</p>
+          ) : (
+            <ul className="mt-4 divide-y divide-[var(--ink)]/8 rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)]">
+              {pendingRefunds.map((p) => (
+                <li
+                  key={p.id}
+                  className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm"
+                >
+                  <div>
+                    <p className="font-medium">{p.order.orderNumber}</p>
+                    <p className="text-xs text-[var(--muted)]">{formatPkr(p.amount)} pending</p>
+                  </div>
+                  <ApproveRefundButton paymentId={p.id} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
+
+      <section className="mt-12">
+        <h2 className="text-lg font-medium tracking-tight">Vendor performance</h2>
+        <div className="mt-4 overflow-x-auto rounded-xl border border-[var(--ink)]/10">
+          <table className="min-w-full text-left text-sm">
+            <thead className="bg-[var(--mist)] text-xs uppercase tracking-[0.12em] text-[var(--muted)]">
+              <tr>
+                <th className="px-3 py-2">Vendor</th>
+                <th className="px-3 py-2">City</th>
+                <th className="px-3 py-2">Quality</th>
+                <th className="px-3 py-2">Delivery</th>
+                <th className="px-3 py-2">Return</th>
+                <th className="px-3 py-2">Defect</th>
+                <th className="px-3 py-2">QC fail</th>
+              </tr>
+            </thead>
+            <tbody>
+              {vendors.map((v) => (
+                <tr key={v.id} className="border-t border-[var(--ink)]/8">
+                  <td className="px-3 py-2">{v.businessName}</td>
+                  <td className="px-3 py-2">{v.city}</td>
+                  <td className="px-3 py-2">{v.qualityScore.toFixed(1)}</td>
+                  <td className="px-3 py-2">{v.deliveryScore.toFixed(1)}</td>
+                  <td className="px-3 py-2">{(v.returnRate * 100).toFixed(1)}%</td>
+                  <td className="px-3 py-2">{(v.defectRate * 100).toFixed(1)}%</td>
+                  <td className="px-3 py-2">{(v.qcFailRate * 100).toFixed(1)}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="mt-12">
+        <h2 className="text-lg font-medium tracking-tight">Recent orders</h2>
+        <ul className="mt-4 space-y-2">
+          {recentOrders.map((o) => (
+            <li key={o.id} className="flex justify-between gap-3 text-sm">
+              <Link href={`/orders/${o.id}`} className="underline">
+                {o.orderNumber}
+              </Link>
+              <span className="text-[var(--muted)]">
+                {statusLabel(o.status)}
+                {o.vendor ? ` · ${o.vendor.city}` : ""}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <div className="mt-10">
+        <Link href="/">
+          <Button variant="outline">Storefront</Button>
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-4">
+      <p className="text-xs uppercase tracking-[0.12em] text-[var(--muted)]">{label}</p>
+      <p className="mt-2 text-2xl font-medium">{value}</p>
+    </div>
+  );
+}
