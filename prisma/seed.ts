@@ -131,6 +131,25 @@ async function main() {
     { email: "vendor.khi@printora.pk", name: "Sea Port Prints", role: "VENDOR", city: "Karachi" },
     { email: "vendor.lhe@printora.pk", name: "Canal Wear Lab", role: "VENDOR", city: "Lahore" },
     { email: "vendor.isb@printora.pk", name: "Capital DTG", role: "VENDOR", city: "Islamabad" },
+    {
+      email: "support@printora.pk",
+      name: "Support Desk",
+      role: "SUPPORT_MANAGER",
+      city: "Lahore",
+    },
+    { email: "qc@printora.pk", name: "QC Lead", role: "QC_MANAGER", city: "Faisalabad" },
+    {
+      email: "finance@printora.pk",
+      name: "Finance Ops",
+      role: "FINANCE_MANAGER",
+      city: "Islamabad",
+    },
+    {
+      email: "production@printora.pk",
+      name: "Production Ops",
+      role: "PRODUCTION_MANAGER",
+      city: "Lahore",
+    },
     { email: "admin@printora.pk", name: "Printora Admin", role: "ADMIN", city: "Islamabad" },
   ];
 

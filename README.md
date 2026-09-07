@@ -18,7 +18,8 @@ Password for all: `password123`
 
 - customer@printora.pk
 - designer@printora.pk
-- vendor@printora.pk
+- vendor@printora.pk (also vendor.lhe / .khi / .isb)
+- support@printora.pk · qc@printora.pk · finance@printora.pk · production@printora.pk
 - admin@printora.pk
 
 ## Phase 1 (done)
@@ -66,6 +67,13 @@ Password for all: `password123`
 - Vendor scoring router (location, cost, capacity, quality, delivery, capabilities)
 - Auto-assign on checkout · production package for vendors
 - Vendor dashboard queue + status updates across Pakistan hubs
+
+## Phase 8 (done)
+
+- Customized-product return policy (defect/fulfillment only · 7-day window)
+- Customer return requests on order detail · support resolve (refund/reprint/replacement)
+- Ops dashboard (`/ops`): returns, QC pass/fail, pending refunds, vendor metrics
+- Seeded ops roles: support@, qc@, finance@, production@printora.pk
 
 ## Next phases
 

@@ -73,6 +73,21 @@ export default async function VendorDashboardPage() {
         </div>
       </div>
 
+      <div className="mt-4 grid gap-4 sm:grid-cols-3">
+        <div className="rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-4">
+          <p className="text-xs uppercase tracking-[0.12em] text-[var(--muted)]">Return rate</p>
+          <p className="mt-2 text-2xl font-medium">{(vendor.returnRate * 100).toFixed(1)}%</p>
+        </div>
+        <div className="rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-4">
+          <p className="text-xs uppercase tracking-[0.12em] text-[var(--muted)]">Defect rate</p>
+          <p className="mt-2 text-2xl font-medium">{(vendor.defectRate * 100).toFixed(1)}%</p>
+        </div>
+        <div className="rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-4">
+          <p className="text-xs uppercase tracking-[0.12em] text-[var(--muted)]">QC fail rate</p>
+          <p className="mt-2 text-2xl font-medium">{(vendor.qcFailRate * 100).toFixed(1)}%</p>
+        </div>
+      </div>
+
       <section className="mt-12">
         <h2 className="text-lg font-medium tracking-tight">Production queue</h2>
         {queue.length === 0 ? (

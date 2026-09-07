@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { CancelOrderButton } from "@/components/orders/cancel-order-button";
+import { ReturnRequestForm } from "@/components/orders/return-request-form";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
@@ -35,12 +36,20 @@ export default async function OrderDetailPage({ params }: Props) {
       shipments: { orderBy: { id: "asc" } },
       vendor: true,
       assignments: { orderBy: { assignedAt: "desc" }, take: 1 },
+      returns: { orderBy: { createdAt: "desc" } },
     },
   });
   if (!order) notFound();
 
   const steps = trackingProgress(order.status);
   const canCancel = ["PENDING_PAYMENT", "ADVANCE_PAID"].includes(order.status);
+  const hasCustomDesign = order.items.some((i) => Boolean(i.designId));
+  const openReturn = order.returns.find((r) =>
+    ["open", "approved"].includes(r.status),
+  );
+  const canRequestReturn =
+    !openReturn &&
+    ["DELIVERED", "SHIPPED", "OUT_FOR_DELIVERY"].includes(order.status);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
@@ -195,6 +204,38 @@ export default async function OrderDetailPage({ params }: Props) {
           ))}
         </ul>
       </section>
+
+      {order.returns.length > 0 ? (
+        <section className="mt-8">
+          <h2 className="text-lg font-medium tracking-tight">Returns</h2>
+          <ul className="mt-4 space-y-3">
+            {order.returns.map((ret) => (
+              <li
+                key={ret.id}
+                className="rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-4 text-sm"
+              >
+                <p className="font-medium capitalize">{ret.status}</p>
+                <p className="mt-1 text-[var(--muted)]">{ret.reason}</p>
+                {ret.resolution ? (
+                  <p className="mt-2 text-xs text-[var(--accent)]">{ret.resolution}</p>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {canRequestReturn ? (
+        <section className="mt-8 rounded-2xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-6">
+          <h2 className="text-lg font-medium tracking-tight">Need help with this order?</h2>
+          <div className="mt-4">
+            <ReturnRequestForm
+              orderId={order.id}
+              hasCustomDesign={hasCustomDesign}
+            />
+          </div>
+        </section>
+      ) : null}
 
       {canCancel ? (
         <div className="mt-8">
