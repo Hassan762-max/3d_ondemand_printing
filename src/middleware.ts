@@ -10,6 +10,8 @@ const protectedPrefixes = [
   "/try-on",
   "/vendor",
   "/ops",
+  "/creator",
+  "/admin",
 ];
 
 export function middleware(request: NextRequest) {
@@ -48,5 +50,9 @@ export const config = {
     "/vendor/:path*",
     "/ops",
     "/ops/:path*",
+    "/creator",
+    "/creator/:path*",
+    "/admin",
+    "/admin/:path*",
   ],
 };

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import type { OrderStatus } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { shouldCollectCodOnDelivery } from "@/lib/orders/cod";
 import { getAuthorizedUser } from "@/lib/session";
 
 export type VendorActionResult = {
@@ -86,7 +87,7 @@ export async function updateVendorOrderStatus(
       });
     }
 
-    if (next === "DELIVERED") {
+    if (shouldCollectCodOnDelivery(next)) {
       await tx.paymentLedger.updateMany({
         where: { orderId: order.id, kind: "COD_REMAINING", status: "PENDING" },
         data: { status: "COMPLETED", reference: `COD-${order.orderNumber}` },

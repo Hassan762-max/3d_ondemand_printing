@@ -9,6 +9,7 @@ import {
   type ReturnReasonId,
   type ReturnResolution,
 } from "@/lib/ops/return-policy";
+import { computeRefundAmount } from "@/lib/orders/pricing";
 import { getAuthorizedUser, requireUser } from "@/lib/session";
 
 export type OpsActionResult = {
@@ -139,7 +140,15 @@ export async function resolveReturnRequest(
 
   const ret = await prisma.returnRequest.findUnique({
     where: { id: parsed.data.returnId },
-    include: { order: { include: { items: true, vendor: true } } },
+    include: {
+      order: {
+        include: {
+          items: true,
+          vendor: true,
+          payments: true,
+        },
+      },
+    },
   });
   if (!ret || ret.status !== "open") {
     return { ok: false, message: "Return is not open." };
@@ -159,20 +168,27 @@ export async function resolveReturnRequest(
     });
 
     if (resolution === "refund") {
+      const refundAmount = computeRefundAmount(ret.order.payments);
       await tx.order.update({
         where: { id: ret.orderId },
         data: { status: "REFUNDED" },
       });
-      await tx.paymentLedger.create({
-        data: {
-          orderId: ret.orderId,
-          kind: "REFUND",
-          amount: ret.order.advanceAmount + ret.order.remainingAmount,
-          status: "PENDING",
-          method: "MANUAL_REFUND",
-          metaJson: JSON.stringify({ returnId: ret.id, reason: ret.reason }),
-        },
-      });
+      if (refundAmount > 0) {
+        await tx.paymentLedger.create({
+          data: {
+            orderId: ret.orderId,
+            kind: "REFUND",
+            amount: refundAmount,
+            status: "PENDING",
+            method: "MANUAL_REFUND",
+            metaJson: JSON.stringify({
+              returnId: ret.id,
+              reason: ret.reason,
+              basis: "completed_ledger_only",
+            }),
+          },
+        });
+      }
       if (ret.order.vendorId) {
         await bumpVendorMetric(tx, ret.order.vendorId, "returnRate", 0.02);
       }

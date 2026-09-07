@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { CancelOrderButton } from "@/components/orders/cancel-order-button";
+import { OrderReviewForm } from "@/components/orders/order-review-form";
 import { ReturnRequestForm } from "@/components/orders/return-request-form";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";
@@ -37,6 +38,7 @@ export default async function OrderDetailPage({ params }: Props) {
       vendor: true,
       assignments: { orderBy: { assignedAt: "desc" }, take: 1 },
       returns: { orderBy: { createdAt: "desc" } },
+      reviews: { where: { userId: session.user.id }, take: 1 },
     },
   });
   if (!order) notFound();
@@ -50,6 +52,8 @@ export default async function OrderDetailPage({ params }: Props) {
   const canRequestReturn =
     !openReturn &&
     ["DELIVERED", "SHIPPED", "OUT_FOR_DELIVERY"].includes(order.status);
+  const canReview = order.status === "DELIVERED" && order.reviews.length === 0;
+  const existingReview = order.reviews[0];
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
@@ -205,6 +209,25 @@ export default async function OrderDetailPage({ params }: Props) {
         </ul>
       </section>
 
+      {existingReview ? (
+        <section className="mt-8 rounded-2xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-6">
+          <h2 className="text-lg font-medium tracking-tight">Your review</h2>
+          <p className="mt-3 text-sm font-medium">{existingReview.rating} / 5</p>
+          {existingReview.body ? (
+            <p className="mt-2 text-sm text-[var(--muted)]">{existingReview.body}</p>
+          ) : null}
+        </section>
+      ) : null}
+
+      {canReview ? (
+        <section className="mt-8 rounded-2xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-6">
+          <h2 className="text-lg font-medium tracking-tight">Rate this order</h2>
+          <div className="mt-4">
+            <OrderReviewForm orderId={order.id} />
+          </div>
+        </section>
+      ) : null}
+
       {order.returns.length > 0 ? (
         <section className="mt-8">
           <h2 className="text-lg font-medium tracking-tight">Returns</h2>
@@ -232,6 +255,7 @@ export default async function OrderDetailPage({ params }: Props) {
             <ReturnRequestForm
               orderId={order.id}
               hasCustomDesign={hasCustomDesign}
+              orderStatus={order.status}
             />
           </div>
         </section>

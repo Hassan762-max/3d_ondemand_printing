@@ -9,6 +9,7 @@ import {
   computeOrderTotals,
   generateOrderNumber,
 } from "@/lib/orders/pricing";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { getAuthorizedUser, requireUser } from "@/lib/session";
 
 export type OrderActionResult = {
@@ -33,6 +34,14 @@ export async function placeOrder(
 ): Promise<OrderActionResult> {
   const user = await getAuthorizedUser("order:create");
   if (!user) return { ok: false, message: "Please sign in to checkout." };
+
+  const limited = checkRateLimit(`checkout:${user.id}`, 8, 60_000);
+  if (!limited.ok) {
+    return {
+      ok: false,
+      message: `Too many checkout attempts. Try again in ${limited.retryAfterSec}s.`,
+    };
+  }
 
   const parsed = checkoutSchema.safeParse({
     shippingName: formData.get("shippingName"),

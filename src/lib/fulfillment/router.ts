@@ -1,20 +1,10 @@
 import type { ProductCategory, Vendor } from "@prisma/client";
 import { prisma } from "@/lib/db";
-
-const CITY_REGION: Record<string, string> = {
-  karachi: "sindh",
-  hyderabad: "sindh",
-  sukkur: "sindh",
-  lahore: "punjab_central",
-  faisalabad: "punjab_central",
-  multan: "punjab_south",
-  gujranwala: "punjab_central",
-  sialkot: "punjab_north",
-  islamabad: "capital",
-  rawalpindi: "capital",
-  peshawar: "kpk",
-  quetta: "balochistan",
-};
+import {
+  capacityScore,
+  costScore,
+  locationScore,
+} from "@/lib/fulfillment/scoring";
 
 export type VendorScoreBreakdown = {
   vendorId: string;
@@ -29,30 +19,6 @@ export type VendorScoreBreakdown = {
   capabilityMatch: boolean;
   reasons: string[];
 };
-
-function regionOf(city: string) {
-  return CITY_REGION[city.trim().toLowerCase()] ?? "other";
-}
-
-function locationScore(customerCity: string, vendorCity: string) {
-  const a = customerCity.trim().toLowerCase();
-  const b = vendorCity.trim().toLowerCase();
-  if (a === b) return 1;
-  if (regionOf(a) === regionOf(b) && regionOf(a) !== "other") return 0.72;
-  const neighbors: Record<string, string[]> = {
-    punjab_central: ["punjab_north", "punjab_south", "capital"],
-    punjab_north: ["punjab_central", "capital", "kpk"],
-    punjab_south: ["punjab_central", "sindh"],
-    capital: ["punjab_central", "punjab_north", "kpk"],
-    sindh: ["punjab_south"],
-    kpk: ["capital", "punjab_north"],
-    balochistan: ["sindh"],
-  };
-  const ra = regionOf(a);
-  const rb = regionOf(b);
-  if (neighbors[ra]?.includes(rb)) return 0.45;
-  return 0.2;
-}
 
 export async function scoreVendorsForOrder(input: {
   customerCity: string;
@@ -82,14 +48,10 @@ export async function scoreVendorsForOrder(input: {
     const caps = new Set(vendor.capabilities.map((c) => c.category));
     const capabilityMatch = input.categories.every((c) => caps.has(c));
     const openOrders = openByVendor.get(vendor.id) ?? 0;
-    const capacityRatio = Math.max(
-      0,
-      1 - openOrders / Math.max(1, vendor.capacityDaily),
-    );
 
     const loc = locationScore(input.customerCity, vendor.city);
-    const cost = Math.max(0, Math.min(1, 2 - vendor.baseCostFactor));
-    const capacity = capacityRatio;
+    const cost = costScore(vendor.baseCostFactor);
+    const capacity = capacityScore(openOrders, vendor.capacityDaily);
     const quality =
       (vendor.qualityScore / 5) * 0.5 +
       (vendor.rating / 5) * 0.3 +

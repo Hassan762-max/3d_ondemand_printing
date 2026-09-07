@@ -16,8 +16,9 @@ export function deliveryFeeForCity(city: string) {
   return CITY_DELIVERY[key] ?? 300;
 }
 
-export function estimateVendorCost(subtotal: number) {
-  return Math.round(subtotal * 0.58);
+export function estimateVendorCost(subtotal: number, costFactor = 1) {
+  const safe = Math.max(0, subtotal);
+  return Math.round(safe * 0.58 * costFactor);
 }
 
 export type OrderTotals = {
@@ -31,15 +32,16 @@ export type OrderTotals = {
 };
 
 export function computeOrderTotals(subtotal: number, city: string): OrderTotals {
+  const safeSubtotal = Math.max(0, Number.isFinite(subtotal) ? subtotal : 0);
   const deliveryFee = deliveryFeeForCity(city);
-  const totalPayable = subtotal + deliveryFee;
+  const totalPayable = safeSubtotal + deliveryFee;
   const advanceAmount = Math.min(ADVANCE_AMOUNT, totalPayable);
   const remainingAmount = Math.max(0, totalPayable - advanceAmount);
-  const vendorCost = estimateVendorCost(subtotal);
-  const platformMargin = Math.max(0, subtotal - vendorCost);
+  const vendorCost = estimateVendorCost(safeSubtotal);
+  const platformMargin = Math.max(0, safeSubtotal - vendorCost);
 
   return {
-    subtotal,
+    subtotal: safeSubtotal,
     deliveryFee,
     advanceAmount,
     remainingAmount,
@@ -47,6 +49,22 @@ export function computeOrderTotals(subtotal: number, city: string): OrderTotals 
     platformMargin,
     totalPayable,
   };
+}
+
+/**
+ * Refund only what was actually collected on the ledger.
+ * Never invent COD collection from order.remainingAmount alone.
+ */
+export function computeRefundAmount(
+  payments: { kind: string; status: string; amount: number }[],
+) {
+  return payments
+    .filter(
+      (p) =>
+        p.status === "COMPLETED" &&
+        (p.kind === "ADVANCE" || p.kind === "COD_REMAINING"),
+    )
+    .reduce((sum, p) => sum + Math.max(0, p.amount), 0);
 }
 
 export function generateOrderNumber() {

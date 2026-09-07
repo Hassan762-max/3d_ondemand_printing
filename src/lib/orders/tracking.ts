@@ -1,4 +1,5 @@
 import type { OrderStatus } from "@prisma/client";
+import { ADVANCE_AMOUNT } from "@/lib/orders/pricing";
 
 export type TrackingStep = {
   key: OrderStatus | "PLACED";
@@ -10,7 +11,7 @@ export const TRACKING_STEPS: TrackingStep[] = [
   {
     key: "ADVANCE_PAID",
     label: "Advance paid",
-    description: "Rs. 500 advance received; order confirmed",
+    description: `Rs. ${ADVANCE_AMOUNT} advance received; order confirmed`,
   },
   {
     key: "ASSIGNED",
@@ -54,7 +55,7 @@ const STATUS_RANK: Record<string, number> = {
   OUT_FOR_DELIVERY: 6,
   DELIVERED: 7,
   CANCELLED: -1,
-  RETURN_REQUESTED: 6,
+  RETURN_REQUESTED: 7,
   REFUNDED: -1,
   REPRINT: 3,
   REPLACEMENT: 3,
@@ -68,7 +69,7 @@ export function trackingProgress(status: OrderStatus) {
     return {
       ...step,
       state:
-        status === "CANCELLED"
+        status === "CANCELLED" || status === "REFUNDED"
           ? ("cancelled" as const)
           : current >= stepRank
             ? ("done" as const)

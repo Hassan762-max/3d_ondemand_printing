@@ -14,12 +14,16 @@ export default async function AccountPage() {
 
   const permissions = permissionsFor(session.user.role);
 
-  const [savedCount, wishlistCount, cartCount, uploadCount] = await Promise.all([
-    prisma.savedDesign.count({ where: { userId: session.user.id } }),
-    prisma.wishlistItem.count({ where: { userId: session.user.id } }),
-    prisma.cartItem.count({ where: { cart: { userId: session.user.id } } }),
-    prisma.design.count({ where: { ownerId: session.user.id, isLibrary: false } }),
-  ]);
+  const [savedCount, wishlistCount, cartCount, uploadCount, unreadCount] =
+    await Promise.all([
+      prisma.savedDesign.count({ where: { userId: session.user.id } }),
+      prisma.wishlistItem.count({ where: { userId: session.user.id } }),
+      prisma.cartItem.count({ where: { cart: { userId: session.user.id } } }),
+      prisma.design.count({ where: { ownerId: session.user.id, isLibrary: false } }),
+      prisma.notification.count({
+        where: { userId: session.user.id, read: false },
+      }),
+    ]);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
@@ -52,6 +56,24 @@ export default async function AccountPage() {
         >
           <p className="text-xs uppercase tracking-[0.12em] text-[var(--muted)]">Cart</p>
           <p className="mt-2 font-medium">{cartCount} items</p>
+        </Link>
+        <Link
+          href="/account/notifications"
+          className="rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-5 transition hover:border-[var(--ink)]/25"
+        >
+          <p className="text-xs uppercase tracking-[0.12em] text-[var(--muted)]">
+            Notifications
+          </p>
+          <p className="mt-2 font-medium">{unreadCount} unread</p>
+        </Link>
+        <Link
+          href="/creator"
+          className="rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-5 transition hover:border-[var(--ink)]/25"
+        >
+          <p className="text-xs uppercase tracking-[0.12em] text-[var(--muted)]">
+            Creator hub
+          </p>
+          <p className="mt-2 font-medium">Publish & earnings</p>
         </Link>
         <div className="rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-5">
           <p className="text-xs uppercase tracking-[0.12em] text-[var(--muted)]">Role</p>

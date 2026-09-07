@@ -6,9 +6,10 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatPkr(amount: number) {
+  const safe = Number.isFinite(amount) ? amount : 0;
   return new Intl.NumberFormat("en-PK", {
     style: "currency",
     currency: "PKR",
     maximumFractionDigits: 0,
-  }).format(amount);
+  }).format(safe);
 }

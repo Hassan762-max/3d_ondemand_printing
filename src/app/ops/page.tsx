@@ -5,6 +5,7 @@ import {
   QcDecisionForm,
   ResolveReturnForm,
 } from "@/components/ops/ops-actions";
+import { ModerateDesignButtons } from "@/components/ops/moderate-design-buttons";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
@@ -28,6 +29,7 @@ export default async function OpsPage() {
     "order:read_all",
     "production:manage",
     "vendor:assign",
+    "design:moderate",
   ]);
   if (!canOps && role !== "ADMIN" && role !== "SUPER_ADMIN") {
     return (
@@ -40,7 +42,7 @@ export default async function OpsPage() {
     );
   }
 
-  const [openReturns, pendingRefunds, qcOrders, vendors, recentOrders] =
+  const [openReturns, pendingRefunds, qcOrders, vendors, recentOrders, pendingListings] =
     await Promise.all([
       prisma.returnRequest.findMany({
         where: { status: "open" },
@@ -69,6 +71,12 @@ export default async function OpsPage() {
         take: 8,
         include: { vendor: true },
       }),
+      prisma.design.findMany({
+        where: { moderationStatus: "pending" },
+        include: { owner: { select: { name: true, email: true } } },
+        orderBy: { updatedAt: "desc" },
+        take: 20,
+      }),
     ]);
 
   const showSupport = hasPermission(role, "support:manage") || role === "ADMIN";
@@ -77,6 +85,8 @@ export default async function OpsPage() {
     hasPermission(role, "finance:manage") ||
     role === "ADMIN";
   const showQc = hasPermission(role, "qc:manage") || role === "ADMIN";
+  const showModeration =
+    hasPermission(role, "design:moderate") || role === "ADMIN";
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
@@ -92,8 +102,49 @@ export default async function OpsPage() {
         <Stat label="Open returns" value={String(openReturns.length)} />
         <Stat label="Pending refunds" value={String(pendingRefunds.length)} />
         <Stat label="QC / reprint queue" value={String(qcOrders.length)} />
-        <Stat label="Active vendors" value={String(vendors.length)} />
+        <Stat label="Pending listings" value={String(pendingListings.length)} />
       </div>
+
+      {showModeration ? (
+        <section className="mt-12">
+          <h2 className="text-lg font-medium tracking-tight">
+            Marketplace moderation
+          </h2>
+          {pendingListings.length === 0 ? (
+            <p className="mt-3 text-sm text-[var(--muted)]">No pending listings.</p>
+          ) : (
+            <ul className="mt-4 space-y-4">
+              {pendingListings.map((design) => (
+                <li
+                  key={design.id}
+                  className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-4"
+                >
+                  <div className="flex gap-3">
+                    <div className="h-14 w-14 overflow-hidden rounded-lg bg-[var(--mist)] p-1">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={design.imageUrl}
+                        alt={design.title}
+                        className="h-full w-full object-contain"
+                      />
+                    </div>
+                    <div>
+                      <p className="font-medium">{design.title}</p>
+                      <p className="text-xs text-[var(--muted)]">
+                        {design.owner?.name ?? design.owner?.email ?? "Creator"} ·{" "}
+                        {design.listedPrice > 0
+                          ? formatPkr(design.listedPrice)
+                          : "Free"}
+                      </p>
+                    </div>
+                  </div>
+                  <ModerateDesignButtons designId={design.id} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
 
       {showSupport ? (
         <section className="mt-12">
@@ -200,7 +251,9 @@ export default async function OpsPage() {
             <tbody>
               {vendors.map((v) => (
                 <tr key={v.id} className="border-t border-[var(--ink)]/8">
-                  <td className="px-3 py-2">{v.businessName}</td>
+                  <td className="max-w-[10rem] truncate px-3 py-2" title={v.businessName}>
+                    {v.businessName}
+                  </td>
                   <td className="px-3 py-2">{v.city}</td>
                   <td className="px-3 py-2">{v.qualityScore.toFixed(1)}</td>
                   <td className="px-3 py-2">{v.deliveryScore.toFixed(1)}</td>

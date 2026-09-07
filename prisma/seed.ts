@@ -92,6 +92,58 @@ const products: {
       { name: "Khaki", hex: "#A8906C" },
     ],
   },
+  {
+    slug: "everyday-casual-shirt",
+    name: "Everyday Casual Shirt",
+    description: "Lightweight button-down with a clean print panel across the back.",
+    category: "CASUAL_SHIRT",
+    basePrice: 3299,
+    imageUrl: "/products/shirt.svg",
+    sizes: ["S", "M", "L", "XL"],
+    colors: [
+      { name: "Sky", hex: "#C5D4E0" },
+      { name: "Ink", hex: "#12141A" },
+    ],
+  },
+  {
+    slug: "city-shell-jacket",
+    name: "City Shell Jacket",
+    description: "Light shell for monsoon evenings — large back print zone.",
+    category: "JACKET",
+    basePrice: 5499,
+    imageUrl: "/products/jacket.svg",
+    sizes: ["M", "L", "XL", "XXL"],
+    colors: [
+      { name: "Olive", hex: "#3F4A3A" },
+      { name: "Black", hex: "#0E1116" },
+    ],
+  },
+  {
+    slug: "studio-joggers",
+    name: "Studio Joggers",
+    description: "Tapered fleece joggers with a thigh-safe print area.",
+    category: "JOGGERS",
+    basePrice: 3599,
+    imageUrl: "/products/joggers.svg",
+    sizes: ["S", "M", "L", "XL"],
+    colors: [
+      { name: "Charcoal", hex: "#2A2D34" },
+      { name: "Stone", hex: "#C9C2B8" },
+    ],
+  },
+  {
+    slug: "court-shorts",
+    name: "Court Shorts",
+    description: "Breathable shorts with a small side-panel print option.",
+    category: "SHORTS",
+    basePrice: 2199,
+    imageUrl: "/products/shorts.svg",
+    sizes: ["S", "M", "L", "XL"],
+    colors: [
+      { name: "Navy", hex: "#1B2A4A" },
+      { name: "Bone", hex: "#F2EDE6" },
+    ],
+  },
 ];
 
 const libraryDesigns = [
@@ -189,7 +241,15 @@ async function main() {
       baseCostFactor: 0.95,
       qualityScore: 4.2,
       deliveryScore: 4.0,
-      categories: ["T_SHIRT", "OVERSIZED_T_SHIRT", "HOODIE", "SWEATSHIRT", "CAP"],
+      categories: [
+        "T_SHIRT",
+        "OVERSIZED_T_SHIRT",
+        "HOODIE",
+        "SWEATSHIRT",
+        "CAP",
+        "JOGGERS",
+        "SHORTS",
+      ],
     },
     {
       email: "vendor.khi@printora.pk",
@@ -201,7 +261,15 @@ async function main() {
       baseCostFactor: 1.05,
       qualityScore: 4.4,
       deliveryScore: 4.1,
-      categories: ["T_SHIRT", "OVERSIZED_T_SHIRT", "POLO", "HOODIE", "CAP"],
+      categories: [
+        "T_SHIRT",
+        "OVERSIZED_T_SHIRT",
+        "POLO",
+        "HOODIE",
+        "CAP",
+        "CASUAL_SHIRT",
+        "SHORTS",
+      ],
     },
     {
       email: "vendor.lhe@printora.pk",
@@ -213,7 +281,18 @@ async function main() {
       baseCostFactor: 1.0,
       qualityScore: 4.6,
       deliveryScore: 4.5,
-      categories: ["T_SHIRT", "OVERSIZED_T_SHIRT", "POLO", "HOODIE", "SWEATSHIRT", "CAP"],
+      categories: [
+        "T_SHIRT",
+        "OVERSIZED_T_SHIRT",
+        "POLO",
+        "HOODIE",
+        "SWEATSHIRT",
+        "CAP",
+        "CASUAL_SHIRT",
+        "JACKET",
+        "JOGGERS",
+        "SHORTS",
+      ],
     },
     {
       email: "vendor.isb@printora.pk",
@@ -225,7 +304,7 @@ async function main() {
       baseCostFactor: 1.1,
       qualityScore: 4.3,
       deliveryScore: 4.2,
-      categories: ["T_SHIRT", "POLO", "HOODIE", "CAP"],
+      categories: ["T_SHIRT", "POLO", "HOODIE", "CAP", "JACKET", "CASUAL_SHIRT"],
     },
   ];
 
@@ -251,6 +330,15 @@ async function main() {
           active: true,
         },
       });
+      for (const category of v.categories) {
+        await prisma.vendorCapability.upsert({
+          where: {
+            vendorId_category: { vendorId: existing.id, category },
+          },
+          update: {},
+          create: { vendorId: existing.id, category },
+        });
+      }
       continue;
     }
     await prisma.vendor.create({
@@ -324,6 +412,58 @@ async function main() {
           tags: JSON.stringify(d.tags),
         },
       });
+    }
+  }
+
+  const designer = await prisma.user.findUnique({
+    where: { email: "designer@printora.pk" },
+  });
+  if (designer) {
+    const creatorListings = [
+      {
+        title: "Canal Road Mark",
+        description: "Bold Lahore canal geometry for chest prints.",
+        imageUrl: "/designs/karachi-grid.svg",
+        listedPrice: 299,
+        tags: ["creator", "lahore", "geo"],
+      },
+      {
+        title: "Monsoon Script",
+        description: "Free brush lettering — monsoon nights.",
+        imageUrl: "/designs/indus-line.svg",
+        listedPrice: 0,
+        tags: ["creator", "type", "free"],
+      },
+    ];
+    for (const listing of creatorListings) {
+      const existing = await prisma.design.findFirst({
+        where: { title: listing.title, ownerId: designer.id },
+      });
+      if (!existing) {
+        await prisma.design.create({
+          data: {
+            ownerId: designer.id,
+            title: listing.title,
+            description: listing.description,
+            imageUrl: listing.imageUrl,
+            thumbnailUrl: listing.imageUrl,
+            isLibrary: false,
+            published: true,
+            listedPrice: listing.listedPrice,
+            moderationStatus: "approved",
+            tags: JSON.stringify(listing.tags),
+          },
+        });
+      } else {
+        await prisma.design.update({
+          where: { id: existing.id },
+          data: {
+            published: true,
+            listedPrice: listing.listedPrice,
+            moderationStatus: "approved",
+          },
+        });
+      }
     }
   }
 

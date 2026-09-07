@@ -46,7 +46,15 @@ export default async function ProductDetailPage({ params }: Props) {
   const designs = session?.user?.id
     ? await prisma.design.findMany({
         where: {
-          OR: [{ isLibrary: true }, { ownerId: session.user.id }],
+          OR: [
+            { isLibrary: true },
+            { ownerId: session.user.id },
+            {
+              published: true,
+              moderationStatus: "approved",
+              licenses: { some: { buyerId: session.user.id } },
+            },
+          ],
         },
         orderBy: { title: "asc" },
         select: { id: true, title: true },
@@ -58,6 +66,22 @@ export default async function ProductDetailPage({ params }: Props) {
         select: { id: true, title: true },
         take: 50,
       });
+
+  const productReviews = await prisma.review.findMany({
+    where: {
+      order: {
+        items: { some: { productId: product.id } },
+        status: "DELIVERED",
+      },
+    },
+    include: { user: { select: { name: true } } },
+    orderBy: { createdAt: "desc" },
+    take: 8,
+  });
+  const avgRating =
+    productReviews.length > 0
+      ? productReviews.reduce((s, r) => s + r.rating, 0) / productReviews.length
+      : null;
 
   return (
     <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-2">
@@ -72,6 +96,9 @@ export default async function ProductDetailPage({ params }: Props) {
       <div className="flex flex-col justify-center">
         <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">
           From {formatPkr(product.basePrice)}
+          {avgRating
+            ? ` · ${avgRating.toFixed(1)}/5 (${productReviews.length})`
+            : ""}
         </p>
         <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl tracking-tight">
           {product.name}
@@ -97,6 +124,24 @@ export default async function ProductDetailPage({ params }: Props) {
             </Button>
           </Link>
         </div>
+
+        {productReviews.length > 0 ? (
+          <section className="mt-12 border-t border-[var(--ink)]/8 pt-8">
+            <h2 className="text-lg font-medium tracking-tight">Customer reviews</h2>
+            <ul className="mt-4 space-y-4">
+              {productReviews.map((review) => (
+                <li key={review.id} className="text-sm">
+                  <p className="font-medium">
+                    {review.rating}/5 · {review.user.name ?? "Customer"}
+                  </p>
+                  {review.body ? (
+                    <p className="mt-1 text-[var(--muted)]">{review.body}</p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
       </div>
     </div>
   );
