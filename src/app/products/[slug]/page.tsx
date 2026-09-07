@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AddToCartForm } from "@/components/products/add-to-cart-form";
+import { WishlistButton } from "@/components/products/wishlist-button";
 import { Button } from "@/components/ui/button";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { formatPkr } from "@/lib/utils";
 
@@ -16,6 +19,7 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function ProductDetailPage({ params }: Props) {
   const { slug } = await params;
+  const session = await auth();
   const product = await prisma.product.findUnique({
     where: { slug },
     include: { variants: true },
@@ -28,6 +32,32 @@ export default async function ProductDetailPage({ params }: Props) {
       product.variants.map((v) => [v.color, { name: v.color, hex: v.colorHex }]),
     ).values(),
   ];
+
+  const wishlisted = session?.user?.id
+    ? Boolean(
+        await prisma.wishlistItem.findUnique({
+          where: {
+            userId_productId: { userId: session.user.id, productId: product.id },
+          },
+        }),
+      )
+    : false;
+
+  const designs = session?.user?.id
+    ? await prisma.design.findMany({
+        where: {
+          OR: [{ isLibrary: true }, { ownerId: session.user.id }],
+        },
+        orderBy: { title: "asc" },
+        select: { id: true, title: true },
+        take: 50,
+      })
+    : await prisma.design.findMany({
+        where: { isLibrary: true },
+        orderBy: { title: "asc" },
+        select: { id: true, title: true },
+        take: 50,
+      });
 
   return (
     <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-2">
@@ -51,41 +81,19 @@ export default async function ProductDetailPage({ params }: Props) {
         </p>
 
         <div className="mt-8">
-          <p className="text-xs uppercase tracking-[0.12em] text-[var(--muted)]">Sizes</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {sizes.map((size) => (
-              <span
-                key={size}
-                className="inline-flex h-10 min-w-10 items-center justify-center rounded-md border border-[var(--ink)]/12 px-3 text-sm"
-              >
-                {size}
-              </span>
-            ))}
-          </div>
+          <AddToCartForm
+            productId={product.id}
+            sizes={sizes}
+            colors={colors}
+            designs={designs}
+          />
         </div>
 
-        <div className="mt-6">
-          <p className="text-xs uppercase tracking-[0.12em] text-[var(--muted)]">Colors</p>
-          <div className="mt-3 flex flex-wrap gap-3">
-            {colors.map((color) => (
-              <span key={color.name} className="flex items-center gap-2 text-sm">
-                <span
-                  className="h-5 w-5 rounded-full border border-[var(--ink)]/15"
-                  style={{ backgroundColor: color.hex }}
-                />
-                {color.name}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-10 flex flex-wrap gap-3">
+        <div className="mt-6 flex flex-wrap gap-3">
+          <WishlistButton productId={product.id} initiallySaved={wishlisted} />
           <Link href={`/studio?product=${product.slug}`}>
-            <Button size="lg">Customize in 3D</Button>
-          </Link>
-          <Link href="/designs">
             <Button size="lg" variant="outline">
-              Choose a design
+              Customize in 3D
             </Button>
           </Link>
         </div>

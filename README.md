@@ -30,6 +30,14 @@ Password for all: `password123`
 - Catalog + design library + account/cart shells
 - Provider-agnostic AI layer with mock provider
 
+## Phase 2 (done)
+
+- Secure design upload (type/size/SVG checks + optional AI enhance)
+- Save/unsave designs · personal uploads library
+- Product wishlist
+- Cart add/update/remove with size, color, optional design
+- Account hubs for designs & wishlist · cart totals with advance/COD preview
+
 ## Next phases
 
 See `docs/ARCHITECTURE.md` §2 and §11.

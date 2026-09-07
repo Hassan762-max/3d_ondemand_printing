@@ -2,8 +2,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth, signOut } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { prisma } from "@/lib/db";
 import { permissionsFor } from "@/lib/rbac";
 
+export const dynamic = "force-dynamic";
 export const metadata = { title: "Account" };
 
 export default async function AccountPage() {
@@ -11,6 +13,13 @@ export default async function AccountPage() {
   if (!session?.user) redirect("/auth/sign-in");
 
   const permissions = permissionsFor(session.user.role);
+
+  const [savedCount, wishlistCount, cartCount, uploadCount] = await Promise.all([
+    prisma.savedDesign.count({ where: { userId: session.user.id } }),
+    prisma.wishlistItem.count({ where: { userId: session.user.id } }),
+    prisma.cartItem.count({ where: { cart: { userId: session.user.id } } }),
+    prisma.design.count({ where: { ownerId: session.user.id, isLibrary: false } }),
+  ]);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
@@ -21,17 +30,39 @@ export default async function AccountPage() {
       <p className="mt-2 text-sm text-[var(--muted)]">{session.user.email}</p>
 
       <div className="mt-10 grid gap-4 sm:grid-cols-2">
+        <Link
+          href="/account/designs"
+          className="rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-5 transition hover:border-[var(--ink)]/25"
+        >
+          <p className="text-xs uppercase tracking-[0.12em] text-[var(--muted)]">Designs</p>
+          <p className="mt-2 font-medium">
+            {savedCount} saved · {uploadCount} uploaded
+          </p>
+        </Link>
+        <Link
+          href="/account/wishlist"
+          className="rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-5 transition hover:border-[var(--ink)]/25"
+        >
+          <p className="text-xs uppercase tracking-[0.12em] text-[var(--muted)]">Wishlist</p>
+          <p className="mt-2 font-medium">{wishlistCount} products</p>
+        </Link>
+        <Link
+          href="/cart"
+          className="rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-5 transition hover:border-[var(--ink)]/25"
+        >
+          <p className="text-xs uppercase tracking-[0.12em] text-[var(--muted)]">Cart</p>
+          <p className="mt-2 font-medium">{cartCount} items</p>
+        </Link>
         <div className="rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-5">
           <p className="text-xs uppercase tracking-[0.12em] text-[var(--muted)]">Role</p>
           <p className="mt-2 font-medium">{session.user.role.replaceAll("_", " ")}</p>
         </div>
-        <div className="rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-5">
-          <p className="text-xs uppercase tracking-[0.12em] text-[var(--muted)]">Permissions</p>
-          <p className="mt-2 font-medium">{permissions.length} active</p>
-        </div>
       </div>
 
       <div className="mt-8 flex flex-wrap gap-3">
+        <Link href="/designs/upload">
+          <Button>Upload design</Button>
+        </Link>
         <Link href="/orders">
           <Button variant="outline">Orders</Button>
         </Link>
@@ -51,9 +82,7 @@ export default async function AccountPage() {
       </div>
 
       <div className="mt-12">
-        <p className="text-xs uppercase tracking-[0.12em] text-[var(--muted)]">
-          Your access
-        </p>
+        <p className="text-xs uppercase tracking-[0.12em] text-[var(--muted)]">Your access</p>
         <ul className="mt-4 flex flex-wrap gap-2">
           {permissions.map((p) => (
             <li
