@@ -21,6 +21,7 @@ const addSchema = z.object({
   size: z.string().min(1),
   color: z.string().min(1),
   quantity: z.coerce.number().int().min(1).max(20).default(1),
+  placementJson: z.string().optional(),
 });
 
 export async function addToCart(formData: FormData): Promise<CartResult> {
@@ -33,10 +34,36 @@ export async function addToCart(formData: FormData): Promise<CartResult> {
     size: formData.get("size"),
     color: formData.get("color"),
     quantity: formData.get("quantity") || 1,
+    placementJson: formData.get("placementJson") || undefined,
   });
 
   if (!parsed.success) {
     return { ok: false, message: "Select size and color to add to cart." };
+  }
+
+  let placementJson = JSON.stringify({
+    side: "front",
+    x: 0.5,
+    y: 0.4,
+    scale: 1,
+    rotation: 0,
+  });
+  if (parsed.data.placementJson) {
+    try {
+      const parsedPlacement = JSON.parse(parsed.data.placementJson) as Record<
+        string,
+        unknown
+      >;
+      placementJson = JSON.stringify({
+        side: parsedPlacement.side === "back" ? "back" : "front",
+        x: Number(parsedPlacement.x ?? 0.5),
+        y: Number(parsedPlacement.y ?? 0.4),
+        scale: Number(parsedPlacement.scale ?? 1),
+        rotation: Number(parsedPlacement.rotation ?? 0),
+      });
+    } catch {
+      return { ok: false, message: "Invalid placement data." };
+    }
   }
 
   const product = await prisma.product.findUnique({
@@ -82,7 +109,10 @@ export async function addToCart(formData: FormData): Promise<CartResult> {
   if (existing) {
     await prisma.cartItem.update({
       where: { id: existing.id },
-      data: { quantity: Math.min(20, existing.quantity + parsed.data.quantity) },
+      data: {
+        quantity: Math.min(20, existing.quantity + parsed.data.quantity),
+        placementJson,
+      },
     });
   } else {
     await prisma.cartItem.create({
@@ -94,7 +124,7 @@ export async function addToCart(formData: FormData): Promise<CartResult> {
         color: parsed.data.color,
         quantity: parsed.data.quantity,
         unitPrice: product.basePrice,
-        placementJson: JSON.stringify({ side: "front", x: 0.5, y: 0.4, scale: 1, rotation: 0 }),
+        placementJson,
       },
     });
   }

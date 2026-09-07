@@ -1,54 +1,79 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { StudioShell } from "@/components/studio/studio-shell";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
 export const metadata = { title: "3D Studio" };
 
-export default function StudioPage() {
+type Props = {
+  searchParams: Promise<{ product?: string; design?: string }>;
+};
+
+export default async function StudioPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const session = await auth();
+
+  const productsRaw = await prisma.product.findMany({
+    where: { active: true },
+    include: { variants: true },
+    orderBy: { name: "asc" },
+  });
+
+  const products = productsRaw.map((p) => {
+    const sizes = [...new Set(p.variants.map((v) => v.size))];
+    const colors = [
+      ...new Map(
+        p.variants.map((v) => [v.color, { name: v.color, hex: v.colorHex }]),
+      ).values(),
+    ];
+    return {
+      id: p.id,
+      slug: p.slug,
+      name: p.name,
+      category: p.category,
+      basePrice: p.basePrice,
+      imageUrl: p.imageUrl,
+      sizes,
+      colors,
+    };
+  });
+
+  const designs = await prisma.design.findMany({
+    where: {
+      OR: [
+        { isLibrary: true },
+        ...(session?.user?.id ? [{ ownerId: session.user.id }] : []),
+      ],
+    },
+    orderBy: [{ isLibrary: "desc" }, { title: "asc" }],
+    select: {
+      id: true,
+      title: true,
+      imageUrl: true,
+      isLibrary: true,
+    },
+  });
+
   return (
-    <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
       <p className="text-xs uppercase tracking-[0.16em] text-[var(--accent)]">
-        Phase 3 · coming next
+        3D Clothing Studio
       </p>
       <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl tracking-tight sm:text-5xl">
-        3D Clothing Studio
+        Customize in real time
       </h1>
-      <p className="mt-4 max-w-2xl text-sm leading-relaxed text-[var(--muted)]">
-        Place, resize, and rotate artwork on real garment models. Change color,
-        switch front/back, orbit 360°, and save comparisons — built on React Three Fiber
-        in the next phase.
+      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[var(--muted)]">
+        Apply artwork, move and scale it, switch garment color and print side,
+        orbit 360°, save looks to compare, then add to cart.
       </p>
 
-      <div className="relative mt-12 overflow-hidden rounded-2xl bg-[var(--ink)] px-8 py-16 text-[var(--paper)]">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(42,143,120,0.35),transparent_45%)]" />
-        <div className="relative grid gap-10 lg:grid-cols-[1fr_0.8fr] lg:items-center">
-          <div>
-            <p className="text-xs uppercase tracking-[0.16em] text-white/50">Preview canvas</p>
-            <p className="mt-4 font-[family-name:var(--font-display)] text-3xl">
-              Interactive garment viewport
-            </p>
-            <ul className="mt-6 space-y-2 text-sm text-white/65">
-              <li>Apply designs · move · resize · rotate</li>
-              <li>Garment color · size · front/back print</li>
-              <li>Orbit · zoom · save & compare</li>
-            </ul>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/designs">
-                <Button variant="secondary">Pick a design first</Button>
-              </Link>
-              <Link href="/designs/upload">
-                <Button className="border border-white/20 bg-transparent text-white hover:bg-white/10">
-                  Upload artwork
-                </Button>
-              </Link>
-              <Link href="/products">
-                <Button className="border border-white/20 bg-transparent text-white hover:bg-white/10">
-                  Choose product
-                </Button>
-              </Link>
-            </div>
-          </div>
-          <div className="aspect-square rounded-xl border border-white/15 bg-white/5 backdrop-blur-sm" />
-        </div>
+      <div className="mt-10">
+        <StudioShell
+          products={products}
+          designs={designs}
+          initialProductSlug={params.product ?? null}
+          initialDesignId={params.design ?? null}
+        />
       </div>
     </div>
   );
