@@ -75,7 +75,7 @@ export function AiStudio({
             <li>· Every run is logged as an AiJob</li>
             <li>· Generated art can save to your library</li>
             <li>· Enhanced copies keep originals intact</li>
-            <li>· Try-On review arrives in Phase 5</li>
+            <li>· Virtual Try-On lives at /try-on</li>
           </ul>
         </aside>
       </div>

@@ -1,12 +1,15 @@
-import { prisma } from "@/lib/db";
+import type { AiJobType } from "@prisma/client";
 import { getAiProvider } from "@/lib/ai";
 import type {
   ConsultInput,
   DiagnoseInput,
   EnhanceInput,
   GenerateInput,
+  TryOnInput,
+  TryOnReviewInput,
 } from "@/lib/ai/types";
-import type { AiJobType } from "@prisma/client";
+import { writeTryOnPreview } from "@/lib/ai/try-on-asset";
+import { prisma } from "@/lib/db";
 
 async function runJob<T>(
   type: AiJobType,
@@ -74,4 +77,33 @@ export async function runStyleConsult(input: ConsultInput) {
 export async function runDesignConsult(input: ConsultInput) {
   const ai = getAiProvider();
   return runJob("DESIGN_CONSULT", input, () => ai.consultDesign(input));
+}
+
+export async function runVirtualTryOn(
+  input: TryOnInput & {
+    garmentColor?: string;
+    designUrl?: string | null;
+    size?: string;
+  },
+) {
+  const ai = getAiProvider();
+  return runJob("TRY_ON", input, async () => {
+    const base = await ai.virtualTryOn(input);
+    const previewUrl = await writeTryOnPreview({
+      photoUrl: input.photoUrl,
+      productName: input.productName,
+      garmentColor: input.garmentColor ?? "#1C212B",
+      designUrl: input.designUrl,
+      size: input.size,
+    });
+    return {
+      ...base,
+      resultUrl: previewUrl,
+    };
+  });
+}
+
+export async function runTryOnReview(input: TryOnReviewInput) {
+  const ai = getAiProvider();
+  return runJob("TRY_ON_REVIEW", input, () => ai.reviewTryOn(input));
 }

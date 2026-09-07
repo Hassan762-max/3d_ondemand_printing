@@ -50,6 +50,11 @@ Password for all: `password123`
 - Job orchestration with `AiJob` logging · `live-ready` provider (swap via `AI_PROVIDER`)
 - Generated/enhanced designs save into personal library
 
+## Phase 5 (done)
+
+- Virtual Try-On: photo upload → garment selection → AI preview + review
+- Iterate with size/color changes, compare up to 2 looks, finalize to Studio/cart path
+
 ## Next phases
 
 See `docs/ARCHITECTURE.md` §2 and §11.
