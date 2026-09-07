@@ -1,0 +1,233 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { prisma } from "@/lib/db";
+import { getPaymentProvider } from "@/lib/orders/payment";
+import {
+  computeOrderTotals,
+  generateOrderNumber,
+} from "@/lib/orders/pricing";
+import { getAuthorizedUser, requireUser } from "@/lib/session";
+
+export type OrderActionResult = {
+  ok: boolean;
+  message?: string;
+  orderId?: string;
+  orderNumber?: string;
+};
+
+const checkoutSchema = z.object({
+  shippingName: z.string().min(2).max(80),
+  shippingPhone: z.string().min(10).max(20),
+  shippingCity: z.string().min(2).max(80),
+  shippingAddress: z.string().min(5).max(240),
+  shippingProvince: z.string().max(80).optional(),
+  notes: z.string().max(400).optional(),
+});
+
+export async function placeOrder(
+  _prev: OrderActionResult,
+  formData: FormData,
+): Promise<OrderActionResult> {
+  const user = await getAuthorizedUser("order:create");
+  if (!user) return { ok: false, message: "Please sign in to checkout." };
+
+  const parsed = checkoutSchema.safeParse({
+    shippingName: formData.get("shippingName"),
+    shippingPhone: formData.get("shippingPhone"),
+    shippingCity: formData.get("shippingCity"),
+    shippingAddress: formData.get("shippingAddress"),
+    shippingProvince: formData.get("shippingProvince") || undefined,
+    notes: formData.get("notes") || undefined,
+  });
+
+  if (!parsed.success) {
+    return { ok: false, message: "Please complete your delivery details." };
+  }
+
+  const cart = await prisma.cart.findUnique({
+    where: { userId: user.id },
+    include: {
+      items: {
+        include: {
+          product: true,
+          design: true,
+        },
+      },
+    },
+  });
+
+  if (!cart || cart.items.length === 0) {
+    return { ok: false, message: "Your cart is empty." };
+  }
+
+  const subtotal = cart.items.reduce(
+    (sum, item) => sum + item.unitPrice * item.quantity,
+    0,
+  );
+  const totals = computeOrderTotals(subtotal, parsed.data.shippingCity);
+  const orderNumber = generateOrderNumber();
+
+  const payment = getPaymentProvider();
+  const capture = await payment.capture({
+    orderNumber,
+    amount: totals.advanceAmount,
+    kind: "ADVANCE",
+    customerPhone: parsed.data.shippingPhone,
+  });
+
+  if (!capture.ok || capture.status !== "COMPLETED") {
+    return {
+      ok: false,
+      message: capture.message ?? "Advance payment failed. Try again.",
+    };
+  }
+
+  const order = await prisma.$transaction(async (tx) => {
+    const created = await tx.order.create({
+      data: {
+        orderNumber,
+        userId: user.id,
+        status: "ADVANCE_PAID",
+        subtotal: totals.subtotal,
+        deliveryFee: totals.deliveryFee,
+        advanceAmount: totals.advanceAmount,
+        remainingAmount: totals.remainingAmount,
+        vendorCost: totals.vendorCost,
+        platformMargin: totals.platformMargin,
+        shippingName: parsed.data.shippingName,
+        shippingPhone: parsed.data.shippingPhone,
+        shippingCity: parsed.data.shippingCity,
+        shippingAddress: parsed.data.shippingAddress,
+        shippingProvince: parsed.data.shippingProvince,
+        notes: parsed.data.notes,
+        items: {
+          create: cart.items.map((item) => ({
+            productId: item.productId,
+            designId: item.designId,
+            title: item.design
+              ? `${item.product.name} · ${item.design.title}`
+              : item.product.name,
+            size: item.size,
+            color: item.color,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            placementJson: item.placementJson,
+          })),
+        },
+        payments: {
+          create: [
+            {
+              kind: "ADVANCE",
+              amount: totals.advanceAmount,
+              status: "COMPLETED",
+              method: capture.provider,
+              reference: capture.reference,
+              metaJson: JSON.stringify({ message: capture.message }),
+            },
+            {
+              kind: "COD_REMAINING",
+              amount: totals.remainingAmount,
+              status: "PENDING",
+              method: "COD",
+              metaJson: JSON.stringify({
+                includesDeliveryFee: true,
+                deliveryFee: totals.deliveryFee,
+              }),
+            },
+          ],
+        },
+        shipments: {
+          create: {
+            status: "pending",
+            carrier: "Vendor courier (TBD)",
+          },
+        },
+      },
+    });
+
+    await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
+
+    await tx.notification.create({
+      data: {
+        userId: user.id,
+        title: "Order placed",
+        body: `${orderNumber}: advance ${totals.advanceAmount} PKR received. Remaining on COD.`,
+        href: `/orders/${created.id}`,
+      },
+    });
+
+    await tx.auditLog.create({
+      data: {
+        userId: user.id,
+        action: "order.place",
+        entity: "Order",
+        entityId: created.id,
+        metaJson: JSON.stringify({ orderNumber, totals }),
+      },
+    });
+
+    return created;
+  });
+
+  revalidatePath("/cart");
+  revalidatePath("/checkout");
+  revalidatePath("/orders");
+  revalidatePath(`/orders/${order.id}`);
+
+  return {
+    ok: true,
+    orderId: order.id,
+    orderNumber: order.orderNumber,
+    message: "Order placed. Advance recorded.",
+  };
+}
+
+export async function cancelOrder(orderId: string): Promise<OrderActionResult> {
+  const user = await requireUser("order:cancel");
+
+  const order = await prisma.order.findFirst({
+    where: { id: orderId, userId: user.id },
+  });
+  if (!order) return { ok: false, message: "Order not found." };
+
+  const cancellable = ["PENDING_PAYMENT", "ADVANCE_PAID"].includes(order.status);
+  if (!cancellable) {
+    return {
+      ok: false,
+      message: "This order can no longer be cancelled (production may have started).",
+    };
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.order.update({
+      where: { id: order.id },
+      data: { status: "CANCELLED" },
+    });
+
+    await tx.paymentLedger.create({
+      data: {
+        orderId: order.id,
+        kind: "REFUND",
+        amount: order.advanceAmount,
+        status: "PENDING",
+        method: "MANUAL_REFUND",
+        metaJson: JSON.stringify({ reason: "customer_cancel_before_production" }),
+      },
+    });
+
+    await tx.notification.create({
+      data: {
+        userId: user.id,
+        title: "Order cancelled",
+        body: `${order.orderNumber} was cancelled. Advance refund is pending review.`,
+        href: `/orders/${order.id}`,
+      },
+    });
+  });
+
+  revalidatePath("/orders");
+  revalidatePath(`/orders/${order.id}`);
+  return { ok: true, orderId: order.id, message: "Order cancelled." };
+}
