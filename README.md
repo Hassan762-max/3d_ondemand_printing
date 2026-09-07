@@ -44,6 +44,12 @@ Password for all: `password123`
 - Design placement (move, scale, rotate) · garment color · size · front/back
 - Save & compare looks · add customized item to cart with placement JSON
 
+## Phase 4 (done)
+
+- AI Studio (`/ai`): Enhance, Design Doctor, Generator, Style & Design Consultants
+- Job orchestration with `AiJob` logging · `live-ready` provider (swap via `AI_PROVIDER`)
+- Generated/enhanced designs save into personal library
+
 ## Next phases
 
 See `docs/ARCHITECTURE.md` §2 and §11.

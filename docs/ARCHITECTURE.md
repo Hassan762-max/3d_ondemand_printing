@@ -37,7 +37,7 @@ AI-powered 3D custom clothing & print-on-demand for Pakistan.
 | 1 | Foundation: design system, auth/RBAC, catalog shell, domain schema, AI stubs |
 | 2 | Designs: library, upload, save, wishlist, cart skeleton (**done**) |
 | 3 | 3D customizer (R3F): place, scale, rotate, color, front/back (**done**) |
-| 4 | AI tools: enhance, doctor, generator, consultants (real providers) |
+| 4 | AI tools: enhance, doctor, generator, consultants (**done**) |
 | 5 | Virtual try-on loop + review/recommendations |
 | 6 | Checkout: Rs.500 advance + COD remainder, orders, tracking |
 | 7 | Multi-vendor fulfillment router (PK cities) |
