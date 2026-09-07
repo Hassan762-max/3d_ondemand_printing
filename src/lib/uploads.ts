@@ -4,18 +4,29 @@ import { nanoid } from "nanoid";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 
-const ALLOWED: Record<string, string> = {
+const DESIGN_ALLOWED: Record<string, string> = {
   "image/png": "png",
   "image/jpeg": "jpg",
   "image/webp": "webp",
   "image/svg+xml": "svg",
 };
 
+const PHOTO_ALLOWED: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+};
+
 export type UploadResult =
   | { ok: true; publicPath: string; mime: string; bytes: number }
   | { ok: false; message: string };
 
-export async function saveDesignUpload(file: File): Promise<UploadResult> {
+async function saveUpload(
+  file: File,
+  allowed: Record<string, string>,
+  folder: string,
+  options?: { allowSvg?: boolean },
+): Promise<UploadResult> {
   if (!file || file.size === 0) {
     return { ok: false, message: "Please choose an image file." };
   }
@@ -24,17 +35,18 @@ export async function saveDesignUpload(file: File): Promise<UploadResult> {
   }
 
   const mime = file.type;
-  const ext = ALLOWED[mime];
+  const ext = allowed[mime];
   if (!ext) {
     return {
       ok: false,
-      message: "Only PNG, JPG, WEBP, or SVG files are allowed.",
+      message: options?.allowSvg
+        ? "Only PNG, JPG, WEBP, or SVG files are allowed."
+        : "Only PNG, JPG, or WEBP photos are allowed.",
     };
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
 
-  // Basic SVG safety: reject script/event handlers in uploaded SVG.
   if (ext === "svg") {
     const text = buffer.toString("utf8").toLowerCase();
     if (
@@ -47,14 +59,22 @@ export async function saveDesignUpload(file: File): Promise<UploadResult> {
   }
 
   const filename = `${nanoid(16)}.${ext}`;
-  const dir = path.join(process.cwd(), "public", "uploads", "designs");
+  const dir = path.join(process.cwd(), "public", "uploads", folder);
   await mkdir(dir, { recursive: true });
   await writeFile(path.join(dir, filename), buffer);
 
   return {
     ok: true,
-    publicPath: `/uploads/designs/${filename}`,
+    publicPath: `/uploads/${folder}/${filename}`,
     mime,
     bytes: buffer.length,
   };
+}
+
+export async function saveDesignUpload(file: File): Promise<UploadResult> {
+  return saveUpload(file, DESIGN_ALLOWED, "designs", { allowSvg: true });
+}
+
+export async function savePhotoUpload(file: File): Promise<UploadResult> {
+  return saveUpload(file, PHOTO_ALLOWED, "photos");
 }
