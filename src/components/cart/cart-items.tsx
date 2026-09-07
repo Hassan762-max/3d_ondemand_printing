@@ -107,10 +107,10 @@ export function CartItems({ items }: { items: CartLine[] }) {
           <span>{formatPkr(remaining)}</span>
         </div>
         <p className="mt-4 text-xs text-[var(--muted)]">
-          Checkout & payment capture arrive in Phase 6. Cart totals are ready now.
+          Checkout uses Rs. 500 advance + remaining amount on COD.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <Button type="button" disabled title="Coming in Phase 6">
+          <Button type="button" onClick={() => router.push("/checkout")}>
             Proceed to checkout
           </Button>
           <Button

@@ -55,6 +55,12 @@ Password for all: `password123`
 - Virtual Try-On: photo upload → garment selection → AI preview + review
 - Iterate with size/color changes, compare up to 2 looks, finalize to Studio/cart path
 
+## Phase 6 (done)
+
+- Checkout with city-based delivery fees, Rs. 500 advance, COD remainder
+- Payment ledger (advance completed + COD pending) via COD_HYBRID adapter
+- Orders list, detail tracking timeline, cancel-before-production
+
 ## Next phases
 
 See `docs/ARCHITECTURE.md` §2 and §11.
