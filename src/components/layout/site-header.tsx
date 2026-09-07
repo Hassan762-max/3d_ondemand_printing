@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 
 const links = [
@@ -12,6 +13,9 @@ const links = [
 
 export async function SiteHeader() {
   const session = await auth();
+  const cartCount = session?.user?.id
+    ? await prisma.cartItem.count({ where: { cart: { userId: session.user.id } } })
+    : 0;
 
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--ink)]/8 bg-[var(--paper)]/85 backdrop-blur-md">
@@ -33,8 +37,13 @@ export async function SiteHeader() {
           </nav>
         </div>
         <div className="flex items-center gap-2">
-          <Link href="/cart" className="hidden text-sm text-[var(--muted)] hover:text-[var(--ink)] sm:inline">
+          <Link href="/cart" className="relative hidden text-sm text-[var(--muted)] hover:text-[var(--ink)] sm:inline">
             Cart
+            {cartCount > 0 ? (
+              <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--accent)] px-1.5 text-[10px] font-medium text-white">
+                {cartCount}
+              </span>
+            ) : null}
           </Link>
           {session?.user ? (
             <Link href="/account">

@@ -35,6 +35,11 @@ export default function StudioPage() {
               <Link href="/designs">
                 <Button variant="secondary">Pick a design first</Button>
               </Link>
+              <Link href="/designs/upload">
+                <Button className="border border-white/20 bg-transparent text-white hover:bg-white/10">
+                  Upload artwork
+                </Button>
+              </Link>
               <Link href="/products">
                 <Button className="border border-white/20 bg-transparent text-white hover:bg-white/10">
                   Choose product
