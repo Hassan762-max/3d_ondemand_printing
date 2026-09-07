@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { assignVendorToOrder } from "@/lib/fulfillment/router";
 import { prisma } from "@/lib/db";
 import { getPaymentProvider } from "@/lib/orders/payment";
 import {
@@ -171,16 +172,30 @@ export async function placeOrder(
     return created;
   });
 
+  // Auto-route to best Pakistan vendor after payment succeeds.
+  let assignNote = "";
+  try {
+    const assignment = await assignVendorToOrder(order.id);
+    if (assignment.best) {
+      assignNote = ` Assigned to ${assignment.best.businessName} (${assignment.best.city}).`;
+    } else {
+      assignNote = " Awaiting manual vendor assignment.";
+    }
+  } catch {
+    assignNote = " Vendor routing will retry shortly.";
+  }
+
   revalidatePath("/cart");
   revalidatePath("/checkout");
   revalidatePath("/orders");
   revalidatePath(`/orders/${order.id}`);
+  revalidatePath("/vendor");
 
   return {
     ok: true,
     orderId: order.id,
     orderNumber: order.orderNumber,
-    message: "Order placed. Advance recorded.",
+    message: `Order placed. Advance recorded.${assignNote}`,
   };
 }
 

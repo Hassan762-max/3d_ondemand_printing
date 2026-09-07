@@ -33,6 +33,8 @@ export default async function OrderDetailPage({ params }: Props) {
       },
       payments: { orderBy: { createdAt: "asc" } },
       shipments: { orderBy: { id: "asc" } },
+      vendor: true,
+      assignments: { orderBy: { assignedAt: "desc" }, take: 1 },
     },
   });
   if (!order) notFound();
@@ -93,8 +95,19 @@ export default async function OrderDetailPage({ params }: Props) {
           </p>
         ) : (
           <p className="mt-6 text-xs text-[var(--muted)]">
-            Courier details appear after vendor assignment (Phase 7).
+            Courier details appear after the vendor ships your order.
           </p>
+        )}
+        {order.vendor ? (
+          <p className="mt-3 text-sm text-[var(--muted)]">
+            Printing partner: <span className="text-[var(--ink)]">{order.vendor.businessName}</span>{" "}
+            · {order.vendor.city}
+            {order.assignments[0]
+              ? ` · match score ${order.assignments[0].score.toFixed(2)}`
+              : ""}
+          </p>
+        ) : (
+          <p className="mt-3 text-xs text-[var(--muted)]">Vendor assignment pending.</p>
         )}
       </section>
 

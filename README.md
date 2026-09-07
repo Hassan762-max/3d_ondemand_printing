@@ -61,6 +61,12 @@ Password for all: `password123`
 - Payment ledger (advance completed + COD pending) via COD_HYBRID adapter
 - Orders list, detail tracking timeline, cancel-before-production
 
+## Phase 7 (done)
+
+- Vendor scoring router (location, cost, capacity, quality, delivery, capabilities)
+- Auto-assign on checkout · production package for vendors
+- Vendor dashboard queue + status updates across Pakistan hubs
+
 ## Next phases
 
 See `docs/ARCHITECTURE.md` §2 and §11.
