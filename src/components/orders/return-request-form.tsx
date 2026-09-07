@@ -8,23 +8,40 @@ import { Input, Label } from "@/components/ui/input";
 
 const initial: OpsActionResult = { ok: false };
 
+const IN_TRANSIT = new Set(["SHIPPED", "OUT_FOR_DELIVERY"]);
+
 export function ReturnRequestForm({
   orderId,
   hasCustomDesign,
+  orderStatus,
 }: {
   orderId: string;
   hasCustomDesign: boolean;
+  orderStatus: string;
 }) {
   const [state, action, pending] = useActionState(createReturnRequest, initial);
-  const reasons = hasCustomDesign
-    ? RETURN_REASONS.filter((r) => r.allowsCustom)
-    : [...RETURN_REASONS];
+
+  // In transit: only delivery/COD issues are policy-valid.
+  // Delivered: full reason set (custom prints still block change-of-mind).
+  const reasons = (() => {
+    let list = [...RETURN_REASONS];
+    if (IN_TRANSIT.has(orderStatus)) {
+      list = list.filter(
+        (r) => r.id === "failed_delivery" || r.id === "cod_refusal",
+      );
+    } else if (hasCustomDesign) {
+      list = list.filter((r) => r.allowsCustom);
+    }
+    return list;
+  })();
 
   return (
     <form action={action} className="space-y-4">
       <input type="hidden" name="orderId" value={orderId} />
       <p className="text-sm text-[var(--muted)]">
-        Customized items follow defect/fulfillment rules (7-day window after delivery).
+        {IN_TRANSIT.has(orderStatus)
+          ? "Report delivery or COD issues while the order is in transit."
+          : "Customized items follow defect/fulfillment rules (7-day window after delivery)."}
       </p>
       <label className="block text-xs uppercase tracking-[0.12em] text-[var(--muted)]">
         Reason
@@ -50,7 +67,7 @@ export function ReturnRequestForm({
           {state.message}
         </p>
       ) : null}
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" disabled={pending || reasons.length === 0}>
         {pending ? "Submitting…" : "Request return / reprint"}
       </Button>
     </form>

@@ -99,6 +99,7 @@ model User {
   accounts       Account[]
   sessions       Session[]
   designs        Design[]           @relation("DesignOwner")
+  designLicenses DesignLicense[]
   savedDesigns   SavedDesign[]
   wishlistItems  WishlistItem[]
   cart           Cart?
@@ -178,23 +179,40 @@ model ProductVariant {
 }
 
 model Design {
-  id           String   @id @default(cuid())
-  ownerId      String?
-  title        String
-  description  String?
-  imageUrl     String
-  thumbnailUrl String?
-  isLibrary    Boolean  @default(false)
-  tags         String   @default("[]")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id               String   @id @default(cuid())
+  ownerId          String?
+  title            String
+  description      String?
+  imageUrl         String
+  thumbnailUrl     String?
+  isLibrary        Boolean  @default(false)
+  published        Boolean  @default(false)
+  listedPrice      Int      @default(0)
+  moderationStatus String   @default("draft")
+  salesCount       Int      @default(0)
+  tags             String   @default("[]")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  owner        User?         @relation("DesignOwner", fields: [ownerId], references: [id])
-  savedBy      SavedDesign[]
-  cartItems    CartItem[]
-  orderItems   OrderItem[]
-  placements   DesignPlacement[]
-  tryOns       TryOnSession[]
+  owner      User?           @relation("DesignOwner", fields: [ownerId], references: [id])
+  savedBy    SavedDesign[]
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+  placements DesignPlacement[]
+  tryOns     TryOnSession[]
+  licenses   DesignLicense[]
+}
+
+model DesignLicense {
+  id        String   @id @default(cuid())
+  designId  String
+  buyerId   String
+  amount    Int      @default(0)
+  createdAt DateTime @default(now())
+  design    Design   @relation(fields: [designId], references: [id], onDelete: Cascade)
+  buyer     User     @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+
+  @@unique([designId, buyerId])
 }
 
 model DesignPlacement {
@@ -392,6 +410,8 @@ model Review {
   createdAt DateTime @default(now())
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, userId])
 }
 
 model StyleProfile {

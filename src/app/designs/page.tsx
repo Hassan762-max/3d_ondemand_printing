@@ -48,6 +48,9 @@ export default async function DesignsPage() {
           <Link href="/designs/upload">
             <Button>Upload design</Button>
           </Link>
+          <Link href="/marketplace">
+            <Button variant="outline">Marketplace</Button>
+          </Link>
           <Link href="/account/designs">
             <Button variant="outline">Saved designs</Button>
           </Link>

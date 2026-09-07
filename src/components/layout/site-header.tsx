@@ -6,16 +6,21 @@ import { Button } from "@/components/ui/button";
 const links = [
   { href: "/products", label: "Products" },
   { href: "/designs", label: "Designs" },
+  { href: "/marketplace", label: "Marketplace" },
   { href: "/studio", label: "3D Studio" },
   { href: "/ai", label: "AI Studio" },
   { href: "/try-on", label: "Try-On" },
-  { href: "/how-it-works", label: "How it works" },
 ];
 
 export async function SiteHeader() {
   const session = await auth();
   const cartCount = session?.user?.id
     ? await prisma.cartItem.count({ where: { cart: { userId: session.user.id } } })
+    : 0;
+  const unreadCount = session?.user?.id
+    ? await prisma.notification.count({
+        where: { userId: session.user.id, read: false },
+      })
     : 0;
   const isVendor = session?.user?.role === "VENDOR";
   const opsRoles = new Set([
@@ -29,6 +34,8 @@ export async function SiteHeader() {
   const isOps = session?.user?.role
     ? opsRoles.has(session.user.role)
     : false;
+  const isAdmin =
+    session?.user?.role === "ADMIN" || session?.user?.role === "SUPER_ADMIN";
 
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--ink)]/8 bg-[var(--paper)]/85 backdrop-blur-md">
@@ -60,6 +67,17 @@ export async function SiteHeader() {
           </Link>
           {session?.user ? (
             <>
+              <Link
+                href="/account/notifications"
+                className="relative hidden text-sm text-[var(--muted)] hover:text-[var(--ink)] sm:inline"
+              >
+                Alerts
+                {unreadCount > 0 ? (
+                  <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--ink)] px-1.5 text-[10px] font-medium text-[var(--paper)]">
+                    {unreadCount}
+                  </span>
+                ) : null}
+              </Link>
               {isVendor ? (
                 <Link href="/vendor" className="hidden text-sm text-[var(--muted)] hover:text-[var(--ink)] sm:inline">
                   Vendor
@@ -68,6 +86,11 @@ export async function SiteHeader() {
               {isOps ? (
                 <Link href="/ops" className="hidden text-sm text-[var(--muted)] hover:text-[var(--ink)] sm:inline">
                   Ops
+                </Link>
+              ) : null}
+              {isAdmin ? (
+                <Link href="/admin" className="hidden text-sm text-[var(--muted)] hover:text-[var(--ink)] sm:inline">
+                  Admin
                 </Link>
               ) : null}
               <Link href="/account">

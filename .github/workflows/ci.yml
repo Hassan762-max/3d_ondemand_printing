@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [master, "cursor/**"]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Unit tests
+        run: npm test
+      - name: Prisma generate
+        run: npx prisma generate
+      - name: Build
+        run: npx next build
+        env:
+          DATABASE_URL: "file:./ci.db"
+          AUTH_SECRET: "ci-secret-not-for-production"
+          AUTH_URL: "http://localhost:3000"
+          AI_PROVIDER: "live-ready"
+          PAYMENT_PROVIDER: "cod_hybrid"
+          NEXT_PUBLIC_ADVANCE_AMOUNT: "500"

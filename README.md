@@ -75,6 +75,26 @@ Password for all: `password123`
 - Ops dashboard (`/ops`): returns, QC pass/fail, pending refunds, vendor metrics
 - Seeded ops roles: support@, qc@, finance@, production@printora.pk
 
-## Next phases
+## Phase 9 (done)
 
-See `docs/ARCHITECTURE.md` §2 and §11.
+- Creator marketplace (`/marketplace`) with free/paid design licenses
+- Creator hub (`/creator`) · publish/unpublish · earnings · admin moderation
+- Order reviews after delivery · product review display
+- Notifications center + header unread badge · global error boundary
+
+## Phase 10 (done)
+
+- Admin control plane (`/admin`): catalog toggles, vendor settlements, audit log
+- JazzCash / Easypaisa live-ready payment adapters · checkout rate limit
+- Health endpoint (`/api/health`) · production checklist (`docs/PRODUCTION.md`)
+
+## Phase 11 (done)
+
+- Full product categories (shirts, jackets, joggers, shorts) + vendor capability sync
+- COD collect on delivery · finance fallback on `/admin`
+- GitHub Actions CI (`test` + `build`) · `npm run smoke` domain smoke script
+- QA unit suite for pricing, returns, routing, COD
+
+## Status
+
+MVP + production/launch scaffolding is complete. Wire real AI/payment APIs and PostgreSQL using `docs/PRODUCTION.md` when going live.

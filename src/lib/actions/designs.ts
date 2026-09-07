@@ -118,7 +118,11 @@ export async function toggleSaveDesign(designId: string): Promise<ActionResult> 
 
   const design = await prisma.design.findUnique({ where: { id: designId } });
   if (!design) return { ok: false, message: "Design not found." };
-  if (!design.isLibrary && design.ownerId !== user.id) {
+  const canSave =
+    design.isLibrary ||
+    design.ownerId === user.id ||
+    (design.published && design.moderationStatus === "approved");
+  if (!canSave) {
     return { ok: false, message: "You cannot save this design." };
   }
 
