@@ -17,6 +17,7 @@ export function SiteFooter() {
           <p className="text-xs uppercase tracking-[0.14em] text-white/45">Create</p>
           <ul className="mt-4 space-y-2 text-sm text-white/75">
             <li><Link href="/studio" className="hover:text-white">3D Studio</Link></li>
+            <li><Link href="/ai" className="hover:text-white">AI Studio</Link></li>
             <li><Link href="/designs" className="hover:text-white">Design library</Link></li>
             <li><Link href="/try-on" className="hover:text-white">AI Try-On</Link></li>
           </ul>

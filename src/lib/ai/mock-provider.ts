@@ -62,9 +62,12 @@ export class MockAiProvider implements AiProvider {
 
   async generateDesign(input: GenerateInput): Promise<GenerateOutput> {
     await delay(600);
+    const { writeGeneratedSvg } = await import("./generate-asset");
+    const style = input.style ?? "modern";
+    const imageUrl = await writeGeneratedSvg(input.prompt, style);
     return {
-      imageUrl: "/designs/generated-placeholder.svg",
-      promptUsed: `${input.style ?? "modern"} · ${input.prompt}`,
+      imageUrl,
+      promptUsed: `${style} · ${input.prompt}`,
       provider: this.name,
     };
   }

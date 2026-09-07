@@ -60,8 +60,11 @@ export default async function AccountPage() {
       </div>
 
       <div className="mt-8 flex flex-wrap gap-3">
+        <Link href="/ai">
+          <Button>AI Studio</Button>
+        </Link>
         <Link href="/designs/upload">
-          <Button>Upload design</Button>
+          <Button variant="outline">Upload design</Button>
         </Link>
         <Link href="/orders">
           <Button variant="outline">Orders</Button>

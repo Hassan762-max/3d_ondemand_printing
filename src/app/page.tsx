@@ -113,8 +113,16 @@ export default async function HomePage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-3 md:justify-end">
-            <Link href="/try-on">
+            <Link href="/ai">
               <Button variant="secondary" size="lg">
+                Open AI Studio
+              </Button>
+            </Link>
+            <Link href="/try-on">
+              <Button
+                size="lg"
+                className="border border-white/20 bg-transparent text-white hover:bg-white/10"
+              >
                 Try AI Try-On
               </Button>
             </Link>

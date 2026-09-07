@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const protectedPrefixes = ["/account", "/orders", "/checkout", "/designs/upload"];
+const protectedPrefixes = ["/account", "/orders", "/checkout", "/designs/upload", "/ai"];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -31,5 +31,7 @@ export const config = {
     "/orders/:path*",
     "/checkout/:path*",
     "/designs/upload",
+    "/ai",
+    "/ai/:path*",
   ],
 };
