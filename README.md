@@ -38,6 +38,12 @@ Password for all: `password123`
 - Cart add/update/remove with size, color, optional design
 - Account hubs for designs & wishlist · cart totals with advance/COD preview
 
+## Phase 3 (done)
+
+- Interactive R3F 3D studio with orbit/zoom and camera presets
+- Design placement (move, scale, rotate) · garment color · size · front/back
+- Save & compare looks · add customized item to cart with placement JSON
+
 ## Next phases
 
 See `docs/ARCHITECTURE.md` §2 and §11.
