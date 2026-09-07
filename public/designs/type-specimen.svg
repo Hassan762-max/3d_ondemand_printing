@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" fill="none">
+  <rect width="400" height="400" fill="#F4F1EB"/>
+  <text x="48" y="170" font-family="Georgia, serif" font-size="64" fill="#0E1116">PK</text>
+  <text x="48" y="230" font-family="Georgia, serif" font-size="28" fill="#1F6B5A">TYPE / SPECIMEN</text>
+  <line x1="48" y1="260" x2="320" y2="260" stroke="#0E1116" stroke-width="2"/>
+</svg>
