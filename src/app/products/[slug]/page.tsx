@@ -4,6 +4,11 @@ import { AddToCartForm } from "@/components/products/add-to-cart-form";
 import { WishlistButton } from "@/components/products/wishlist-button";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";
+import {
+  catalogCategoryTag,
+  catalogDisplayName,
+  catalogImageUrl,
+} from "@/lib/catalog/display";
 import { prisma } from "@/lib/db";
 import { formatPkr } from "@/lib/utils";
 
@@ -17,7 +22,11 @@ type Props = {
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
   const product = await prisma.product.findUnique({ where: { slug } });
-  return { title: product?.name ?? "Product" };
+  return {
+    title: product
+      ? catalogDisplayName(product.slug, product.name)
+      : "Product",
+  };
 }
 
 export default async function ProductDetailPage({ params, searchParams }: Props) {
@@ -29,6 +38,9 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
     include: { variants: true },
   });
   if (!product) notFound();
+
+  const displayName = catalogDisplayName(product.slug, product.name);
+  const imageUrl = catalogImageUrl(product.slug, product.imageUrl);
 
   const sizes = [...new Set(product.variants.map((v) => v.size))];
   const colors = [
@@ -102,23 +114,23 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
 
   return (
     <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-2">
-      <div className="aspect-[4/5] overflow-hidden rounded-2xl bg-[var(--mist)]">
+      <div className="aspect-[3/4] overflow-hidden rounded-2xl bg-[#efece6] ring-1 ring-[var(--ink)]/[0.06]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={product.imageUrl ?? "/products/tee.svg"}
-          alt={product.name}
+          src={imageUrl}
+          alt={displayName}
           className="h-full w-full object-cover"
         />
       </div>
       <div className="flex flex-col justify-center">
         <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">
-          From {formatPkr(product.basePrice)}
+          {catalogCategoryTag(product.category)} · Starts at {formatPkr(product.basePrice)}
           {avgRating
             ? ` · ${avgRating.toFixed(1)}/5 (${productReviews.length})`
             : ""}
         </p>
         <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl tracking-tight">
-          {product.name}
+          {displayName}
         </h1>
         <p className="mt-4 text-sm leading-relaxed text-[var(--muted)]">
           {product.description}
@@ -139,7 +151,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
           <WishlistButton productId={product.id} initiallySaved={wishlisted} />
           <Link href={`/studio?product=${product.slug}`}>
             <Button size="lg" variant="outline">
-              Customize in 3D
+              Start Designing
             </Button>
           </Link>
         </div>

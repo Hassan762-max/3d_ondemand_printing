@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { SaveDesignButton } from "@/components/designs/save-design-button";
 import { Button } from "@/components/ui/button";
-import { DESIGN_CATEGORIES } from "@/lib/design-categories";
+import { DESIGN_CATEGORIES, designStyleTags } from "@/lib/design-categories";
 
 export type ShowcaseDesign = {
   id: string;
@@ -38,7 +38,7 @@ export function DesignShowcase({
           <Link
             key={c}
             href={`/designs?category=${encodeURIComponent(c)}`}
-            className="shrink-0 rounded-md border border-[var(--ink)]/10 bg-[var(--paper-elevated)] px-3 py-1.5 text-xs text-[var(--muted)] transition hover:border-[var(--ink)]/25 hover:text-[var(--ink)]"
+            className="shrink-0 rounded-full bg-[var(--paper-elevated)] px-3.5 py-1.5 text-xs text-[var(--muted)] ring-1 ring-[var(--ink)]/8 transition hover:text-[var(--ink)] hover:ring-[var(--ink)]/20"
           >
             {c}
           </Link>
@@ -50,44 +50,50 @@ export function DesignShowcase({
           No designs yet. Seed the library or upload your first piece.
         </p>
       ) : (
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {designs.map((design) => {
-            const tags = safeTags(design.tags);
-            const category = tags[0] ?? "Library";
+            const tags = designStyleTags(design.tags, 2);
             return (
-              <article
-                key={design.id}
-                className="group overflow-hidden rounded-xl border border-[var(--ink)]/8 bg-[var(--paper-elevated)]"
-              >
-                <Link href={`/studio?design=${design.id}`} className="block">
-                  <div className="aspect-square bg-[var(--mist)] p-5">
+              <article key={design.id} className="group">
+                <div className="relative aspect-square overflow-hidden rounded-2xl bg-[#F5F5F5] ring-1 ring-[var(--ink)]/[0.06]">
+                  <Link href={`/studio?design=${design.id}`} className="absolute inset-0 block">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={design.imageUrl}
                       alt={design.title}
-                      className="h-full w-full object-contain transition duration-500 group-hover:scale-[1.04]"
+                      className="h-full w-full object-contain p-5 transition duration-500 group-hover:scale-[1.04]"
                     />
-                  </div>
-                </Link>
-                <div className="space-y-3 p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">
-                        {category}
-                      </p>
-                      <h3 className="mt-1 font-medium tracking-tight">{design.title}</h3>
-                    </div>
+                  </Link>
+                  <div className="absolute right-3 top-3 z-10">
                     <SaveDesignButton
                       designId={design.id}
                       initiallySaved={savedIds.has(design.id)}
+                      variant="icon"
                     />
                   </div>
+                </div>
+                <div className="mt-4 space-y-2">
+                  <h3 className="font-[family-name:var(--font-display)] text-lg tracking-tight">
+                    {design.title}
+                  </h3>
+                  {tags.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded-full bg-[var(--paper-elevated)] px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[var(--muted)] ring-1 ring-[var(--ink)]/8"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
                   <div className="flex flex-wrap gap-3 text-sm">
                     <Link href={`/studio?design=${design.id}`} className="underline">
-                      Use Design
+                      Use in 3D Studio
                     </Link>
-                    <Link href={`/try-on`} className="text-[var(--muted)] underline">
-                      Try On
+                    <Link href={`/products?design=${design.id}`} className="text-[var(--muted)] underline">
+                      Apply to Product
                     </Link>
                   </div>
                 </div>
@@ -98,12 +104,4 @@ export function DesignShowcase({
       )}
     </section>
   );
-}
-
-function safeTags(raw: string) {
-  try {
-    return JSON.parse(raw || "[]") as string[];
-  } catch {
-    return [] as string[];
-  }
 }

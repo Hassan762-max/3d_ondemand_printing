@@ -15,11 +15,11 @@ const products: {
 }[] = [
   {
     slug: "essential-tee",
-    name: "Essential Tee",
-    description: "Soft midweight cotton tee — the everyday print canvas.",
+    name: "Tee",
+    description: "Soft midweight cotton — the everyday print canvas.",
     category: "T_SHIRT",
     basePrice: 1899,
-    imageUrl: "/products/tee.svg",
+    imageUrl: "/products/tee.png",
     sizes: ["S", "M", "L", "XL", "XXL"],
     colors: [
       { name: "Ink", hex: "#12141A" },
@@ -29,11 +29,11 @@ const products: {
   },
   {
     slug: "oversized-studio-tee",
-    name: "Oversized Studio Tee",
+    name: "Oversized Tee",
     description: "Dropped shoulder, roomy body — built for statement graphics.",
     category: "OVERSIZED_T_SHIRT",
     basePrice: 2499,
-    imageUrl: "/products/oversized.svg",
+    imageUrl: "/products/oversized.png",
     sizes: ["M", "L", "XL", "XXL"],
     colors: [
       { name: "Charcoal", hex: "#2A2D34" },
@@ -42,11 +42,11 @@ const products: {
   },
   {
     slug: "city-polo",
-    name: "City Polo",
+    name: "Polo",
     description: "Clean collar, breathable pique — subtle chest prints shine.",
     category: "POLO",
     basePrice: 2799,
-    imageUrl: "/products/polo.svg",
+    imageUrl: "/products/polo.png",
     sizes: ["S", "M", "L", "XL"],
     colors: [
       { name: "Navy", hex: "#1B2A4A" },
@@ -55,11 +55,11 @@ const products: {
   },
   {
     slug: "monsoon-hoodie",
-    name: "Monsoon Hoodie",
-    description: "Fleece-lined hoodie for cooler evenings and bold back prints.",
+    name: "Hoodie",
+    description: "Fleece-lined for cooler evenings and bold back prints.",
     category: "HOODIE",
     basePrice: 4499,
-    imageUrl: "/products/hoodie.svg",
+    imageUrl: "/products/hoodie.png",
     sizes: ["M", "L", "XL", "XXL"],
     colors: [
       { name: "Black", hex: "#0E1116" },
@@ -68,11 +68,11 @@ const products: {
   },
   {
     slug: "crew-sweat",
-    name: "Crew Sweat",
-    description: "Relaxed crewneck sweatshirt with a smooth print face.",
+    name: "Sweatshirt",
+    description: "Relaxed crewneck with a smooth print face.",
     category: "SWEATSHIRT",
     basePrice: 3999,
-    imageUrl: "/products/sweat.svg",
+    imageUrl: "/products/sweat.png",
     sizes: ["S", "M", "L", "XL"],
     colors: [
       { name: "Stone", hex: "#C9C2B8" },
@@ -81,11 +81,11 @@ const products: {
   },
   {
     slug: "weekend-cap",
-    name: "Weekend Cap",
-    description: "Structured cap with a crisp front panel for logos and marks.",
+    name: "Cap",
+    description: "Structured front panel for logos and marks.",
     category: "CAP",
     basePrice: 1499,
-    imageUrl: "/products/cap.svg",
+    imageUrl: "/products/cap.png",
     sizes: ["OS"],
     colors: [
       { name: "Black", hex: "#0E1116" },
@@ -94,11 +94,11 @@ const products: {
   },
   {
     slug: "everyday-casual-shirt",
-    name: "Everyday Casual Shirt",
-    description: "Lightweight button-down with a clean print panel across the back.",
+    name: "Shirt",
+    description: "Lightweight button-down with a clean back print panel.",
     category: "CASUAL_SHIRT",
     basePrice: 3299,
-    imageUrl: "/products/shirt.svg",
+    imageUrl: "/products/shirt.png",
     sizes: ["S", "M", "L", "XL"],
     colors: [
       { name: "Sky", hex: "#C5D4E0" },
@@ -107,11 +107,11 @@ const products: {
   },
   {
     slug: "city-shell-jacket",
-    name: "City Shell Jacket",
-    description: "Light shell for monsoon evenings — large back print zone.",
+    name: "Jacket",
+    description: "Light shell for layering — large back print zone.",
     category: "JACKET",
     basePrice: 5499,
-    imageUrl: "/products/jacket.svg",
+    imageUrl: "/products/jacket.png",
     sizes: ["M", "L", "XL", "XXL"],
     colors: [
       { name: "Olive", hex: "#3F4A3A" },
@@ -120,11 +120,11 @@ const products: {
   },
   {
     slug: "studio-joggers",
-    name: "Studio Joggers",
-    description: "Tapered fleece joggers with a thigh-safe print area.",
+    name: "Joggers",
+    description: "Tapered fleece bottoms — comfort for everyday wear.",
     category: "JOGGERS",
     basePrice: 3599,
-    imageUrl: "/products/joggers.svg",
+    imageUrl: "/products/joggers.png",
     sizes: ["S", "M", "L", "XL"],
     colors: [
       { name: "Charcoal", hex: "#2A2D34" },
@@ -133,11 +133,11 @@ const products: {
   },
   {
     slug: "court-shorts",
-    name: "Court Shorts",
+    name: "Shorts",
     description: "Breathable shorts with a small side-panel print option.",
     category: "SHORTS",
     basePrice: 2199,
-    imageUrl: "/products/shorts.svg",
+    imageUrl: "/products/shorts.png",
     sizes: ["S", "M", "L", "XL"],
     colors: [
       { name: "Navy", hex: "#1B2A4A" },
@@ -150,26 +150,38 @@ const libraryDesigns = [
   {
     title: "Karachi Grid",
     description: "Abstract city grid in deep teal.",
-    imageUrl: "/designs/karachi-grid.svg",
-    tags: ["Streetwear", "Art", "Trending", "city", "abstract", "teal"],
+    imageUrl: "/designs/karachi-grid.png",
+    tags: ["Streetwear", "Abstract", "Trending"],
   },
   {
     title: "Indus Line",
     description: "Minimal river-inspired mark.",
-    imageUrl: "/designs/indus-line.svg",
-    tags: ["Minimal", "Art", "minimal", "nature"],
+    imageUrl: "/designs/indus-line.png",
+    tags: ["Minimal", "Abstract"],
   },
   {
     title: "Night Bazaar",
     description: "Neon market energy, restrained palette.",
-    imageUrl: "/designs/night-bazaar.svg",
-    tags: ["Streetwear", "Gaming", "Trending", "night", "graphic"],
+    imageUrl: "/designs/night-bazaar.png",
+    tags: ["Streetwear", "Vintage", "Abstract"],
   },
   {
-    title: "Type Specimen PK",
+    title: "Type Specimen",
     description: "Editorial typography lockup.",
-    imageUrl: "/designs/type-specimen.svg",
-    tags: ["Typography", "Minimal", "Vintage", "type", "editorial"],
+    imageUrl: "/designs/type-specimen.png",
+    tags: ["Typography", "Minimal", "Vintage"],
+  },
+  {
+    title: "Anime Pulse",
+    description: "Modern anime-inspired motion graphic.",
+    imageUrl: "/designs/anime-pulse.png",
+    tags: ["Anime", "Streetwear"],
+  },
+  {
+    title: "Y2K Chrome",
+    description: "Liquid chrome energy for early-2000s vibes.",
+    imageUrl: "/designs/y2k-chrome.png",
+    tags: ["Y2K", "Streetwear", "Abstract"],
   },
 ];
 
@@ -397,6 +409,22 @@ async function main() {
     }
   }
 
+  // Rename legacy library title if present
+  const legacyType = await prisma.design.findFirst({
+    where: { title: "Type Specimen PK", isLibrary: true },
+  });
+  if (legacyType) {
+    await prisma.design.update({
+      where: { id: legacyType.id },
+      data: {
+        title: "Type Specimen",
+        imageUrl: "/designs/type-specimen.png",
+        thumbnailUrl: "/designs/type-specimen.png",
+        tags: JSON.stringify(["Typography", "Minimal", "Vintage"]),
+      },
+    });
+  }
+
   for (const d of libraryDesigns) {
     const existing = await prisma.design.findFirst({
       where: { title: d.title, isLibrary: true },
@@ -417,6 +445,8 @@ async function main() {
         where: { id: existing.id },
         data: {
           description: d.description,
+          imageUrl: d.imageUrl,
+          thumbnailUrl: d.imageUrl,
           tags: JSON.stringify(d.tags),
         },
       });
@@ -431,16 +461,16 @@ async function main() {
       {
         title: "Canal Road Mark",
         description: "Bold Lahore canal geometry for chest prints.",
-        imageUrl: "/designs/karachi-grid.svg",
+        imageUrl: "/designs/karachi-grid.png",
         listedPrice: 299,
-        tags: ["creator", "lahore", "geo"],
+        tags: ["Streetwear", "Abstract", "creator"],
       },
       {
         title: "Monsoon Script",
         description: "Free brush lettering — monsoon nights.",
-        imageUrl: "/designs/indus-line.svg",
+        imageUrl: "/designs/indus-line.png",
         listedPrice: 0,
-        tags: ["creator", "type", "free"],
+        tags: ["Typography", "Minimal", "creator"],
       },
     ];
     for (const listing of creatorListings) {
@@ -469,6 +499,9 @@ async function main() {
             published: true,
             listedPrice: listing.listedPrice,
             moderationStatus: "approved",
+            imageUrl: listing.imageUrl,
+            thumbnailUrl: listing.imageUrl,
+            tags: JSON.stringify(listing.tags),
           },
         });
       }

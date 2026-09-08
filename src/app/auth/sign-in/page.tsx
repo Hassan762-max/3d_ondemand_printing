@@ -52,7 +52,7 @@ export default function SignInPage() {
         </Link>
       </p>
       <p className="mt-4 text-xs text-[var(--muted)]">
-        Demo: customer@printora.pk / password123
+        Demo login: <span className="font-mono">customer@printora.pk</span> / password123
       </p>
     </div>
   );

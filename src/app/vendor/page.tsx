@@ -24,7 +24,8 @@ export default async function VendorDashboardPage() {
         </h1>
         <p className="mt-4 text-sm text-[var(--muted)]">
           No vendor profile is linked to this account. Sign in as{" "}
-          <code>vendor@printora.pk</code> or a city vendor account.
+          Sign in with a seeded vendor account such as{" "}
+          <code className="font-mono text-xs">vendor@printora.pk</code>.
         </p>
       </div>
     );
