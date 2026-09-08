@@ -2,13 +2,24 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { SaveDesignButton } from "@/components/designs/save-design-button";
 import { auth } from "@/lib/auth";
+import { brand } from "@/lib/brand";
 import { prisma } from "@/lib/db";
+import {
+  DESIGN_CATEGORIES,
+  designMatchesCategory,
+  normalizeCategory,
+} from "@/lib/design-categories";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Design library" };
 
-export default async function DesignsPage() {
+type Props = { searchParams: Promise<{ category?: string }> };
+
+export default async function DesignsPage({ searchParams }: Props) {
   const session = await auth();
+  const { category: categoryRaw } = await searchParams;
+  const category = normalizeCategory(categoryRaw);
+
   const designs = await prisma.design.findMany({
     where: {
       OR: [
@@ -18,6 +29,10 @@ export default async function DesignsPage() {
     },
     orderBy: [{ isLibrary: "desc" }, { createdAt: "desc" }],
   });
+
+  const filtered = category
+    ? designs.filter((d) => designMatchesCategory(d.tags, category))
+    : designs;
 
   const savedIds = new Set(
     session?.user?.id
@@ -41,7 +56,8 @@ export default async function DesignsPage() {
             Design library
           </h1>
           <p className="mt-3 max-w-xl text-sm text-[var(--muted)]">
-            Browse curated prints or upload your own. Save favorites and apply them to any product.
+            Browse curated prints or upload your own. Save favorites and apply them on{" "}
+            {brand.name}.
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -57,16 +73,39 @@ export default async function DesignsPage() {
         </div>
       </div>
 
-      {designs.length === 0 ? (
+      <div className="mt-8 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <CategoryChip href="/designs" active={!category} label="All" />
+        {DESIGN_CATEGORIES.map((c) => (
+          <CategoryChip
+            key={c}
+            href={`/designs?category=${encodeURIComponent(c)}`}
+            active={category === c}
+            label={c}
+          />
+        ))}
+      </div>
+
+      {filtered.length === 0 ? (
         <div className="mt-16 rounded-xl border border-dashed border-[var(--ink)]/15 px-6 py-16 text-center">
-          <p className="text-sm text-[var(--muted)]">No designs yet. Upload one to get started.</p>
-          <Link href="/designs/upload" className="mt-6 inline-block">
-            <Button>Upload design</Button>
-          </Link>
+          <p className="text-sm text-[var(--muted)]">
+            {category
+              ? `No designs tagged “${category}” yet. Try another category or upload your own.`
+              : "No designs yet. Upload one to get started."}
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            {category ? (
+              <Link href="/designs">
+                <Button variant="outline">Clear filter</Button>
+              </Link>
+            ) : null}
+            <Link href="/designs/upload">
+              <Button>Upload design</Button>
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {designs.map((design) => {
+          {filtered.map((design) => {
             const tags = JSON.parse(design.tags || "[]") as string[];
             return (
               <article
@@ -127,5 +166,28 @@ export default async function DesignsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+function CategoryChip({
+  href,
+  label,
+  active,
+}: {
+  href: string;
+  label: string;
+  active: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`shrink-0 rounded-md border px-3 py-1.5 text-xs transition ${
+        active
+          ? "border-[var(--ink)] bg-[var(--ink)] text-[var(--paper)]"
+          : "border-[var(--ink)]/10 bg-[var(--paper-elevated)] text-[var(--muted)] hover:border-[var(--ink)]/25 hover:text-[var(--ink)]"
+      }`}
+    >
+      {label}
+    </Link>
   );
 }

@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
 export default async function HomePage() {
   const session = await auth();
 
-  const [productsRaw, designs, saved] = await Promise.all([
+  const [productsRaw, designs, saved, reviewRows] = await Promise.all([
     prisma.product.findMany({
       where: { active: true },
       take: 9,
@@ -39,6 +39,22 @@ export default async function HomePage() {
           select: { designId: true },
         })
       : Promise.resolve([] as { designId: string }[]),
+    prisma.review.findMany({
+      where: { body: { not: null } },
+      take: 6,
+      orderBy: { createdAt: "desc" },
+      include: {
+        user: { select: { name: true } },
+        order: {
+          include: {
+            items: {
+              take: 1,
+              include: { product: { select: { name: true } } },
+            },
+          },
+        },
+      },
+    }),
   ]);
 
   const products = productsRaw.map((p) => {
@@ -57,6 +73,15 @@ export default async function HomePage() {
 
   const savedIds = new Set(saved.map((s) => s.designId));
 
+  const reviews = reviewRows
+    .filter((r) => r.body && r.body.trim().length > 0)
+    .map((r) => ({
+      rating: Math.min(5, Math.max(1, r.rating)),
+      name: r.user.name?.split(" ")[0] || "Customer",
+      body: r.body!.trim(),
+      product: r.order.items[0]?.product.name ?? "Custom order",
+    }));
+
   return (
     <>
       <Hero />
@@ -71,7 +96,7 @@ export default async function HomePage() {
       <MultiProduct designImage={designs[0]?.imageUrl} />
       <Fulfillment />
       <PaymentTrust />
-      <ReviewsDemo />
+      <ReviewsDemo reviews={reviews} />
       <FinalCta />
     </>
   );

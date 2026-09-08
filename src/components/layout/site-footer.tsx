@@ -17,10 +17,15 @@ const explore = [
 ];
 
 const support = [
-  { href: "/how-it-works", label: "Help" },
-  { href: "/how-it-works", label: "Contact" },
-  { href: "/how-it-works", label: "Shipping" },
-  { href: "/how-it-works", label: "Returns" },
+  { href: "/support/help", label: "Help" },
+  { href: "/support/contact", label: "Contact" },
+  { href: "/support/shipping", label: "Shipping" },
+  { href: "/support/returns", label: "Returns" },
+];
+
+const legal = [
+  { href: "/legal/privacy", label: "Privacy" },
+  { href: "/legal/terms", label: "Terms" },
 ];
 
 export function SiteFooter() {
@@ -42,11 +47,7 @@ export function SiteFooter() {
         <FooterCol title="Explore" links={explore} />
         <div>
           <FooterCol title="Support" links={support} />
-          <p className="mt-8 text-xs uppercase tracking-[0.14em] text-white/45">Legal</p>
-          <ul className="mt-3 space-y-2 text-sm text-white/45">
-            <li>Privacy — coming soon</li>
-            <li>Terms — coming soon</li>
-          </ul>
+          <FooterCol title="Legal" links={legal} className="mt-8" />
         </div>
       </div>
       <div className="border-t border-white/10">
@@ -66,12 +67,14 @@ export function SiteFooter() {
 function FooterCol({
   title,
   links,
+  className,
 }: {
   title: string;
   links: { href: string; label: string }[];
+  className?: string;
 }) {
   return (
-    <div>
+    <div className={className}>
       <p className="text-xs uppercase tracking-[0.14em] text-white/45">{title}</p>
       <ul className="mt-4 space-y-2 text-sm text-white/75">
         {links.map((l) => (

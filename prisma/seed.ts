@@ -151,25 +151,25 @@ const libraryDesigns = [
     title: "Karachi Grid",
     description: "Abstract city grid in deep teal.",
     imageUrl: "/designs/karachi-grid.svg",
-    tags: ["city", "abstract", "teal"],
+    tags: ["Streetwear", "Art", "Trending", "city", "abstract", "teal"],
   },
   {
     title: "Indus Line",
     description: "Minimal river-inspired mark.",
     imageUrl: "/designs/indus-line.svg",
-    tags: ["minimal", "nature"],
+    tags: ["Minimal", "Art", "minimal", "nature"],
   },
   {
     title: "Night Bazaar",
     description: "Neon market energy, restrained palette.",
     imageUrl: "/designs/night-bazaar.svg",
-    tags: ["night", "graphic"],
+    tags: ["Streetwear", "Gaming", "Trending", "night", "graphic"],
   },
   {
     title: "Type Specimen PK",
     description: "Editorial typography lockup.",
     imageUrl: "/designs/type-specimen.svg",
-    tags: ["type", "editorial"],
+    tags: ["Typography", "Minimal", "Vintage", "type", "editorial"],
   },
 ];
 
@@ -409,6 +409,14 @@ async function main() {
           imageUrl: d.imageUrl,
           thumbnailUrl: d.imageUrl,
           isLibrary: true,
+          tags: JSON.stringify(d.tags),
+        },
+      });
+    } else {
+      await prisma.design.update({
+        where: { id: existing.id },
+        data: {
+          description: d.description,
           tags: JSON.stringify(d.tags),
         },
       });
