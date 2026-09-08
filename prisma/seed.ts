@@ -150,26 +150,38 @@ const libraryDesigns = [
   {
     title: "Karachi Grid",
     description: "Abstract city grid in deep teal.",
-    imageUrl: "/designs/karachi-grid.svg",
-    tags: ["Streetwear", "Art", "Trending", "city", "abstract", "teal"],
+    imageUrl: "/designs/karachi-grid.png",
+    tags: ["Streetwear", "Abstract", "Trending"],
   },
   {
     title: "Indus Line",
     description: "Minimal river-inspired mark.",
-    imageUrl: "/designs/indus-line.svg",
-    tags: ["Minimal", "Art", "minimal", "nature"],
+    imageUrl: "/designs/indus-line.png",
+    tags: ["Minimal", "Abstract"],
   },
   {
     title: "Night Bazaar",
     description: "Neon market energy, restrained palette.",
-    imageUrl: "/designs/night-bazaar.svg",
-    tags: ["Streetwear", "Gaming", "Trending", "night", "graphic"],
+    imageUrl: "/designs/night-bazaar.png",
+    tags: ["Streetwear", "Vintage", "Abstract"],
   },
   {
-    title: "Type Specimen PK",
+    title: "Type Specimen",
     description: "Editorial typography lockup.",
-    imageUrl: "/designs/type-specimen.svg",
-    tags: ["Typography", "Minimal", "Vintage", "type", "editorial"],
+    imageUrl: "/designs/type-specimen.png",
+    tags: ["Typography", "Minimal", "Vintage"],
+  },
+  {
+    title: "Anime Pulse",
+    description: "Modern anime-inspired motion graphic.",
+    imageUrl: "/designs/anime-pulse.png",
+    tags: ["Anime", "Streetwear"],
+  },
+  {
+    title: "Y2K Chrome",
+    description: "Liquid chrome energy for early-2000s vibes.",
+    imageUrl: "/designs/y2k-chrome.png",
+    tags: ["Y2K", "Streetwear", "Abstract"],
   },
 ];
 
@@ -397,6 +409,22 @@ async function main() {
     }
   }
 
+  // Rename legacy library title if present
+  const legacyType = await prisma.design.findFirst({
+    where: { title: "Type Specimen PK", isLibrary: true },
+  });
+  if (legacyType) {
+    await prisma.design.update({
+      where: { id: legacyType.id },
+      data: {
+        title: "Type Specimen",
+        imageUrl: "/designs/type-specimen.png",
+        thumbnailUrl: "/designs/type-specimen.png",
+        tags: JSON.stringify(["Typography", "Minimal", "Vintage"]),
+      },
+    });
+  }
+
   for (const d of libraryDesigns) {
     const existing = await prisma.design.findFirst({
       where: { title: d.title, isLibrary: true },
@@ -417,6 +445,8 @@ async function main() {
         where: { id: existing.id },
         data: {
           description: d.description,
+          imageUrl: d.imageUrl,
+          thumbnailUrl: d.imageUrl,
           tags: JSON.stringify(d.tags),
         },
       });
@@ -431,16 +461,16 @@ async function main() {
       {
         title: "Canal Road Mark",
         description: "Bold Lahore canal geometry for chest prints.",
-        imageUrl: "/designs/karachi-grid.svg",
+        imageUrl: "/designs/karachi-grid.png",
         listedPrice: 299,
-        tags: ["creator", "lahore", "geo"],
+        tags: ["Streetwear", "Abstract", "creator"],
       },
       {
         title: "Monsoon Script",
         description: "Free brush lettering — monsoon nights.",
-        imageUrl: "/designs/indus-line.svg",
+        imageUrl: "/designs/indus-line.png",
         listedPrice: 0,
-        tags: ["creator", "type", "free"],
+        tags: ["Typography", "Minimal", "creator"],
       },
     ];
     for (const listing of creatorListings) {
@@ -469,6 +499,9 @@ async function main() {
             published: true,
             listedPrice: listing.listedPrice,
             moderationStatus: "approved",
+            imageUrl: listing.imageUrl,
+            thumbnailUrl: listing.imageUrl,
+            tags: JSON.stringify(listing.tags),
           },
         });
       }
