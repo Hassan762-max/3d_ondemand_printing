@@ -11,7 +11,6 @@ import { ProductShowcase } from "@/components/home/product-showcase";
 import { QuickCreate } from "@/components/home/quick-create";
 import { ReviewsDemo } from "@/components/home/reviews-demo";
 import { StudioHighlight } from "@/components/home/studio-highlight";
-import { TryOnHighlight } from "@/components/home/try-on-highlight";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
@@ -22,14 +21,24 @@ export default async function HomePage() {
 
   const [productsRaw, designs, saved, reviewRows] = await Promise.all([
     prisma.product.findMany({
-      where: { active: true },
+      where: {
+        active: true,
+        slug: {
+          notIn: [
+            "studio-joggers",
+            "court-shorts",
+            "city-polo",
+            "everyday-casual-shirt",
+          ],
+        },
+      },
       take: 9,
       orderBy: { basePrice: "asc" },
       include: { variants: { select: { color: true, colorHex: true } } },
     }),
     prisma.design.findMany({
       where: { isLibrary: true },
-      take: 8,
+      take: 12,
       orderBy: { createdAt: "desc" },
       select: { id: true, title: true, imageUrl: true, tags: true },
     }),
@@ -91,9 +100,8 @@ export default async function HomePage() {
       <ProductShowcase products={products} />
       <StudioHighlight />
       <AiHighlight />
-      <TryOnHighlight />
       <AiReviewDemo />
-      <MultiProduct designImage={designs[0]?.imageUrl} />
+      <MultiProduct />
       <Fulfillment />
       <PaymentTrust />
       <ReviewsDemo reviews={reviews} />

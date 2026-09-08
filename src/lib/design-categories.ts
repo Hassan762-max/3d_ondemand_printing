@@ -5,6 +5,7 @@ export const DESIGN_CATEGORIES = [
   "Streetwear",
   "Abstract",
   "Anime",
+  "Culture",
   "Y2K",
   "Vintage",
 ] as const;

@@ -1,7 +1,7 @@
 /** Shared product catalog category labels + helpers. */
 export const PRODUCT_CATEGORY_OPTIONS = [
   { value: "T_SHIRT", label: "T-Shirt" },
-  { value: "OVERSIZED_T_SHIRT", label: "Oversized Tee" },
+  { value: "OVERSIZED_T_SHIRT", label: "Drop Shoulder" },
   { value: "POLO", label: "Polo" },
   { value: "HOODIE", label: "Hoodie" },
   { value: "SWEATSHIRT", label: "Sweatshirt" },
