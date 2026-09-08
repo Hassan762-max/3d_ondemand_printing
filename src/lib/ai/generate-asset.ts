@@ -3,7 +3,7 @@ import path from "path";
 import { nanoid } from "nanoid";
 
 export async function writeGeneratedSvg(prompt: string, style: string) {
-  const safe = prompt.replace(/[<>&]/g, "").slice(0, 48) || "Printora";
+  const safe = prompt.replace(/[<>&]/g, "").slice(0, 48) || "Nivaro";
   const accent =
     style === "bold"
       ? "#1F6B5A"

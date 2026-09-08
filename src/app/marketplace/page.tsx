@@ -2,6 +2,7 @@ import Link from "next/link";
 import { LicenseDesignButton } from "@/components/marketplace/marketplace-actions";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";
+import { brand } from "@/lib/brand";
 import { prisma } from "@/lib/db";
 import { formatPkr } from "@/lib/utils";
 
@@ -41,7 +42,7 @@ export default async function MarketplacePage() {
             Designs from Pakistan creators
           </h1>
           <p className="mt-3 max-w-xl text-sm text-[var(--muted)]">
-            License community artwork for your Printora orders. Free and paid listings —
+            License community artwork for your {brand.name} orders. Free and paid listings —
             designers earn when you add their work.
           </p>
         </div>

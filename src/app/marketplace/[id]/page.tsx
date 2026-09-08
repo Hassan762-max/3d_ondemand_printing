@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { LicenseDesignButton } from "@/components/marketplace/marketplace-actions";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";
+import { brand } from "@/lib/brand";
 import { prisma } from "@/lib/db";
 import { formatPkr } from "@/lib/utils";
 
@@ -57,7 +58,7 @@ export default async function MarketplaceDetailPage({ params }: Props) {
           {design.title}
         </h1>
         <p className="mt-4 text-sm leading-relaxed text-[var(--muted)]">
-          {design.description || "Community marketplace design for Printora printing."}
+          {design.description || `Community marketplace design for ${brand.name} printing.`}
         </p>
         <p className="mt-6 text-2xl font-medium">
           {design.listedPrice > 0 ? formatPkr(design.listedPrice) : "Free"}

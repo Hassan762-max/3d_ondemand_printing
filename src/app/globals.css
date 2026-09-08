@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --ink: #0e1116;
-  --ink-soft: #1c212b;
-  --paper: #f4f1eb;
-  --paper-elevated: #faf8f4;
-  --mist: #e7e2d8;
-  --muted: #6b6f78;
-  --accent: #1f6b5a;
-  --accent-bright: #2a8f78;
+  --ink: #0c0e12;
+  --ink-soft: #1a1e26;
+  --paper: #f7f6f3;
+  --paper-elevated: #fcfbf9;
+  --mist: #e8e6e1;
+  --muted: #5c616b;
+  --accent: #1a6b5c;
+  --accent-bright: #248a76;
   --danger: #b42318;
-  --success: #1f6b5a;
+  --success: #1a6b5c;
   --background: var(--paper);
   --foreground: var(--ink);
 }
@@ -31,13 +31,14 @@ body {
   color: var(--ink);
   font-family: var(--font-body), system-ui, sans-serif;
   background-image:
-    radial-gradient(ellipse at top, rgba(31, 107, 90, 0.05), transparent 40%),
-    linear-gradient(180deg, #f7f4ee 0%, #f4f1eb 40%, #efebe3 100%);
+    radial-gradient(ellipse at 12% 0%, rgba(26, 107, 92, 0.06), transparent 42%),
+    radial-gradient(ellipse at 88% 8%, rgba(12, 14, 18, 0.04), transparent 38%),
+    linear-gradient(180deg, #faf9f7 0%, #f7f6f3 45%, #f2f0ec 100%);
   background-attachment: fixed;
 }
 
 ::selection {
-  background: rgba(31, 107, 90, 0.22);
+  background: rgba(26, 107, 92, 0.2);
 }
 
 a {

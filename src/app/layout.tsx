@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans, Syne } from "next/font/google";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { brand } from "@/lib/brand";
 import "./globals.css";
 
 const display = Syne({
@@ -18,11 +19,10 @@ const body = DM_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: "Printora — AI Custom Clothing for Pakistan",
-    template: "%s · Printora",
+    default: `${brand.name} — AI Custom Clothing for Pakistan`,
+    template: `%s · ${brand.name}`,
   },
-  description:
-    "Design, customize in 3D, try on with AI, and order custom clothing fulfilled across Pakistan.",
+  description: brand.description,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

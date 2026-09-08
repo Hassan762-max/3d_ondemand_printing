@@ -5,6 +5,7 @@ import { useActionState } from "react";
 import { registerUser, type AuthActionState } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
+import { brand } from "@/lib/brand";
 
 const initial: AuthActionState = { ok: false };
 
@@ -14,7 +15,7 @@ export default function SignUpPage() {
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 py-16">
       <h1 className="font-[family-name:var(--font-display)] text-3xl tracking-tight">
-        Create your Printora
+        Create your {brand.name}
       </h1>
       <p className="mt-2 text-sm text-[var(--muted)]">
         Start designing custom clothing with AI and 3D tools.

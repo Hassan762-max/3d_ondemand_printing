@@ -5,6 +5,7 @@ import { useActionState } from "react";
 import { loginUser, type AuthActionState } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
+import { brand } from "@/lib/brand";
 
 const initial: AuthActionState = { ok: false };
 
@@ -17,7 +18,7 @@ export default function SignInPage() {
         Welcome back
       </h1>
       <p className="mt-2 text-sm text-[var(--muted)]">
-        Sign in to Printora to continue creating.
+        Sign in to {brand.name} to continue creating.
       </p>
 
       <form action={action} className="mt-8 space-y-4">

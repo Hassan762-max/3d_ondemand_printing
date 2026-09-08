@@ -1,6 +1,6 @@
 import { Role } from "@prisma/client";
 
-/** Granular permissions used across Printora RBAC. */
+/** Granular permissions used across Nivaro RBAC. */
 export const PERMISSIONS = [
   "catalog:read",
   "catalog:write",
