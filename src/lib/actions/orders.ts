@@ -255,3 +255,91 @@ export async function cancelOrder(orderId: string): Promise<OrderActionResult> {
   revalidatePath(`/orders/${order.id}`);
   return { ok: true, orderId: order.id, message: "Order cancelled." };
 }
+
+export async function reorderOrder(orderId: string): Promise<OrderActionResult> {
+  const user = await requireUser("cart:manage");
+
+  const order = await prisma.order.findFirst({
+    where: { id: orderId, userId: user.id },
+    include: {
+      items: {
+        include: { product: { select: { id: true, active: true, basePrice: true } } },
+      },
+    },
+  });
+  if (!order) return { ok: false, message: "Order not found." };
+
+  const cart = await prisma.cart.upsert({
+    where: { userId: user.id },
+    update: {},
+    create: { userId: user.id },
+  });
+
+  let added = 0;
+  for (const item of order.items) {
+    if (!item.product.active) continue;
+
+    if (item.designId) {
+      const design = await prisma.design.findUnique({ where: { id: item.designId } });
+      if (!design) continue;
+      const allowed =
+        design.isLibrary ||
+        design.ownerId === user.id ||
+        Boolean(
+          await prisma.designLicense.findFirst({
+            where: { designId: design.id, buyerId: user.id },
+          }),
+        );
+      if (!allowed) continue;
+    }
+
+    const existing = await prisma.cartItem.findFirst({
+      where: {
+        cartId: cart.id,
+        productId: item.productId,
+        designId: item.designId ?? null,
+        size: item.size,
+        color: item.color,
+      },
+    });
+
+    if (existing) {
+      await prisma.cartItem.update({
+        where: { id: existing.id },
+        data: {
+          quantity: Math.min(20, existing.quantity + item.quantity),
+          placementJson: item.placementJson,
+        },
+      });
+    } else {
+      await prisma.cartItem.create({
+        data: {
+          cartId: cart.id,
+          productId: item.productId,
+          designId: item.designId,
+          size: item.size,
+          color: item.color,
+          quantity: item.quantity,
+          unitPrice: item.product.basePrice,
+          placementJson: item.placementJson,
+        },
+      });
+    }
+    added += 1;
+  }
+
+  if (added === 0) {
+    return {
+      ok: false,
+      message: "No items could be re-added (products inactive or designs unavailable).",
+    };
+  }
+
+  revalidatePath("/cart");
+  revalidatePath(`/orders/${order.id}`);
+  return {
+    ok: true,
+    orderId: order.id,
+    message: `${added} item${added === 1 ? "" : "s"} added to cart.`,
+  };
+}

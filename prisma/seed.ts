@@ -475,6 +475,37 @@ async function main() {
     }
   }
 
+  const customer = await prisma.user.findUnique({
+    where: { email: "customer@printora.pk" },
+  });
+  if (customer) {
+    await prisma.styleProfile.upsert({
+      where: { userId: customer.id },
+      create: {
+        userId: customer.id,
+        preferences: JSON.stringify({
+          fit: "oversized",
+          styles: ["Minimal", "Streetwear"],
+        }),
+        sizes: JSON.stringify({ default: "M" }),
+      },
+      update: {
+        preferences: JSON.stringify({
+          fit: "oversized",
+          styles: ["Minimal", "Streetwear"],
+        }),
+        sizes: JSON.stringify({ default: "M" }),
+      },
+    });
+    await prisma.user.update({
+      where: { id: customer.id },
+      data: {
+        phone: customer.phone ?? "03001234567",
+        province: customer.province ?? "Punjab",
+      },
+    });
+  }
+
   console.log("Seed complete. Demo password for all users: password123");
 }
 

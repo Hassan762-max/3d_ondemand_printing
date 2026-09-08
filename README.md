@@ -104,6 +104,12 @@ Password for all: `password123`
 - Support + legal footer pages (help, contact, shipping, returns, privacy, terms)
 - Live homepage reviews when DB has ratings · how-it-works refresh
 
+## Phase 13 (done)
+
+- Account profile + StyleProfile (`/account/profile`) · AI style consult context
+- Product category filters · design deep-link · reorder to cart
+- Support tickets (contact → ops) · sitemap/robots/OpenGraph
+
 ## Status
 
-Storefront polish complete through Phase 12. Wire real AI/payment APIs and PostgreSQL using `docs/PRODUCTION.md` when going live.
+Customer account & catalog completion through Phase 13. Wire real AI/payment APIs and PostgreSQL using `docs/PRODUCTION.md` when going live.

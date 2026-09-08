@@ -35,6 +35,13 @@ export default async function AccountPage() {
 
       <div className="mt-10 grid gap-4 sm:grid-cols-2">
         <Link
+          href="/account/profile"
+          className="rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-5 transition hover:border-[var(--ink)]/25"
+        >
+          <p className="text-xs uppercase tracking-[0.12em] text-[var(--muted)]">Profile</p>
+          <p className="mt-2 font-medium">Contact & style preferences</p>
+        </Link>
+        <Link
           href="/account/designs"
           className="rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-5 transition hover:border-[var(--ink)]/25"
         >

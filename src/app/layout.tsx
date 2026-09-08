@@ -18,11 +18,28 @@ const body = DM_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.AUTH_URL?.startsWith("http")
+      ? process.env.AUTH_URL
+      : "http://localhost:3000",
+  ),
   title: {
     default: `${brand.name} — AI Custom Clothing for Pakistan`,
     template: `%s · ${brand.name}`,
   },
   description: brand.description,
+  openGraph: {
+    title: `${brand.name} — AI Custom Clothing for Pakistan`,
+    description: brand.description,
+    siteName: brand.name,
+    locale: "en_PK",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: brand.name,
+    description: brand.tagline,
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

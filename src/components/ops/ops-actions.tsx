@@ -8,6 +8,10 @@ import {
   resolveReturnRequest,
   type OpsActionResult,
 } from "@/lib/actions/ops";
+import {
+  resolveSupportTicket,
+  type SupportActionResult,
+} from "@/lib/actions/support";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 
@@ -96,5 +100,27 @@ export function ApproveRefundButton({ paymentId }: { paymentId: string }) {
     >
       {pending ? "…" : "Approve refund"}
     </Button>
+  );
+}
+
+const ticketInitial: SupportActionResult = { ok: false };
+
+export function ResolveTicketForm({ ticketId }: { ticketId: string }) {
+  const [state, action, pending] = useActionState(resolveSupportTicket, ticketInitial);
+
+  return (
+    <form action={action} className="space-y-3">
+      <input type="hidden" name="ticketId" value={ticketId} />
+      <input type="hidden" name="status" value="closed" />
+      <Input name="note" placeholder="Resolution note (optional)" />
+      {state.message ? (
+        <p className={`text-xs ${state.ok ? "text-[var(--accent)]" : "text-[var(--danger)]"}`}>
+          {state.message}
+        </p>
+      ) : null}
+      <Button type="submit" size="sm" disabled={pending}>
+        {pending ? "Closing…" : "Close ticket"}
+      </Button>
+    </form>
   );
 }

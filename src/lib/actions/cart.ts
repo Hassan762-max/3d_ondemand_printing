@@ -89,7 +89,15 @@ export async function addToCart(formData: FormData): Promise<CartResult> {
       where: { id: parsed.data.designId },
     });
     if (!design) return { ok: false, message: "Design not found." };
-    if (!design.isLibrary && design.ownerId !== user.id) {
+    const allowed =
+      design.isLibrary ||
+      design.ownerId === user.id ||
+      Boolean(
+        await prisma.designLicense.findFirst({
+          where: { designId: design.id, buyerId: user.id },
+        }),
+      );
+    if (!allowed) {
       return { ok: false, message: "You cannot use this design." };
     }
   }
