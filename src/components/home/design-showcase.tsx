@@ -1,19 +1,7 @@
 import Link from "next/link";
 import { SaveDesignButton } from "@/components/designs/save-design-button";
 import { Button } from "@/components/ui/button";
-
-const CATEGORIES = [
-  "Streetwear",
-  "Minimal",
-  "Vintage",
-  "Anime",
-  "Gaming",
-  "Typography",
-  "Sports",
-  "Art",
-  "Funny",
-  "Trending",
-];
+import { DESIGN_CATEGORIES } from "@/lib/design-categories";
 
 export type ShowcaseDesign = {
   id: string;
@@ -46,10 +34,10 @@ export function DesignShowcase({
       </div>
 
       <div className="mt-8 flex gap-2 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {CATEGORIES.map((c) => (
+        {DESIGN_CATEGORIES.map((c) => (
           <Link
             key={c}
-            href={`/designs`}
+            href={`/designs?category=${encodeURIComponent(c)}`}
             className="shrink-0 rounded-md border border-[var(--ink)]/10 bg-[var(--paper-elevated)] px-3 py-1.5 text-xs text-[var(--muted)] transition hover:border-[var(--ink)]/25 hover:text-[var(--ink)]"
           >
             {c}
@@ -98,10 +86,7 @@ export function DesignShowcase({
                     <Link href={`/studio?design=${design.id}`} className="underline">
                       Use Design
                     </Link>
-                    <Link
-                      href={`/try-on`}
-                      className="text-[var(--muted)] underline"
-                    >
+                    <Link href={`/try-on`} className="text-[var(--muted)] underline">
                       Try On
                     </Link>
                   </div>

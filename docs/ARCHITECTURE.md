@@ -122,3 +122,11 @@ Go-live steps: `docs/PRODUCTION.md`.
 - Catalog covers all ProductCategory enums; vendor capabilities sync on seed
 - Delivery marks pending COD as collected; finance can force-collect on `/admin`
 - CI: `.github/workflows/ci.yml` · smoke: `npm run smoke`
+
+## 14. Storefront polish (Phase 12)
+
+- Design library category filter (`/designs?category=`) shared with homepage chips
+- Support pages: `/support/help`, `/contact`, `/shipping`, `/returns`
+- Legal: `/legal/privacy`, `/legal/terms`
+- Homepage reviews use live `Review` rows when present; demo fallback labeled
+- `/how-it-works` refreshed to Nivaro narrative with per-step CTAs

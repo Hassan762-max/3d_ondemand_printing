@@ -1,6 +1,7 @@
 /**
- * Demo reviews — clearly labeled. Replace with live Review queries when data exists.
+ * Homepage reviews — live DB rows when present, otherwise clearly labeled demos.
  */
+
 const DEMO_REVIEWS = [
   {
     rating: 5,
@@ -22,24 +23,35 @@ const DEMO_REVIEWS = [
   },
 ];
 
-export function ReviewsDemo() {
+export type HomeReview = {
+  rating: number;
+  name: string;
+  body: string;
+  product: string;
+};
+
+export function ReviewsDemo({ reviews }: { reviews?: HomeReview[] }) {
+  const live = reviews && reviews.length > 0;
+  const items = live ? reviews.slice(0, 6) : DEMO_REVIEWS;
+
   return (
     <section className="border-y border-[var(--ink)]/8 py-16 sm:py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">
-          Reviews · demo
+          {live ? "Reviews" : "Reviews · demo"}
         </p>
         <h2 className="mt-3 font-[family-name:var(--font-display)] text-3xl tracking-tight sm:text-4xl">
           What makers are saying
         </h2>
         <p className="mt-3 max-w-lg text-sm text-[var(--muted)]">
-          Placeholder testimonials for layout — not real customer quotes. Live
-          reviews appear here after delivered orders are rated.
+          {live
+            ? "Recent ratings from delivered orders."
+            : "Placeholder testimonials for layout — not real customer quotes. Live reviews appear here after delivered orders are rated."}
         </p>
         <div className="mt-10 grid gap-5 md:grid-cols-3">
-          {DEMO_REVIEWS.map((r) => (
+          {items.map((r) => (
             <article
-              key={r.body}
+              key={`${r.name}-${r.body.slice(0, 24)}`}
               className="rounded-xl border border-[var(--ink)]/8 bg-[var(--paper-elevated)] p-5"
             >
               <p className="text-sm font-medium tracking-tight">

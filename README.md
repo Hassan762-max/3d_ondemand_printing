@@ -98,6 +98,12 @@ Password for all: `password123`
 - GitHub Actions CI (`test` + `build`) · `npm run smoke` domain smoke script
 - QA unit suite for pricing, returns, routing, COD
 
+## Phase 12 (done)
+
+- Design library category filters (homepage chips → `/designs?category=`)
+- Support + legal footer pages (help, contact, shipping, returns, privacy, terms)
+- Live homepage reviews when DB has ratings · how-it-works refresh
+
 ## Status
 
-MVP + production/launch scaffolding is complete. Wire real AI/payment APIs and PostgreSQL using `docs/PRODUCTION.md` when going live.
+Storefront polish complete through Phase 12. Wire real AI/payment APIs and PostgreSQL using `docs/PRODUCTION.md` when going live.
