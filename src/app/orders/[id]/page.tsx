@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { CancelOrderButton } from "@/components/orders/cancel-order-button";
 import { OrderReviewForm } from "@/components/orders/order-review-form";
+import { ReorderButton } from "@/components/orders/reorder-button";
 import { ReturnRequestForm } from "@/components/orders/return-request-form";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";
@@ -69,9 +70,12 @@ export default async function OrderDetailPage({ params }: Props) {
             Placed {order.createdAt.toLocaleString("en-PK")} · {order.shippingCity}
           </p>
         </div>
-        <Link href="/orders">
-          <Button variant="outline">All orders</Button>
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <ReorderButton orderId={order.id} />
+          <Link href="/orders">
+            <Button variant="outline">All orders</Button>
+          </Link>
+        </div>
       </div>
 
       <section className="mt-10 rounded-2xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-6">

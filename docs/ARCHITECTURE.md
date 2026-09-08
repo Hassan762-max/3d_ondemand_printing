@@ -45,6 +45,8 @@ AI-powered 3D custom clothing & print-on-demand for Pakistan.
 | 9 | Creator marketplace, reviews, notifications, hardening (**done**) |
 | 10 | Production readiness: admin, settlements, payment adapters, health (**done**) |
 | 11 | Launch polish: full catalog, COD finance tools, CI/smoke (**done**) |
+| 12 | Storefront polish: design filters, support/legal, live reviews (**done**) |
+| 13 | Account & catalog: profile/StyleProfile, product filters, reorder, tickets, SEO (**done**) |
 
 ## 3. Primary customer flow
 
@@ -130,3 +132,11 @@ Go-live steps: `docs/PRODUCTION.md`.
 - Legal: `/legal/privacy`, `/legal/terms`
 - Homepage reviews use live `Review` rows when present; demo fallback labeled
 - `/how-it-works` refreshed to Nivaro narrative with per-step CTAs
+
+## 15. Account & catalog completion (Phase 13)
+
+- `/account/profile` edits contact + StyleProfile (sizes/fit/tags); AI style consult uses profile
+- Product category filters + `/products?design=` deep-link into product detail
+- Order reorder-to-cart; cart accepts licensed marketplace designs
+- Support tickets from contact form → `/ops` queue + in-app notifications
+- SEO: `sitemap.ts`, `robots.ts`, OpenGraph/`metadataBase`

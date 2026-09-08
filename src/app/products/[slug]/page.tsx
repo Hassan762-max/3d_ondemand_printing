@@ -9,7 +9,10 @@ import { formatPkr } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ design?: string }>;
+};
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
@@ -17,8 +20,9 @@ export async function generateMetadata({ params }: Props) {
   return { title: product?.name ?? "Product" };
 }
 
-export default async function ProductDetailPage({ params }: Props) {
+export default async function ProductDetailPage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const { design: designParam } = await searchParams;
   const session = await auth();
   const product = await prisma.product.findUnique({
     where: { slug },
@@ -67,6 +71,19 @@ export default async function ProductDetailPage({ params }: Props) {
         take: 50,
       });
 
+  const styleProfile = session?.user?.id
+    ? await prisma.styleProfile.findUnique({ where: { userId: session.user.id } })
+    : null;
+  let defaultSize: string | undefined;
+  if (styleProfile) {
+    try {
+      const sizesJson = JSON.parse(styleProfile.sizes || "{}") as { default?: string };
+      defaultSize = sizesJson.default;
+    } catch {
+      defaultSize = undefined;
+    }
+  }
+
   const productReviews = await prisma.review.findMany({
     where: {
       order: {
@@ -113,6 +130,8 @@ export default async function ProductDetailPage({ params }: Props) {
             sizes={sizes}
             colors={colors}
             designs={designs}
+            initialDesignId={designParam}
+            initialSize={defaultSize}
           />
         </div>
 

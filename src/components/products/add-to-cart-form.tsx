@@ -12,16 +12,26 @@ export function AddToCartForm({
   sizes,
   colors,
   designs,
+  initialDesignId,
+  initialSize,
 }: {
   productId: string;
   sizes: string[];
   colors: ColorOption[];
   designs: { id: string; title: string }[];
+  initialDesignId?: string;
+  initialSize?: string;
 }) {
   const router = useRouter();
-  const [size, setSize] = useState(sizes[0] ?? "");
+  const preferredSize =
+    initialSize && sizes.includes(initialSize) ? initialSize : (sizes[0] ?? "");
+  const preferredDesign =
+    initialDesignId && designs.some((d) => d.id === initialDesignId)
+      ? initialDesignId
+      : "";
+  const [size, setSize] = useState(preferredSize);
   const [color, setColor] = useState(colors[0]?.name ?? "");
-  const [designId, setDesignId] = useState(designs[0]?.id ?? "");
+  const [designId, setDesignId] = useState(preferredDesign);
   const [message, setMessage] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 

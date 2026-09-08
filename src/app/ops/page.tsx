@@ -4,6 +4,7 @@ import {
   ApproveRefundButton,
   QcDecisionForm,
   ResolveReturnForm,
+  ResolveTicketForm,
 } from "@/components/ops/ops-actions";
 import { ModerateDesignButtons } from "@/components/ops/moderate-design-buttons";
 import { Button } from "@/components/ui/button";
@@ -42,7 +43,7 @@ export default async function OpsPage() {
     );
   }
 
-  const [openReturns, pendingRefunds, qcOrders, vendors, recentOrders, pendingListings] =
+  const [openReturns, pendingRefunds, qcOrders, vendors, recentOrders, pendingListings, openTickets] =
     await Promise.all([
       prisma.returnRequest.findMany({
         where: { status: "open" },
@@ -77,6 +78,12 @@ export default async function OpsPage() {
         orderBy: { updatedAt: "desc" },
         take: 20,
       }),
+      prisma.supportTicket.findMany({
+        where: { status: "open" },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+        include: { order: { select: { orderNumber: true } } },
+      }),
     ]);
 
   const showSupport = hasPermission(role, "support:manage") || role === "ADMIN";
@@ -98,8 +105,9 @@ export default async function OpsPage() {
         Signed in as {role.replaceAll("_", " ")}
       </p>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-4">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Stat label="Open returns" value={String(openReturns.length)} />
+        <Stat label="Open tickets" value={String(openTickets.length)} />
         <Stat label="Pending refunds" value={String(pendingRefunds.length)} />
         <Stat label="QC / reprint queue" value={String(qcOrders.length)} />
         <Stat label="Pending listings" value={String(pendingListings.length)} />
@@ -139,6 +147,37 @@ export default async function OpsPage() {
                     </div>
                   </div>
                   <ModerateDesignButtons designId={design.id} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
+
+      {showSupport ? (
+        <section className="mt-12">
+          <h2 className="text-lg font-medium tracking-tight">Support · open tickets</h2>
+          {openTickets.length === 0 ? (
+            <p className="mt-3 text-sm text-[var(--muted)]">No open support tickets.</p>
+          ) : (
+            <ul className="mt-4 space-y-4">
+              {openTickets.map((ticket) => (
+                <li
+                  key={ticket.id}
+                  className="grid gap-4 rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-4 lg:grid-cols-[1.2fr_0.8fr]"
+                >
+                  <div>
+                    <p className="font-medium">{ticket.subject}</p>
+                    <p className="mt-2 text-sm text-[var(--muted)]">{ticket.body}</p>
+                    <p className="mt-2 text-xs text-[var(--muted)]">
+                      {ticket.name ?? "Guest"} · {ticket.email}
+                      {ticket.order
+                        ? ` · order ${ticket.order.orderNumber}`
+                        : ""}{" "}
+                      · {ticket.createdAt.toLocaleString("en-PK")}
+                    </p>
+                  </div>
+                  <ResolveTicketForm ticketId={ticket.id} />
                 </li>
               ))}
             </ul>

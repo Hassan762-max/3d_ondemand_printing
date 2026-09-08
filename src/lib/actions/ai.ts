@@ -169,9 +169,29 @@ export async function consultAiAction(
     return { ok: false, message: "Ask a clearer question (5+ characters)." };
   }
 
-  const context = parsed.data.context
+  const contextFromForm = parsed.data.context
     ? { note: parsed.data.context }
     : undefined;
+
+  let context = contextFromForm;
+  if (parsed.data.mode === "style") {
+    const profile = await prisma.styleProfile.findUnique({
+      where: { userId: user.id },
+    });
+    if (profile) {
+      const { parseStylePreferences, parseStyleSizes, styleContextNote } =
+        await import("@/lib/style-profile");
+      const note = styleContextNote(
+        parseStylePreferences(profile.preferences),
+        parseStyleSizes(profile.sizes),
+      );
+      if (note) {
+        context = {
+          note: [contextFromForm?.note, note].filter(Boolean).join(" "),
+        };
+      }
+    }
+  }
 
   const { result } =
     parsed.data.mode === "style"
