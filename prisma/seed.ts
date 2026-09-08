@@ -202,7 +202,7 @@ async function main() {
       role: "PRODUCTION_MANAGER",
       city: "Lahore",
     },
-    { email: "admin@printora.pk", name: "Printora Admin", role: "ADMIN", city: "Islamabad" },
+    { email: "admin@printora.pk", name: "Nivaro Admin", role: "ADMIN", city: "Islamabad" },
   ];
 
   for (const u of users) {

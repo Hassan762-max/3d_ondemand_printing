@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { brand } from "@/lib/brand";
+import { formatPkr } from "@/lib/utils";
 
 export const metadata = { title: "How it works" };
 
 const steps = [
   {
     title: "Choose or upload a design",
-    body: "Browse the Printora library or upload your artwork. AI can upscale and diagnose print readiness.",
+    body: `Browse the ${brand.name} library or upload your artwork. AI can upscale and diagnose print readiness.`,
   },
   {
     title: "Pick a garment",
@@ -22,7 +24,7 @@ const steps = [
   },
   {
     title: "Order with hybrid payment",
-    body: "Pay Rs. 500 advance online-ready path. Remaining amount collected on COD at delivery.",
+    body: `Pay ${formatPkr(brand.advanceAmount)} advance. Remaining amount collected on COD at delivery.`,
   },
   {
     title: "Pakistan vendor fulfillment",
@@ -35,7 +37,7 @@ export default function HowItWorksPage() {
     <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
       <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Process</p>
       <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl tracking-tight">
-        How Printora works
+        How {brand.name} works
       </h1>
       <ol className="mt-12 space-y-8">
         {steps.map((step, i) => (
@@ -48,9 +50,12 @@ export default function HowItWorksPage() {
           </li>
         ))}
       </ol>
-      <div className="mt-12">
+      <div className="mt-12 flex flex-wrap gap-3">
         <Link href="/studio">
-          <Button size="lg">Open Studio</Button>
+          <Button>Open 3D Studio</Button>
+        </Link>
+        <Link href="/auth/sign-up">
+          <Button variant="outline">Start Creating</Button>
         </Link>
       </div>
     </div>

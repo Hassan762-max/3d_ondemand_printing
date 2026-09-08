@@ -1,4 +1,4 @@
-# Printora — Production readiness checklist
+# Nivaro — Production readiness checklist
 
 Use this when moving off local SQLite / stubs toward a live Pakistan deployment.
 

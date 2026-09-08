@@ -18,7 +18,7 @@ export async function GET() {
 
   const body = {
     ok: db === "up",
-    service: "printora",
+    service: "nivaro",
     db,
     ai: getAiProvider().name,
     payment: getPaymentProvider().name,

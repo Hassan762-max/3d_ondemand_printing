@@ -3,87 +3,71 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { brand } from "@/lib/brand";
+import { HeroStage } from "@/components/home/hero-stage";
 
 export function Hero() {
   return (
     <section className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,rgba(31,107,90,0.14),transparent_50%),radial-gradient(ellipse_at_90%_20%,rgba(18,20,26,0.08),transparent_45%)]" />
-      <div className="pointer-events-none absolute inset-0 opacity-[0.35] [background-image:linear-gradient(rgba(18,20,26,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(18,20,26,0.04)_1px,transparent_1px)] [background-size:48px_48px]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_18%_0%,rgba(26,107,92,0.1),transparent_48%),radial-gradient(ellipse_at_92%_12%,rgba(12,14,18,0.05),transparent_40%)]" />
 
-      <div className="relative mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8">
+      <div className="relative mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl items-center gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:py-16">
         <div>
           <motion.p
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="font-[family-name:var(--font-display)] text-5xl leading-[0.95] tracking-tight text-[var(--ink)] sm:text-6xl md:text-7xl"
+            transition={{ duration: 0.45 }}
+            className="font-[family-name:var(--font-display)] text-5xl leading-none tracking-tight text-[var(--ink)] sm:text-6xl md:text-7xl"
           >
-            Printora
+            {brand.name}
           </motion.p>
           <motion.h1
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.08 }}
-            className="mt-6 max-w-xl text-2xl font-medium leading-snug tracking-tight text-[var(--ink)] sm:text-3xl"
+            transition={{ duration: 0.5, delay: 0.06 }}
+            className="mt-6 max-w-xl text-2xl font-medium leading-snug tracking-tight text-[var(--ink)] sm:text-3xl md:text-[2rem]"
           >
-            Design it. Try it on. Wear it across Pakistan.
+            {brand.tagline}
           </motion.h1>
           <motion.p
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.16 }}
+            transition={{ duration: 0.5, delay: 0.12 }}
             className="mt-5 max-w-md text-base leading-relaxed text-[var(--muted)]"
           >
-            AI-enhanced prints, real-time 3D customization, and virtual try-on —
-            fulfilled by local vendors from Karachi to Peshawar.
+            {brand.description}
           </motion.p>
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.24 }}
+            transition={{ duration: 0.5, delay: 0.18 }}
             className="mt-8 flex flex-wrap gap-3"
           >
-            <Link href="/studio">
-              <Button size="lg">Open 3D Studio</Button>
+            <Link href="/auth/sign-up">
+              <Button size="lg">Start Creating</Button>
             </Link>
             <Link href="/designs">
               <Button size="lg" variant="outline">
-                Browse designs
+                Explore Designs
               </Button>
             </Link>
           </motion.div>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.28 }}
+            className="mt-6 text-xs tracking-wide text-[var(--muted)]"
+          >
+            {brand.trustLine}
+          </motion.p>
         </div>
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
+          initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.7, delay: 0.12 }}
-          className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-[var(--ink)] shadow-[0_40px_80px_-40px_rgba(14,17,22,0.55)]"
+          transition={{ duration: 0.65, delay: 0.1 }}
         >
-          <div className="absolute inset-0 bg-[linear-gradient(160deg,#1F6B5A_0%,#0E1116_48%,#1B2A4A_100%)]" />
-          <div className="absolute inset-0 opacity-40 [background-image:radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.25),transparent_35%)]" />
-          <div className="absolute inset-x-0 bottom-0 p-8 text-[var(--paper)]">
-            <p className="text-xs uppercase tracking-[0.18em] text-white/55">
-              Studio preview
-            </p>
-            <p className="mt-2 font-[family-name:var(--font-display)] text-3xl leading-none">
-              3D + AI Try-On
-            </p>
-            <p className="mt-3 max-w-xs text-sm text-white/65">
-              Place artwork, rotate the garment, then preview on your photo before
-              you order.
-            </p>
-          </div>
-          <motion.div
-            className="absolute left-[18%] top-[22%] h-40 w-40 rounded-full border border-white/20"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 28, repeat: Infinity, ease: "linear" }}
-          />
-          <motion.div
-            className="absolute right-[16%] top-[34%] h-24 w-24 rounded-lg border border-white/25 bg-white/5 backdrop-blur-sm"
-            animate={{ y: [0, -10, 0] }}
-            transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
-          />
+          <HeroStage />
         </motion.div>
       </div>
     </section>

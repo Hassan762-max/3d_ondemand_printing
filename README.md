@@ -1,6 +1,9 @@
-# Printora
+# Nivaro
 
 AI-powered 3D custom clothing & print-on-demand for Pakistan.
+
+**Brand:** Nivaro · tagline *Design it. Try it on. Make it yours.*
+Configure via `NEXT_PUBLIC_APP_NAME` / `src/lib/brand.ts`.
 
 ## Quick start
 
@@ -25,7 +28,7 @@ Password for all: `password123`
 ## Phase 1 (done)
 
 - Product architecture (`docs/ARCHITECTURE.md`)
-- Premium brand shell (Printora)
+- Premium brand shell (Nivaro)
 - Auth.js credentials + RBAC permissions
 - Prisma domain model (catalog, designs, orders, vendors, AI jobs, …)
 - Catalog + design library + account/cart shells

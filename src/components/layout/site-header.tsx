@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { auth } from "@/lib/auth";
+import { brand } from "@/lib/brand";
 import { prisma } from "@/lib/db";
 import { Button } from "@/components/ui/button";
+import { MobileNav } from "@/components/layout/mobile-nav";
 
 const links = [
   { href: "/products", label: "Products" },
@@ -31,18 +33,19 @@ export async function SiteHeader() {
     "FINANCE_MANAGER",
     "PRODUCTION_MANAGER",
   ]);
-  const isOps = session?.user?.role
-    ? opsRoles.has(session.user.role)
-    : false;
+  const isOps = session?.user?.role ? opsRoles.has(session.user.role) : false;
   const isAdmin =
     session?.user?.role === "ADMIN" || session?.user?.role === "SUPER_ADMIN";
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--ink)]/8 bg-[var(--paper)]/85 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+    <header className="sticky top-0 z-50 border-b border-[var(--ink)]/8 bg-[var(--paper)]/90 backdrop-blur-md">
+      <div className="relative mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-8">
-          <Link href="/" className="font-[family-name:var(--font-display)] text-xl tracking-tight text-[var(--ink)]">
-            Printora
+          <Link
+            href="/"
+            className="font-[family-name:var(--font-display)] text-xl tracking-tight text-[var(--ink)]"
+          >
+            {brand.name}
           </Link>
           <nav className="hidden items-center gap-6 md:flex">
             {links.map((link) => (
@@ -56,8 +59,12 @@ export async function SiteHeader() {
             ))}
           </nav>
         </div>
+
         <div className="flex items-center gap-2">
-          <Link href="/cart" className="relative hidden text-sm text-[var(--muted)] hover:text-[var(--ink)] sm:inline">
+          <Link
+            href="/cart"
+            className="relative hidden text-sm text-[var(--muted)] hover:text-[var(--ink)] sm:inline"
+          >
             Cart
             {cartCount > 0 ? (
               <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--accent)] px-1.5 text-[10px] font-medium text-white">
@@ -65,11 +72,12 @@ export async function SiteHeader() {
               </span>
             ) : null}
           </Link>
+
           {session?.user ? (
             <>
               <Link
                 href="/account/notifications"
-                className="relative hidden text-sm text-[var(--muted)] hover:text-[var(--ink)] sm:inline"
+                className="relative hidden text-sm text-[var(--muted)] hover:text-[var(--ink)] lg:inline"
               >
                 Alerts
                 {unreadCount > 0 ? (
@@ -79,21 +87,30 @@ export async function SiteHeader() {
                 ) : null}
               </Link>
               {isVendor ? (
-                <Link href="/vendor" className="hidden text-sm text-[var(--muted)] hover:text-[var(--ink)] sm:inline">
+                <Link
+                  href="/vendor"
+                  className="hidden text-sm text-[var(--muted)] hover:text-[var(--ink)] lg:inline"
+                >
                   Vendor
                 </Link>
               ) : null}
               {isOps ? (
-                <Link href="/ops" className="hidden text-sm text-[var(--muted)] hover:text-[var(--ink)] sm:inline">
+                <Link
+                  href="/ops"
+                  className="hidden text-sm text-[var(--muted)] hover:text-[var(--ink)] lg:inline"
+                >
                   Ops
                 </Link>
               ) : null}
               {isAdmin ? (
-                <Link href="/admin" className="hidden text-sm text-[var(--muted)] hover:text-[var(--ink)] sm:inline">
+                <Link
+                  href="/admin"
+                  className="hidden text-sm text-[var(--muted)] hover:text-[var(--ink)] lg:inline"
+                >
                   Admin
                 </Link>
               ) : null}
-              <Link href="/account">
+              <Link href="/account" className="hidden sm:inline-flex">
                 <Button variant="outline" size="sm">
                   {session.user.name?.split(" ")[0] ?? "Account"}
                 </Button>
@@ -103,14 +120,21 @@ export async function SiteHeader() {
             <>
               <Link href="/auth/sign-in" className="hidden sm:block">
                 <Button variant="ghost" size="sm">
-                  Sign in
+                  Sign In
                 </Button>
               </Link>
-              <Link href="/auth/sign-up">
-                <Button size="sm">Start creating</Button>
+              <Link href="/auth/sign-up" className="hidden sm:block">
+                <Button size="sm">Start Creating</Button>
               </Link>
             </>
           )}
+
+          <MobileNav
+            links={links}
+            cartCount={cartCount}
+            signedIn={Boolean(session?.user)}
+            firstName={session?.user?.name?.split(" ")[0]}
+          />
         </div>
       </div>
     </header>

@@ -1,8 +1,8 @@
-﻿# Printora â€” Product Architecture
+﻿# Nivaro â€” Product Architecture
 
 AI-powered 3D custom clothing & print-on-demand for Pakistan.
 
-**Brand:** Printora  
+**Brand:** Nivaro  
 **Stack:** Next.js (App Router) Â· TypeScript Â· Prisma Â· Auth.js Â· Tailwind Â· Framer Motion Â· R3F (Phase 3) Â· provider-agnostic AI layer
 
 ---

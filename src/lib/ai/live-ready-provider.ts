@@ -30,7 +30,7 @@ export class LiveReadyAiProvider implements AiProvider {
       ...base,
       notes: [
         ...base.notes,
-        "Printora AI pipeline: adaptive sharpening for DTG/DTF",
+        "Nivaro AI pipeline: adaptive sharpening for DTG/DTF",
         `Strength ${input.strength ?? 0.7}`,
       ],
       provider: this.name,
