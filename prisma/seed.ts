@@ -29,8 +29,8 @@ const products: {
   },
   {
     slug: "oversized-studio-tee",
-    name: "Oversized Tee",
-    description: "Dropped shoulder, roomy body — built for statement graphics.",
+    name: "Plain Drop Shoulder Shirt",
+    description: "Plain drop-shoulder blank — roomy body for statement graphics.",
     category: "OVERSIZED_T_SHIRT",
     basePrice: 2499,
     imageUrl: "/products/oversized.png",
@@ -38,6 +38,7 @@ const products: {
     colors: [
       { name: "Charcoal", hex: "#2A2D34" },
       { name: "Sand", hex: "#D9D0C3" },
+      { name: "Ink", hex: "#12141A" },
     ],
   },
   {
@@ -182,6 +183,54 @@ const libraryDesigns = [
     description: "Liquid chrome energy for early-2000s vibes.",
     imageUrl: "/designs/y2k-chrome.png",
     tags: ["Y2K", "Streetwear", "Abstract"],
+  },
+  {
+    title: "Sakura Gaze",
+    description: "Anime-inspired eye with cherry blossom ink.",
+    imageUrl: "/designs/anime-sakura-gaze.png",
+    tags: ["Anime", "Streetwear"],
+  },
+  {
+    title: "Mecha Core",
+    description: "Futurist mecha helm for neon streetwear.",
+    imageUrl: "/designs/anime-mecha-core.png",
+    tags: ["Anime", "Y2K", "Abstract"],
+  },
+  {
+    title: "Moon Ronin",
+    description: "Original anime warrior under moonlight.",
+    imageUrl: "/designs/anime-moon-ronin.png",
+    tags: ["Anime", "Streetwear", "Vintage"],
+  },
+  {
+    title: "Great Wave",
+    description: "Ukiyo-e wave energy for modern prints.",
+    imageUrl: "/designs/culture-great-wave.png",
+    tags: ["Culture", "Vintage", "Abstract"],
+  },
+  {
+    title: "Aztec Sun",
+    description: "Mexica sun-stone geometry in terracotta gold.",
+    imageUrl: "/designs/culture-aztec-sun.png",
+    tags: ["Culture", "Streetwear"],
+  },
+  {
+    title: "Mandala Flow",
+    description: "Indian sacred geometry in saffron and gold.",
+    imageUrl: "/designs/culture-mandala.png",
+    tags: ["Culture", "Minimal"],
+  },
+  {
+    title: "Sahel Geometry",
+    description: "West African textile rhythm in ochre and ink.",
+    imageUrl: "/designs/culture-sahel-geo.png",
+    tags: ["Culture", "Abstract", "Streetwear"],
+  },
+  {
+    title: "Cloud Dragon",
+    description: "Chinese cloud-and-dragon motif, reimagined.",
+    imageUrl: "/designs/culture-cloud-dragon.png",
+    tags: ["Culture", "Vintage", "Streetwear"],
   },
 ];
 

@@ -3,7 +3,7 @@ import type { ProductCategory } from "@prisma/client";
 /** Simplified fashion names shown in catalog (DB may keep longer legacy names). */
 const DISPLAY_NAMES: Record<string, string> = {
   "essential-tee": "Tee",
-  "oversized-studio-tee": "Oversized Tee",
+  "oversized-studio-tee": "Drop Shoulder",
   "city-polo": "Polo",
   "monsoon-hoodie": "Hoodie",
   "crew-sweat": "Sweatshirt",
@@ -30,7 +30,7 @@ const CATALOG_IMAGES: Record<string, string> = {
 
 const CATEGORY_TAG: Record<string, string> = {
   T_SHIRT: "TEE",
-  OVERSIZED_T_SHIRT: "OVERSIZED",
+  OVERSIZED_T_SHIRT: "DROP SHOULDER",
   POLO: "POLO",
   HOODIE: "HEAVYWEIGHT",
   SWEATSHIRT: "FLEECE",

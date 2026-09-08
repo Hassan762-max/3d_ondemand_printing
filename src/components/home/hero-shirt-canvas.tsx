@@ -1,122 +1,129 @@
 "use client";
 
-import { Suspense, useRef } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { ContactShadows, Environment, OrbitControls } from "@react-three/drei";
-import type { Group } from "three";
+import { useEffect, useRef } from "react";
 
-/** Soft white blank tee for the homepage hero. */
-const PLAIN_TEE_HEX = "#f2f0eb";
-const TEE_MAT = { color: PLAIN_TEE_HEX, roughness: 0.78, metalness: 0.03 };
+/**
+ * Tearless soft black tee — Dizzy Engine on Sketchfab (CC BY):
+ * https://sketchfab.com/3d-models/black-t-shirt-f335319363024c58b907533fe5e89627
+ *
+ * Sketchfab free embeds still paint title/logo chrome; we hide those with
+ * opaque white bands (shirt stays visible in the center).
+ */
+const SKETCHFAB_UID = "f335319363024c58b907533fe5e89627";
 
-/** Slightly softer procedural tee than studio primitives — still plain / blank. */
-function PlainTeeMesh() {
-  return (
-    <group>
-      {/* Torso */}
-      <mesh castShadow receiveShadow position={[0, 0.12, 0]}>
-        <boxGeometry args={[0.78, 1.02, 0.2]} />
-        <meshStandardMaterial {...TEE_MAT} />
-      </mesh>
-      {/* Soft side panels for volume */}
-      <mesh castShadow position={[-0.36, 0.1, 0]} rotation={[0, 0, 0.04]}>
-        <boxGeometry args={[0.12, 0.96, 0.18]} />
-        <meshStandardMaterial {...TEE_MAT} />
-      </mesh>
-      <mesh castShadow position={[0.36, 0.1, 0]} rotation={[0, 0, -0.04]}>
-        <boxGeometry args={[0.12, 0.96, 0.18]} />
-        <meshStandardMaterial {...TEE_MAT} />
-      </mesh>
-      {/* Neck / collar ring */}
-      <mesh position={[0, 0.68, 0.02]}>
-        <torusGeometry args={[0.13, 0.035, 12, 28]} />
-        <meshStandardMaterial {...TEE_MAT} />
-      </mesh>
-      <mesh position={[0, 0.72, 0]}>
-        <cylinderGeometry args={[0.12, 0.14, 0.08, 24]} />
-        <meshStandardMaterial {...TEE_MAT} />
-      </mesh>
-      {/* Short sleeves */}
-      <mesh position={[-0.52, 0.4, 0]} rotation={[0, 0, 0.42]} castShadow>
-        <boxGeometry args={[0.42, 0.24, 0.2]} />
-        <meshStandardMaterial {...TEE_MAT} />
-      </mesh>
-      <mesh position={[0.52, 0.4, 0]} rotation={[0, 0, -0.42]} castShadow>
-        <boxGeometry args={[0.42, 0.24, 0.2]} />
-        <meshStandardMaterial {...TEE_MAT} />
-      </mesh>
-      {/* Hem */}
-      <mesh position={[0, -0.4, 0]} castShadow>
-        <boxGeometry args={[0.8, 0.06, 0.21]} />
-        <meshStandardMaterial color="#ebe8e2" roughness={0.82} metalness={0.02} />
-      </mesh>
-    </group>
-  );
+type SketchfabApi = {
+  start: () => void;
+  addEventListener: (event: string, cb: (...args: unknown[]) => void) => void;
+};
+
+declare global {
+  interface Window {
+    Sketchfab?: new (
+      version: string,
+      iframe: HTMLIFrameElement,
+    ) => {
+      init: (uid: string, options: Record<string, unknown>) => void;
+    };
+  }
 }
 
-function RotatingPlainTee() {
-  const group = useRef<Group>(null);
-
-  useFrame(() => {
-    if (!group.current) return;
-    group.current.position.y = Math.sin(performance.now() * 0.0012) * 0.028;
+function loadSketchfabScript(): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
+  if (window.Sketchfab) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>(
+      'script[data-sketchfab-api="1"]',
+    );
+    if (existing) {
+      if (window.Sketchfab) resolve();
+      else {
+        existing.addEventListener("load", () => resolve());
+        existing.addEventListener("error", () => reject(new Error("api")));
+      }
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://static.sketchfab.com/api/sketchfab-viewer-1.12.1.js";
+    script.async = true;
+    script.dataset.sketchfabApi = "1";
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error("api"));
+    document.body.appendChild(script);
   });
-
-  return (
-    <group ref={group} position={[0, 0.02, 0]}>
-      <PlainTeeMesh />
-    </group>
-  );
 }
 
-function HeroScene() {
-  return (
-    <>
-      <ambientLight intensity={0.75} />
-      <directionalLight
-        position={[2.8, 4.5, 2.2]}
-        intensity={1.15}
-        castShadow
-        shadow-mapSize={[1024, 1024]}
-      />
-      <directionalLight position={[-2.5, 1.8, -1.5]} intensity={0.45} />
-      <hemisphereLight args={["#ffffff", "#9aa39c", 0.4]} />
-      <RotatingPlainTee />
-      <ContactShadows
-        position={[0, -0.58, 0]}
-        opacity={0.38}
-        scale={5}
-        blur={2.6}
-        far={3}
-      />
-      <Environment preset="studio" />
-      <OrbitControls
-        enablePan={false}
-        enableZoom={false}
-        autoRotate
-        autoRotateSpeed={1.15}
-        minPolarAngle={Math.PI * 0.38}
-        maxPolarAngle={Math.PI * 0.58}
-        target={[0, 0.12, 0]}
-      />
-    </>
-  );
-}
+const VIEWER_OPTS = {
+  autostart: 1,
+  preload: 1,
+  transparent: 1,
+  ui_theme: "dark",
+  ui_infos: 0,
+  ui_controls: 0,
+  ui_stop: 0,
+  ui_inspector: 0,
+  ui_watermark: 0,
+  ui_watermark_link: 0,
+  ui_hint: 0,
+  ui_help: 0,
+  ui_settings: 0,
+  ui_vr: 0,
+  ui_fullscreen: 0,
+  ui_annotations: 0,
+  ui_color: "FFFFFF",
+  dnt: 1,
+} as const;
 
 export function HeroShirtCanvas() {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+
+    (async () => {
+      try {
+        await loadSketchfabScript();
+        if (cancelled || !window.Sketchfab || !iframe) return;
+
+        const client = new window.Sketchfab("1.12.1", iframe);
+        client.init(SKETCHFAB_UID, {
+          ...VIEWER_OPTS,
+          success: (api: SketchfabApi) => {
+            if (cancelled) return;
+            api.start();
+          },
+          error: () => undefined,
+        });
+      } catch {
+        // ignore — iframe stays blank white until API loads
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
-    <div className="absolute inset-0">
-      <Canvas
-        shadows
-        camera={{ position: [0.55, 0.28, 2.05], fov: 38 }}
-        gl={{ antialias: true, alpha: true }}
-        dpr={[1, 1.75]}
-        className="h-full w-full touch-none"
-      >
-        <Suspense fallback={null}>
-          <HeroScene />
-        </Suspense>
-      </Canvas>
+    <div className="absolute inset-0 overflow-hidden bg-white">
+      <iframe
+        ref={iframeRef}
+        title="Black T-Shirt 3D model"
+        allow="autoplay; fullscreen; xr-spatial-tracking"
+        allowFullScreen
+        referrerPolicy="strict-origin-when-cross-origin"
+        className="absolute inset-0 h-full w-full border-0 bg-white"
+      />
+
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 z-[5] h-[3.75rem] bg-white"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-32 bg-gradient-to-t from-white from-55% to-transparent"
+      />
     </div>
   );
 }
