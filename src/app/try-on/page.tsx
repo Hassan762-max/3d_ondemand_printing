@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { TryOnCreateForm } from "@/components/try-on/try-on-create-form";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";
+import { designsAvailableToUser } from "@/lib/designs/access";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -32,9 +33,7 @@ export default async function TryOnPage() {
   }));
 
   const designs = await prisma.design.findMany({
-    where: {
-      OR: [{ isLibrary: true }, { ownerId: session.user.id }],
-    },
+    where: designsAvailableToUser(session.user.id),
     orderBy: { title: "asc" },
     select: { id: true, title: true },
     take: 80,

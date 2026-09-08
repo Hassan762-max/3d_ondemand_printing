@@ -3,12 +3,14 @@ import { redirect } from "next/navigation";
 import {
   CollectCodButton,
   SettleOrderButton,
+  SetUserRoleSelect,
   ToggleProductButton,
+  ToggleUserActiveButton,
 } from "@/components/admin/admin-actions";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { hasAnyPermission } from "@/lib/rbac";
+import { hasAnyPermission, hasPermission } from "@/lib/rbac";
 import { statusLabel } from "@/lib/orders/tracking";
 import { formatPkr } from "@/lib/utils";
 import { getPaymentProvider } from "@/lib/orders/payment";
@@ -45,6 +47,8 @@ export default async function AdminPage() {
     );
   }
 
+  const canManageUsers = hasPermission(role, "user:manage") || role === "ADMIN" || role === "SUPER_ADMIN";
+
   const [
     productCount,
     activeProducts,
@@ -56,6 +60,8 @@ export default async function AdminPage() {
     settleable,
     pendingCod,
     audits,
+    users,
+    settledHistory,
   ] = await Promise.all([
     prisma.product.count(),
     prisma.product.count({ where: { active: true } }),
@@ -97,6 +103,19 @@ export default async function AdminPage() {
       orderBy: { createdAt: "desc" },
       take: 12,
       include: { user: { select: { email: true, name: true } } },
+    }),
+    canManageUsers
+      ? prisma.user.findMany({
+          orderBy: { createdAt: "desc" },
+          take: 40,
+          select: { id: true, email: true, name: true, role: true, active: true },
+        })
+      : Promise.resolve([]),
+    prisma.paymentLedger.findMany({
+      where: { kind: "VENDOR_SETTLEMENT", status: "COMPLETED" },
+      include: { order: { include: { vendor: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 15,
     }),
   ]);
 
@@ -220,6 +239,72 @@ export default async function AdminPage() {
           </ul>
         )}
       </section>
+
+      {settledHistory.length > 0 ? (
+        <section className="mt-12">
+          <h2 className="text-lg font-medium tracking-tight">Settlement history</h2>
+          <ul className="mt-4 divide-y divide-[var(--ink)]/8 rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)]">
+            {settledHistory.map((entry) => (
+              <li
+                key={entry.id}
+                className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm"
+              >
+                <div>
+                  <Link href={`/orders/${entry.orderId}`} className="font-medium underline">
+                    {entry.order.orderNumber}
+                  </Link>
+                  <p className="text-xs text-[var(--muted)]">
+                    {entry.order.vendor?.businessName ?? "Vendor"} ·{" "}
+                    {entry.createdAt.toLocaleString("en-PK")}
+                  </p>
+                </div>
+                <span className="font-medium">{formatPkr(entry.amount)}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {canManageUsers && users.length > 0 ? (
+        <section className="mt-12">
+          <h2 className="text-lg font-medium tracking-tight">User management</h2>
+          <div className="mt-4 overflow-x-auto rounded-xl border border-[var(--ink)]/10">
+            <table className="min-w-full text-left text-sm">
+              <thead className="bg-[var(--mist)] text-xs uppercase tracking-[0.12em] text-[var(--muted)]">
+                <tr>
+                  <th className="px-3 py-2">User</th>
+                  <th className="px-3 py-2">Role</th>
+                  <th className="px-3 py-2">Status</th>
+                  <th className="px-3 py-2">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((u) => (
+                  <tr key={u.id} className="border-t border-[var(--ink)]/8">
+                    <td className="px-3 py-2">
+                      <p className="font-medium">{u.name ?? "—"}</p>
+                      <p className="text-xs text-[var(--muted)]">{u.email}</p>
+                    </td>
+                    <td className="px-3 py-2">
+                      <SetUserRoleSelect userId={u.id} currentRole={u.role} />
+                    </td>
+                    <td className="px-3 py-2">
+                      {u.active ? (
+                        <span className="text-[var(--accent)]">Active</span>
+                      ) : (
+                        <span className="text-[var(--danger)]">Inactive</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2">
+                      <ToggleUserActiveButton userId={u.id} active={u.active} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ) : null}
 
       <section className="mt-12">
         <h2 className="text-lg font-medium tracking-tight">Recent audit</h2>

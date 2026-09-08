@@ -15,14 +15,16 @@ Use this when moving off local SQLite / stubs toward a live Pakistan deployment.
 - [ ] `AI_PROVIDER` → `openai` | `replicate` | `fal` with API keys (interface already stable)
 - [ ] `PAYMENT_PROVIDER` → `jazzcash` | `easypaisa` | keep `cod_hybrid` for advance+COD
 - [ ] Fill merchant env vars (`JAZZCASH_*` / `EASYPAISA_*`) and replace stub HTTP calls in `WalletLiveReadyProvider`
-- [ ] Configure SMS/email for order notifications (currently in-app only)
+- [ ] Configure SMS/email for order notifications (`NOTIFY_PROVIDER=console` logs locally today; swap for Resend/Twilio)
+- [x] Local storage + notify abstractions ready (`STORAGE_PROVIDER=local`, `NOTIFY_PROVIDER=console`)
 
 ## 3. Ops readiness
 
 - [ ] Seed or invite real vendor accounts per city
-- [ ] Train Support / QC / Finance on `/ops` and `/admin`
+- [ ] Train Support / QC / Finance on `/ops` and `/admin` (manual vendor assign + user management included)
 - [ ] Confirm return policy copy matches legal counsel for customized goods
 - [ ] Monitor `/api/health` from uptime checks
+- [x] Vendor print-package JSON download at `/api/vendor/orders/[id]/package`
 
 ## 4. Smoke test before go-live
 

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { getAiProvider } from "@/lib/ai";
 import { prisma } from "@/lib/db";
 import { requireUser, getAuthorizedUser } from "@/lib/session";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { saveDesignUpload } from "@/lib/uploads";
 
 export type ActionResult = {
@@ -24,6 +25,14 @@ export async function uploadDesign(
   formData: FormData,
 ): Promise<ActionResult> {
   const user = await requireUser("design:write");
+
+  const limited = checkRateLimit(`upload:${user.id}`, 15, 60_000);
+  if (!limited.ok) {
+    return {
+      ok: false,
+      message: `Too many uploads. Try again in ${limited.retryAfterSec}s.`,
+    };
+  }
 
   const parsed = metaSchema.safeParse({
     title: formData.get("title"),

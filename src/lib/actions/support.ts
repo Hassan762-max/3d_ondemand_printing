@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { getAuthorizedUser, requireUser } from "@/lib/session";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { notifyOutbound } from "@/lib/notify/outbound";
 
 export type SupportActionResult = { ok: boolean; message?: string };
 
@@ -20,6 +22,15 @@ export async function submitSupportTicket(
   formData: FormData,
 ): Promise<SupportActionResult> {
   const sessionUser = await getAuthorizedUser();
+
+  const rateKey = `support:${sessionUser?.id ?? String(formData.get("email") || "anon")}`;
+  const limited = checkRateLimit(rateKey, 8, 60_000);
+  if (!limited.ok) {
+    return {
+      ok: false,
+      message: `Too many messages. Try again in ${limited.retryAfterSec}s.`,
+    };
+  }
 
   const parsed = ticketSchema.safeParse({
     name: formData.get("name"),
@@ -80,6 +91,12 @@ export async function submitSupportTicket(
       },
     });
   }
+
+  await notifyOutbound({
+    to: parsed.data.email,
+    subject: `[Nivaro Support] ${parsed.data.subject}`,
+    body: parsed.data.body,
+  });
 
   revalidatePath("/ops");
   revalidatePath("/support/contact");

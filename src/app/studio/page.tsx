@@ -1,5 +1,6 @@
 import { StudioShell } from "@/components/studio/studio-shell";
 import { auth } from "@/lib/auth";
+import { designsAvailableToUser } from "@/lib/designs/access";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -39,12 +40,7 @@ export default async function StudioPage({ searchParams }: Props) {
   });
 
   const designs = await prisma.design.findMany({
-    where: {
-      OR: [
-        { isLibrary: true },
-        ...(session?.user?.id ? [{ ownerId: session.user.id }] : []),
-      ],
-    },
+    where: designsAvailableToUser(session?.user?.id),
     orderBy: [{ isLibrary: "desc" }, { title: "asc" }],
     select: {
       id: true,

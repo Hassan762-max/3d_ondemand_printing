@@ -4,6 +4,7 @@ import { CheckoutForm } from "@/components/checkout/checkout-form";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { getPaymentProvider } from "@/lib/orders/payment";
 import { formatPkr } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -73,6 +74,9 @@ export default async function CheckoutPage() {
           subtotal={subtotal}
           defaultName={user?.name ?? undefined}
           defaultCity={user?.city ?? "Lahore"}
+          defaultPhone={user?.phone ?? undefined}
+          defaultProvince={user?.province ?? undefined}
+          paymentProviderLabel={getPaymentProvider().name}
         />
       </div>
     </div>

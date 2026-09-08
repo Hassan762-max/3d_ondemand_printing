@@ -4,6 +4,7 @@ import { useActionState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   approveRefund,
+  manualAssignVendor,
   qcDecision,
   resolveReturnRequest,
   type OpsActionResult,
@@ -120,6 +121,50 @@ export function ResolveTicketForm({ ticketId }: { ticketId: string }) {
       ) : null}
       <Button type="submit" size="sm" disabled={pending}>
         {pending ? "Closing…" : "Close ticket"}
+      </Button>
+    </form>
+  );
+}
+
+export function AssignVendorForm({
+  orderId,
+  vendors,
+}: {
+  orderId: string;
+  vendors: { id: string; businessName: string; city: string }[];
+}) {
+  const [state, action, pending] = useActionState(manualAssignVendor, initial);
+
+  return (
+    <form action={action} className="space-y-3">
+      <input type="hidden" name="orderId" value={orderId} />
+      <div>
+        <Label htmlFor={`vendor-${orderId}`}>Vendor</Label>
+        <select
+          id={`vendor-${orderId}`}
+          name="vendorId"
+          required
+          className="mt-1.5 h-10 w-full rounded-md border border-[var(--ink)]/12 bg-white/80 px-3 text-sm"
+          defaultValue=""
+        >
+          <option value="" disabled>
+            Select vendor…
+          </option>
+          {vendors.map((v) => (
+            <option key={v.id} value={v.id}>
+              {v.businessName} · {v.city}
+            </option>
+          ))}
+        </select>
+      </div>
+      <Input name="reason" placeholder="Reason (optional)" />
+      {state.message ? (
+        <p className={`text-xs ${state.ok ? "text-[var(--accent)]" : "text-[var(--danger)]"}`}>
+          {state.message}
+        </p>
+      ) : null}
+      <Button type="submit" size="sm" disabled={pending}>
+        {pending ? "Assigning…" : "Assign vendor"}
       </Button>
     </form>
   );

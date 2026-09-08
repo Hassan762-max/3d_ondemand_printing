@@ -25,20 +25,43 @@ const PK_CITIES = [
   "Other",
 ];
 
+function resolveInitialCity(defaultCity?: string) {
+  if (defaultCity && PK_CITIES.includes(defaultCity) && defaultCity !== "Other") {
+    return { citySelect: defaultCity, otherCity: "" };
+  }
+  if (defaultCity) {
+    return { citySelect: "Other", otherCity: defaultCity };
+  }
+  return { citySelect: "Lahore", otherCity: "" };
+}
+
 export function CheckoutForm({
   subtotal,
   defaultName,
   defaultCity,
+  defaultPhone,
+  defaultProvince,
+  paymentProviderLabel,
 }: {
   subtotal: number;
   defaultName?: string;
   defaultCity?: string;
+  defaultPhone?: string;
+  defaultProvince?: string;
+  paymentProviderLabel: string;
 }) {
   const router = useRouter();
   const [state, action, pending] = useActionState(placeOrder, initial);
-  const [city, setCity] = useState(defaultCity || "Lahore");
+  const initialCity = resolveInitialCity(defaultCity);
+  const [citySelect, setCitySelect] = useState(initialCity.citySelect);
+  const [otherCity, setOtherCity] = useState(initialCity.otherCity);
 
-  const totals = useMemo(() => computeOrderTotals(subtotal, city), [subtotal, city]);
+  const shippingCity = citySelect === "Other" ? otherCity : citySelect;
+
+  const totals = useMemo(
+    () => computeOrderTotals(subtotal, shippingCity || "Other"),
+    [subtotal, shippingCity],
+  );
 
   useEffect(() => {
     if (state.ok && state.orderId) {
@@ -46,6 +69,8 @@ export function CheckoutForm({
       router.refresh();
     }
   }, [state, router]);
+
+  const displayCity = shippingCity || "Other";
 
   return (
     <form action={action} className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
@@ -71,19 +96,19 @@ export function CheckoutForm({
             required
             placeholder="03XXXXXXXXX"
             autoComplete="tel"
+            defaultValue={defaultPhone}
           />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block text-xs uppercase tracking-[0.12em] text-[var(--muted)]">
             City
             <select
-              name="shippingCity"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
+              value={citySelect}
+              onChange={(e) => setCitySelect(e.target.value)}
               className="mt-2 h-11 w-full rounded-md border border-[var(--ink)]/12 bg-white/80 px-3 text-sm normal-case tracking-normal"
             >
               {PK_CITIES.map((c) => (
-                <option key={c} value={c === "Other" ? "Other" : c}>
+                <option key={c} value={c}>
                   {c}
                 </option>
               ))}
@@ -91,9 +116,29 @@ export function CheckoutForm({
           </label>
           <div>
             <Label htmlFor="shippingProvince">Province (optional)</Label>
-            <Input id="shippingProvince" name="shippingProvince" placeholder="Punjab" />
+            <Input
+              id="shippingProvince"
+              name="shippingProvince"
+              placeholder="Punjab"
+              defaultValue={defaultProvince}
+            />
           </div>
         </div>
+        {citySelect === "Other" ? (
+          <div>
+            <Label htmlFor="shippingCity">Your city</Label>
+            <Input
+              id="shippingCity"
+              name="shippingCity"
+              required
+              value={otherCity}
+              onChange={(e) => setOtherCity(e.target.value)}
+              placeholder="Enter city name"
+            />
+          </div>
+        ) : (
+          <input type="hidden" name="shippingCity" value={citySelect} />
+        )}
         <div>
           <Label htmlFor="shippingAddress">Address</Label>
           <Input
@@ -116,7 +161,7 @@ export function CheckoutForm({
       <div className="h-fit rounded-2xl bg-[var(--ink)] p-6 text-[var(--paper)] lg:sticky lg:top-24">
         <p className="text-xs uppercase tracking-[0.14em] text-white/45">Payment</p>
         <h2 className="mt-2 font-[family-name:var(--font-display)] text-2xl tracking-tight">
-          Hybrid COD
+          {paymentProviderLabel.replaceAll("_", " ")}
         </h2>
         <p className="mt-3 text-sm text-white/65">
           Pay {formatPkr(ADVANCE_AMOUNT)} advance now. Remaining amount + delivery collected on
@@ -129,7 +174,7 @@ export function CheckoutForm({
             <dd>{formatPkr(totals.subtotal)}</dd>
           </div>
           <div className="flex justify-between gap-3">
-            <dt className="text-white/55">Delivery ({city})</dt>
+            <dt className="text-white/55">Delivery ({displayCity})</dt>
             <dd>{formatPkr(totals.deliveryFee)}</dd>
           </div>
           <div className="flex justify-between gap-3 border-t border-white/10 pt-3">
@@ -157,7 +202,7 @@ export function CheckoutForm({
           {pending ? "Placing order…" : `Pay ${formatPkr(totals.advanceAmount)} advance & place order`}
         </Button>
         <p className="mt-4 text-xs text-white/40">
-          Gateway-ready architecture · currently COD_HYBRID provider
+          Gateway-ready architecture · currently {paymentProviderLabel} provider
         </p>
       </div>
     </form>

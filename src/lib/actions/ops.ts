@@ -356,6 +356,44 @@ export async function qcDecision(
   };
 }
 
+export async function manualAssignVendor(
+  _prev: OpsActionResult,
+  formData: FormData,
+): Promise<OpsActionResult> {
+  const user = await requireUser("vendor:assign");
+  const orderId = String(formData.get("orderId") ?? "");
+  const vendorId = String(formData.get("vendorId") ?? "");
+  const reason = String(formData.get("reason") ?? "").trim().slice(0, 200);
+  if (!orderId || !vendorId) {
+    return { ok: false, message: "Select an order and vendor." };
+  }
+
+  try {
+    const { reassignVendorToOrder } = await import("@/lib/fulfillment/router");
+    await reassignVendorToOrder(orderId, vendorId, reason || "ops_manual");
+    await prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        action: "fulfillment.manual_assign",
+        entity: "Order",
+        entityId: orderId,
+        metaJson: JSON.stringify({ vendorId, reason }),
+      },
+    });
+  } catch (err) {
+    return {
+      ok: false,
+      message: err instanceof Error ? err.message : "Assignment failed.",
+    };
+  }
+
+  revalidatePath("/ops");
+  revalidatePath("/vendor");
+  revalidatePath(`/orders/${orderId}`);
+  revalidatePath(`/vendor/orders/${orderId}`);
+  return { ok: true, message: "Vendor assigned." };
+}
+
 async function bumpVendorMetric(
   // Prisma interactive transaction client
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -26,6 +26,15 @@ export async function createTryOnSession(
   const user = await getAuthorizedUser("tryon:use");
   if (!user) return { ok: false, message: "Please sign in to use Try-On." };
 
+  const { checkRateLimit } = await import("@/lib/rate-limit");
+  const limited = checkRateLimit(`tryon:${user.id}`, 12, 60_000);
+  if (!limited.ok) {
+    return {
+      ok: false,
+      message: `Too many try-on attempts. Try again in ${limited.retryAfterSec}s.`,
+    };
+  }
+
   const productId = String(formData.get("productId") ?? "");
   const designId = String(formData.get("designId") ?? "") || undefined;
   const size = String(formData.get("size") ?? "");
@@ -60,13 +69,13 @@ export async function createTryOnSession(
   let designUrl: string | null = null;
   let designTitle: string | null = null;
   if (designId) {
-    const design = await prisma.design.findUnique({ where: { id: designId } });
-    if (!design) return { ok: false, message: "Design not found." };
-    if (!design.isLibrary && design.ownerId !== user.id) {
+    const { userCanUseDesign } = await import("@/lib/designs/access");
+    const access = await userCanUseDesign(prisma, designId, user.id);
+    if (!access.ok || !access.design) {
       return { ok: false, message: "You cannot use this design." };
     }
-    designUrl = design.imageUrl;
-    designTitle = design.title;
+    designUrl = access.design.imageUrl;
+    designTitle = access.design.title;
   }
 
   const { result: tryOn } = await runVirtualTryOn({

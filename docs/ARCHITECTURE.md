@@ -47,6 +47,7 @@ AI-powered 3D custom clothing & print-on-demand for Pakistan.
 | 11 | Launch polish: full catalog, COD finance tools, CI/smoke (**done**) |
 | 12 | Storefront polish: design filters, support/legal, live reviews (**done**) |
 | 13 | Account & catalog: profile/StyleProfile, product filters, reorder, tickets, SEO (**done**) |
+| 14 | Ops completeness: password, admin users, vendor assign, print package, search, hardening (**done**) |
 
 ## 3. Primary customer flow
 
@@ -140,3 +141,13 @@ Go-live steps: `docs/PRODUCTION.md`.
 - Order reorder-to-cart; cart accepts licensed marketplace designs
 - Support tickets from contact form → `/ops` queue + in-app notifications
 - SEO: `sitemap.ts`, `robots.ts`, OpenGraph/`metadataBase`
+
+## 16. Ops completeness & hardening (Phase 14)
+
+- Password change · `User.active` · admin user role/deactivate
+- Ops manual vendor assign/reassign · print-package JSON download for vendors
+- Studio/try-on include licensed designs · procedural meshes for jacket/joggers/shorts/shirt
+- Marketplace paid licenses via payment provider capture (simulated)
+- Catalog search (`?q=`) · checkout phone/province/Other city · provider label
+- Storage + outbound notify abstractions · rate limits on auth/AI/upload/try-on/support
+- Branded 404 · settlements history on `/admin`

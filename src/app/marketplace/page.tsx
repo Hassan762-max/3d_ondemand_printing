@@ -9,9 +9,14 @@ import { formatPkr } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Marketplace" };
 
-export default async function MarketplacePage() {
+type Props = { searchParams: Promise<{ q?: string }> };
+
+export default async function MarketplacePage({ searchParams }: Props) {
   const session = await auth();
-  const listings = await prisma.design.findMany({
+  const { q } = await searchParams;
+  const query = q?.trim().toLowerCase() ?? "";
+
+  const listingsRaw = await prisma.design.findMany({
     where: { published: true, moderationStatus: "approved" },
     include: {
       owner: { select: { name: true, role: true } },
@@ -19,6 +24,10 @@ export default async function MarketplacePage() {
     },
     orderBy: [{ salesCount: "desc" }, { createdAt: "desc" }],
   });
+
+  const listings = query
+    ? listingsRaw.filter((d) => d.title.toLowerCase().includes(query))
+    : listingsRaw;
 
   const licensedIds = new Set(
     session?.user?.id
@@ -56,10 +65,28 @@ export default async function MarketplacePage() {
         </div>
       </div>
 
+      <form method="get" className="mt-8 flex flex-wrap gap-2">
+        <input
+          type="search"
+          name="q"
+          defaultValue={q ?? ""}
+          placeholder="Search marketplace…"
+          className="h-10 min-w-[200px] flex-1 rounded-md border border-[var(--ink)]/12 bg-white/80 px-3 text-sm sm:max-w-xs"
+        />
+        <button
+          type="submit"
+          className="h-10 rounded-md border border-[var(--ink)]/12 bg-[var(--ink)] px-4 text-xs uppercase tracking-[0.12em] text-[var(--paper)]"
+        >
+          Search
+        </button>
+      </form>
+
       {listings.length === 0 ? (
         <div className="mt-16 rounded-xl border border-dashed border-[var(--ink)]/15 px-6 py-16 text-center">
           <p className="text-sm text-[var(--muted)]">
-            No marketplace listings yet. Upload a design and publish it from Creator hub.
+            {query
+              ? `No listings matching “${q}”. Try another search.`
+              : "No marketplace listings yet. Upload a design and publish it from Creator hub."}
           </p>
           <Link href="/creator" className="mt-6 inline-block">
             <Button>Open creator hub</Button>
