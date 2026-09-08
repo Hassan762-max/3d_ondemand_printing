@@ -1,32 +1,56 @@
-import type { ProductCategory } from "@prisma/client";
-import Link from "next/link";
+import { brand } from "@/lib/brand";
 import {
-  normalizeProductCategory,
-  PRODUCT_CATEGORY_OPTIONS,
-  productCategoryLabel,
-} from "@/lib/product-categories";
+  catalogDisplayName,
+  catalogFitForSlug,
+  catalogImageUrl,
+  categoriesForGroup,
+  normalizeCatalogFit,
+  normalizeCatalogGroup,
+  normalizeCatalogSort,
+  type CatalogSort,
+} from "@/lib/catalog/display";
+import { CatalogFilters } from "@/components/products/catalog-filters";
+import { CatalogProductCard } from "@/components/products/catalog-product-card";
 import { prisma } from "@/lib/db";
-import { formatPkr } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Products" };
 
 type Props = {
-  searchParams: Promise<{ category?: string; design?: string; q?: string }>;
+  searchParams: Promise<{
+    category?: string;
+    group?: string;
+    fit?: string;
+    sort?: string;
+    design?: string;
+    q?: string;
+  }>;
 };
 
 export default async function ProductsPage({ searchParams }: Props) {
-  const { category: categoryRaw, design: designId, q } = await searchParams;
-  const category = normalizeProductCategory(categoryRaw) as ProductCategory | null;
-  const query = q?.trim().toLowerCase() ?? "";
+  const sp = await searchParams;
+  const group = normalizeCatalogGroup(sp.group);
+  // Legacy ?category= still works via product-categories when group not set
+  const fit = normalizeCatalogFit(sp.fit);
+  const sort = normalizeCatalogSort(sp.sort);
+  const query = sp.q?.trim().toLowerCase() ?? "";
+  const designId = sp.design;
+
+  const groupCategories = categoriesForGroup(group);
 
   const [productsRaw, design] = await Promise.all([
     prisma.product.findMany({
       where: {
         active: true,
-        ...(category ? { category } : {}),
+        ...(groupCategories ? { category: { in: groupCategories } } : {}),
+        ...(sp.category && !sp.group
+          ? { category: sp.category.toUpperCase() as never }
+          : {}),
       },
-      orderBy: { name: "asc" },
+      include: {
+        variants: { select: { color: true, colorHex: true } },
+      },
+      orderBy: { createdAt: "desc" },
     }),
     designId
       ? prisma.design.findUnique({
@@ -36,129 +60,147 @@ export default async function ProductsPage({ searchParams }: Props) {
       : Promise.resolve(null),
   ]);
 
-  const products = query
-    ? productsRaw.filter((p) => p.name.toLowerCase().includes(query))
-    : productsRaw;
+  let products = productsRaw.map((p) => {
+    const colorMap = new Map(
+      p.variants.map((v) => [v.color, { name: v.color, hex: v.colorHex }]),
+    );
+    return {
+      ...p,
+      displayName: catalogDisplayName(p.slug, p.name),
+      imageUrl: catalogImageUrl(p.slug, p.imageUrl),
+      fit: catalogFitForSlug(p.slug),
+      colors: [...colorMap.values()],
+    };
+  });
+
+  if (fit !== "all") {
+    products = products.filter((p) => p.fit === fit);
+  }
+
+  if (query) {
+    products = products.filter(
+      (p) =>
+        p.displayName.toLowerCase().includes(query) ||
+        p.name.toLowerCase().includes(query) ||
+        p.description.toLowerCase().includes(query),
+    );
+  }
+
+  products = sortProducts(products, sort);
 
   const designQuery = design ? `?design=${encodeURIComponent(design.id)}` : "";
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-      <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Catalog</p>
-      <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl tracking-tight">
-        Products
-      </h1>
-      <p className="mt-3 max-w-xl text-sm text-[var(--muted)]">
-        Choose a blank, apply any design once, and print across multiple garments.
-      </p>
+    <div className="relative">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-[28rem] bg-[radial-gradient(ellipse_at_20%_0%,rgba(26,107,92,0.1),transparent_55%),radial-gradient(ellipse_at_90%_10%,rgba(12,14,18,0.05),transparent_45%)]"
+      />
 
-      {design ? (
-        <p className="mt-6 rounded-lg border border-[var(--ink)]/10 bg-[var(--paper-elevated)] px-4 py-3 text-sm">
-          Applying design <span className="font-medium">{design.title}</span> — pick a garment
-          to continue.
-        </p>
-      ) : null}
-
-      <form method="get" className="mt-8 flex flex-wrap gap-2">
-        {category ? <input type="hidden" name="category" value={category} /> : null}
-        {design ? <input type="hidden" name="design" value={design.id} /> : null}
-        <input
-          type="search"
-          name="q"
-          defaultValue={q ?? ""}
-          placeholder="Search products…"
-          className="h-10 min-w-[200px] flex-1 rounded-md border border-[var(--ink)]/12 bg-white/80 px-3 text-sm sm:max-w-xs"
-        />
-        <button
-          type="submit"
-          className="h-10 rounded-md border border-[var(--ink)]/12 bg-[var(--ink)] px-4 text-xs uppercase tracking-[0.12em] text-[var(--paper)]"
-        >
-          Search
-        </button>
-      </form>
-
-      <div className="mt-8 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <CategoryChip href={design ? `/products?design=${design.id}` : "/products"} active={!category} label="All" />
-        {PRODUCT_CATEGORY_OPTIONS.map((c) => {
-          const params = new URLSearchParams();
-          params.set("category", c.value);
-          if (design) params.set("design", design.id);
-          return (
-            <CategoryChip
-              key={c.value}
-              href={`/products?${params.toString()}`}
-              active={category === c.value}
-              label={c.label}
-            />
-          );
-        })}
-      </div>
-
-      {products.length === 0 ? (
-        <div className="mt-16 rounded-xl border border-dashed border-[var(--ink)]/15 px-6 py-16 text-center">
-          <p className="text-sm text-[var(--muted)]">
-            {query
-              ? `No products matching “${q}”. Try another search or clear filters.`
-              : "No products in this category. Try another filter or seed the database."}
+      <div className="relative mx-auto max-w-6xl px-4 pb-20 pt-14 sm:px-6 sm:pt-16">
+        <header className="max-w-2xl pb-12 sm:pb-16">
+          <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">
+            {brand.name} · Print on demand
           </p>
-        </div>
-      ) : (
-        <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((product) => (
-            <Link
-              key={product.id}
-              href={`/products/${product.slug}${designQuery}`}
-              className="group"
-            >
-              <div className="aspect-[4/5] overflow-hidden rounded-xl bg-[var(--mist)]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={product.imageUrl ?? "/products/tee.svg"}
-                  alt={product.name}
-                  className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-                />
-              </div>
-              <div className="mt-4">
-                <p className="text-xs uppercase tracking-[0.12em] text-[var(--muted)]">
-                  {productCategoryLabel(product.category)}
-                </p>
-                <div className="mt-1 flex items-baseline justify-between gap-3">
-                  <h2 className="text-lg font-medium tracking-tight">{product.name}</h2>
-                  <span className="text-sm text-[var(--muted)]">
-                    {formatPkr(product.basePrice)}
-                  </span>
-                </div>
-                <p className="mt-2 line-clamp-2 text-sm text-[var(--muted)]">
-                  {product.description}
-                </p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
+          <h1 className="mt-4 font-[family-name:var(--font-display)] text-4xl leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.25rem]">
+            Premium Blanks. Printed on Demand.
+          </h1>
+          <p className="mt-5 max-w-xl text-base leading-relaxed text-[var(--muted)] sm:text-lg">
+            Choose a high-quality blank garment, apply your design once, preview it in true 3D,
+            and we&apos;ll print it on demand just for you.
+          </p>
+        </header>
+
+        {design ? (
+          <p className="mb-8 rounded-xl border border-[var(--accent)]/20 bg-[var(--accent)]/5 px-4 py-3 text-sm text-[var(--ink)]">
+            Applying design <span className="font-medium">{design.title}</span> — pick a blank to
+            continue.
+          </p>
+        ) : null}
+
+        <CatalogFilters
+          group={group}
+          fit={fit}
+          sort={sort}
+          q={sp.q}
+          designId={design?.id}
+        />
+
+        <p className="mt-6 text-xs text-[var(--muted)]">
+          {products.length} blank{products.length === 1 ? "" : "s"}
+          {fit !== "all" ? ` · ${fit}` : ""}
+          {query ? ` · “${sp.q}”` : ""}
+        </p>
+
+        {products.length === 0 ? (
+          <div className="mt-14 rounded-2xl border border-dashed border-[var(--ink)]/15 px-6 py-20 text-center">
+            <p className="text-sm text-[var(--muted)]">
+              No blanks match these filters. Clear search or try another category.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-8 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+            {products.map((product) => (
+              <CatalogProductCard
+                key={product.id}
+                product={{
+                  id: product.id,
+                  slug: product.slug,
+                  displayName: product.displayName,
+                  category: product.category,
+                  basePrice: product.basePrice,
+                  description: product.description,
+                  imageUrl: product.imageUrl,
+                  colors: product.colors,
+                  href: `/products/${product.slug}${designQuery}`,
+                  studioHref: `/studio?product=${product.slug}${
+                    design ? `&design=${design.id}` : ""
+                  }`,
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        <p className="mt-16 max-w-lg text-sm leading-relaxed text-[var(--muted)]">
+          {brand.name} does not stock printed inventory. Every order is custom-printed after you
+          confirm your design — blanks ship blank until your artwork is applied.
+        </p>
+      </div>
     </div>
   );
 }
 
-function CategoryChip({
-  href,
-  active,
-  label,
-}: {
-  href: string;
-  active: boolean;
-  label: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className={`shrink-0 rounded-md border px-3 py-1.5 text-xs transition ${
-        active
-          ? "border-[var(--ink)] bg-[var(--ink)] text-[var(--paper)]"
-          : "border-[var(--ink)]/10 bg-[var(--paper-elevated)] text-[var(--muted)] hover:border-[var(--ink)]/25 hover:text-[var(--ink)]"
-      }`}
-    >
-      {label}
-    </Link>
-  );
+function sortProducts<
+  T extends { basePrice: number; createdAt: Date; displayName: string; slug: string },
+>(items: T[], sort: CatalogSort) {
+  const next = [...items];
+  switch (sort) {
+    case "price":
+    case "price-asc":
+      return next.sort((a, b) => a.basePrice - b.basePrice);
+    case "price-desc":
+      return next.sort((a, b) => b.basePrice - a.basePrice);
+    case "newest":
+      return next.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    case "popular":
+    default: {
+      // Stable “editorial” popular order by known slug priority
+      const rank: Record<string, number> = {
+        "monsoon-hoodie": 0,
+        "oversized-studio-tee": 1,
+        "essential-tee": 2,
+        "city-polo": 3,
+        "crew-sweat": 4,
+        "city-shell-jacket": 5,
+        "studio-joggers": 6,
+        "everyday-casual-shirt": 7,
+        "court-shorts": 8,
+        "weekend-cap": 9,
+      };
+      return next.sort(
+        (a, b) => (rank[a.slug] ?? 50) - (rank[b.slug] ?? 50) || a.displayName.localeCompare(b.displayName),
+      );
+    }
+  }
 }
