@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
-import { nanoid } from "nanoid";
+import { getStorageProvider, newUploadFilename } from "@/lib/storage";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 
@@ -58,17 +58,39 @@ async function saveUpload(
     }
   }
 
-  const filename = `${nanoid(16)}.${ext}`;
-  const dir = path.join(process.cwd(), "public", "uploads", folder);
-  await mkdir(dir, { recursive: true });
-  await writeFile(path.join(dir, filename), buffer);
+  try {
+    const storage = getStorageProvider();
+    if (storage.name === "local") {
+      // Prefer storage provider; keep mkdir fallback path compatible
+      const stored = await storage.put({
+        folder,
+        filename: newUploadFilename(ext),
+        buffer,
+      });
+      return {
+        ok: true,
+        publicPath: stored.publicPath,
+        mime,
+        bytes: stored.bytes,
+      };
+    }
 
-  return {
-    ok: true,
-    publicPath: `/uploads/${folder}/${filename}`,
-    mime,
-    bytes: buffer.length,
-  };
+    const filename = newUploadFilename(ext);
+    const dir = path.join(process.cwd(), "public", "uploads", folder);
+    await mkdir(dir, { recursive: true });
+    await writeFile(path.join(dir, filename), buffer);
+    return {
+      ok: true,
+      publicPath: `/uploads/${folder}/${filename}`,
+      mime,
+      bytes: buffer.length,
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      message: err instanceof Error ? err.message : "Upload failed.",
+    };
+  }
 }
 
 export async function saveDesignUpload(file: File): Promise<UploadResult> {

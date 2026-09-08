@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import {
+  changePassword,
   updateProfile,
   updateStyleProfile,
   type AccountActionResult,
@@ -34,6 +35,10 @@ export function ProfileForms({
   );
   const [styleState, styleAction, stylePending] = useActionState(
     updateStyleProfile,
+    initial,
+  );
+  const [passwordState, passwordAction, passwordPending] = useActionState(
+    changePassword,
     initial,
   );
 
@@ -137,6 +142,52 @@ export function ProfileForms({
         ) : null}
         <Button type="submit" variant="outline" disabled={stylePending}>
           {stylePending ? "Saving…" : "Save style preferences"}
+        </Button>
+      </form>
+
+      <form action={passwordAction} className="space-y-4 border-t border-[var(--ink)]/10 pt-10">
+        <h2 className="text-lg font-medium tracking-tight">Change password</h2>
+        <div>
+          <Label htmlFor="currentPassword">Current password</Label>
+          <Input
+            id="currentPassword"
+            name="currentPassword"
+            type="password"
+            autoComplete="current-password"
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="newPassword">New password</Label>
+          <Input
+            id="newPassword"
+            name="newPassword"
+            type="password"
+            autoComplete="new-password"
+            required
+            minLength={8}
+          />
+        </div>
+        <div>
+          <Label htmlFor="confirmPassword">Confirm new password</Label>
+          <Input
+            id="confirmPassword"
+            name="confirmPassword"
+            type="password"
+            autoComplete="new-password"
+            required
+            minLength={8}
+          />
+        </div>
+        {passwordState.message ? (
+          <p
+            className={`text-sm ${passwordState.ok ? "text-[var(--accent)]" : "text-[var(--danger)]"}`}
+          >
+            {passwordState.message}
+          </p>
+        ) : null}
+        <Button type="submit" variant="outline" disabled={passwordPending}>
+          {passwordPending ? "Updating…" : "Update password"}
         </Button>
       </form>
     </div>

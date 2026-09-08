@@ -92,3 +92,62 @@ export async function updateStyleProfile(
   revalidatePath("/ai");
   return { ok: true, message: "Style preferences saved." };
 }
+
+const passwordSchema = z
+  .object({
+    currentPassword: z.string().min(8).max(128),
+    newPassword: z.string().min(8).max(128),
+    confirmPassword: z.string().min(8).max(128),
+  })
+  .refine((d) => d.newPassword === d.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+export async function changePassword(
+  _prev: AccountActionResult,
+  formData: FormData,
+): Promise<AccountActionResult> {
+  const user = await requireUser();
+  const parsed = passwordSchema.safeParse({
+    currentPassword: formData.get("currentPassword"),
+    newPassword: formData.get("newPassword"),
+    confirmPassword: formData.get("confirmPassword"),
+  });
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: "Check passwords (8+ chars, new must match confirm).",
+    };
+  }
+
+  const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
+  if (!dbUser?.passwordHash) {
+    return { ok: false, message: "Password login is not set for this account." };
+  }
+
+  const bcrypt = await import("bcryptjs");
+  const valid = await bcrypt.compare(
+    parsed.data.currentPassword,
+    dbUser.passwordHash,
+  );
+  if (!valid) return { ok: false, message: "Current password is incorrect." };
+
+  const passwordHash = await bcrypt.hash(parsed.data.newPassword, 12);
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { passwordHash },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      userId: user.id,
+      action: "account.password_change",
+      entity: "User",
+      entityId: user.id,
+    },
+  });
+
+  revalidatePath("/account/profile");
+  return { ok: true, message: "Password updated." };
+}

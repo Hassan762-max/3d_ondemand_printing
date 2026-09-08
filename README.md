@@ -110,6 +110,12 @@ Password for all: `password123`
 - Product category filters · design deep-link · reorder to cart
 - Support tickets (contact → ops) · sitemap/robots/OpenGraph
 
+## Phase 14 (done)
+
+- Password change · admin users · ops vendor assign · print-package download
+- Licensed designs in studio/try-on · search · checkout polish · rate limits
+- Storage/notify abstractions · branded 404 · settlements history
+
 ## Status
 
-Customer account & catalog completion through Phase 13. Wire real AI/payment APIs and PostgreSQL using `docs/PRODUCTION.md` when going live.
+Local/demo product is feature-complete through Phase 14. Remaining go-live work is infrastructure and real providers — see `docs/PRODUCTION.md` (Postgres, S3, live AI/payment/email).

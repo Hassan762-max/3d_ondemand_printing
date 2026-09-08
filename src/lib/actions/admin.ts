@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import type { Role } from "@prisma/client";
+import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 
@@ -145,4 +147,81 @@ export async function collectCodRemaining(
   revalidatePath("/admin");
   revalidatePath(`/orders/${order.id}`);
   return { ok: true, message: "COD marked collected." };
+}
+
+const roleSchema = z.enum([
+  "CUSTOMER",
+  "DESIGNER",
+  "VENDOR",
+  "PRODUCTION_MANAGER",
+  "QC_MANAGER",
+  "SUPPORT_MANAGER",
+  "FINANCE_MANAGER",
+  "ADMIN",
+]);
+
+export async function setUserRole(
+  userId: string,
+  role: string,
+): Promise<AdminActionResult> {
+  const admin = await requireUser("user:manage");
+  const parsed = roleSchema.safeParse(role);
+  if (!parsed.success) return { ok: false, message: "Invalid role." };
+  if (userId === admin.id) {
+    return { ok: false, message: "You cannot change your own role here." };
+  }
+
+  const target = await prisma.user.findUnique({ where: { id: userId } });
+  if (!target) return { ok: false, message: "User not found." };
+  if (target.role === "SUPER_ADMIN") {
+    return { ok: false, message: "Cannot modify SUPER_ADMIN." };
+  }
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { role: parsed.data as Role },
+  });
+  await prisma.auditLog.create({
+    data: {
+      userId: admin.id,
+      action: "user.role",
+      entity: "User",
+      entityId: userId,
+      metaJson: JSON.stringify({ from: target.role, to: parsed.data }),
+    },
+  });
+
+  revalidatePath("/admin");
+  return { ok: true, message: `Role set to ${parsed.data}.` };
+}
+
+export async function setUserActive(
+  userId: string,
+  active: boolean,
+): Promise<AdminActionResult> {
+  const admin = await requireUser("user:manage");
+  if (userId === admin.id) {
+    return { ok: false, message: "You cannot deactivate yourself." };
+  }
+  const target = await prisma.user.findUnique({ where: { id: userId } });
+  if (!target) return { ok: false, message: "User not found." };
+  if (target.role === "SUPER_ADMIN") {
+    return { ok: false, message: "Cannot deactivate SUPER_ADMIN." };
+  }
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { active },
+  });
+  await prisma.auditLog.create({
+    data: {
+      userId: admin.id,
+      action: active ? "user.activate" : "user.deactivate",
+      entity: "User",
+      entityId: userId,
+    },
+  });
+
+  revalidatePath("/admin");
+  return { ok: true, message: active ? "User activated." : "User deactivated." };
 }

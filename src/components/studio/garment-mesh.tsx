@@ -72,6 +72,89 @@ function PoloBody({ color }: { color: string }) {
   );
 }
 
+function CasualShirtBody({ color }: { color: string }) {
+  return (
+    <group>
+      <TeeBody color={color} />
+      {/* Collar */}
+      <mesh position={[0, 0.66, 0.1]}>
+        <boxGeometry args={[0.28, 0.06, 0.05]} />
+        <meshStandardMaterial color={color} roughness={0.65} metalness={0.05} />
+      </mesh>
+    </group>
+  );
+}
+
+function JacketBody({ color }: { color: string }) {
+  return (
+    <group>
+      {/* Torso */}
+      <mesh castShadow receiveShadow position={[0, 0.15, 0]}>
+        <boxGeometry args={[0.74, 0.98, 0.24]} />
+        <meshStandardMaterial color={color} roughness={0.72} metalness={0.04} />
+      </mesh>
+      {/* Collar */}
+      <mesh position={[0, 0.7, 0.08]}>
+        <boxGeometry args={[0.3, 0.08, 0.06]} />
+        <meshStandardMaterial color={color} roughness={0.65} metalness={0.05} />
+      </mesh>
+      {/* Longer sleeves */}
+      <mesh position={[-0.52, 0.28, 0]} rotation={[0, 0, 0.35]} castShadow>
+        <boxGeometry args={[0.48, 0.2, 0.22]} />
+        <meshStandardMaterial color={color} roughness={0.72} metalness={0.04} />
+      </mesh>
+      <mesh position={[0.52, 0.28, 0]} rotation={[0, 0, -0.35]} castShadow>
+        <boxGeometry args={[0.48, 0.2, 0.22]} />
+        <meshStandardMaterial color={color} roughness={0.72} metalness={0.04} />
+      </mesh>
+    </group>
+  );
+}
+
+function JoggersBody({ color }: { color: string }) {
+  return (
+    <group>
+      {/* Waist / hips */}
+      <mesh castShadow receiveShadow position={[0, 0.35, 0]}>
+        <boxGeometry args={[0.68, 0.42, 0.26]} />
+        <meshStandardMaterial color={color} roughness={0.72} metalness={0.04} />
+      </mesh>
+      {/* Left leg */}
+      <mesh position={[-0.18, -0.35, 0]} castShadow>
+        <boxGeometry args={[0.26, 0.88, 0.24]} />
+        <meshStandardMaterial color={color} roughness={0.72} metalness={0.04} />
+      </mesh>
+      {/* Right leg */}
+      <mesh position={[0.18, -0.35, 0]} castShadow>
+        <boxGeometry args={[0.26, 0.88, 0.24]} />
+        <meshStandardMaterial color={color} roughness={0.72} metalness={0.04} />
+      </mesh>
+    </group>
+  );
+}
+
+function ShortsBody({ color }: { color: string }) {
+  return (
+    <group>
+      {/* Waist / hips */}
+      <mesh castShadow receiveShadow position={[0, 0.35, 0]}>
+        <boxGeometry args={[0.68, 0.42, 0.26]} />
+        <meshStandardMaterial color={color} roughness={0.72} metalness={0.04} />
+      </mesh>
+      {/* Left leg */}
+      <mesh position={[-0.18, 0.02, 0]} castShadow>
+        <boxGeometry args={[0.26, 0.38, 0.24]} />
+        <meshStandardMaterial color={color} roughness={0.72} metalness={0.04} />
+      </mesh>
+      {/* Right leg */}
+      <mesh position={[0.18, 0.02, 0]} castShadow>
+        <boxGeometry args={[0.26, 0.38, 0.24]} />
+        <meshStandardMaterial color={color} roughness={0.72} metalness={0.04} />
+      </mesh>
+    </group>
+  );
+}
+
 export function GarmentMesh({
   category,
   color,
@@ -86,7 +169,15 @@ export function GarmentMesh({
   side: StudioSide;
 }) {
   const body =
-    category === "HOODIE" || category === "SWEATSHIRT" ? (
+    category === "JACKET" ? (
+      <JacketBody color={color} />
+    ) : category === "JOGGERS" ? (
+      <JoggersBody color={color} />
+    ) : category === "SHORTS" ? (
+      <ShortsBody color={color} />
+    ) : category === "CASUAL_SHIRT" ? (
+      <CasualShirtBody color={color} />
+    ) : category === "HOODIE" || category === "SWEATSHIRT" ? (
       <HoodieBody color={color} />
     ) : category === "CAP" ? (
       <CapBody color={color} />

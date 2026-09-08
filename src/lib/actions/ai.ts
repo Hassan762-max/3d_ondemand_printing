@@ -11,6 +11,7 @@ import {
 } from "@/lib/ai/orchestrator";
 import { prisma } from "@/lib/db";
 import { getAuthorizedUser, requireUser } from "@/lib/session";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export type AiActionResult = {
   ok: boolean;
@@ -159,6 +160,14 @@ export async function consultAiAction(
 ): Promise<AiActionResult> {
   const user = await getAuthorizedUser("ai:use");
   if (!user) return { ok: false, message: "Please sign in to use AI tools." };
+
+  const limited = checkRateLimit(`ai:consult:${user.id}`, 30, 60_000);
+  if (!limited.ok) {
+    return {
+      ok: false,
+      message: `Too many AI requests. Try again in ${limited.retryAfterSec}s.`,
+    };
+  }
 
   const parsed = consultSchema.safeParse({
     question: formData.get("question"),

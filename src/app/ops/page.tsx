@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   ApproveRefundButton,
+  AssignVendorForm,
   QcDecisionForm,
   ResolveReturnForm,
   ResolveTicketForm,
@@ -43,7 +44,7 @@ export default async function OpsPage() {
     );
   }
 
-  const [openReturns, pendingRefunds, qcOrders, vendors, recentOrders, pendingListings, openTickets] =
+  const [openReturns, pendingRefunds, qcOrders, vendors, recentOrders, pendingListings, openTickets, unassignedOrders] =
     await Promise.all([
       prisma.returnRequest.findMany({
         where: { status: "open" },
@@ -84,6 +85,11 @@ export default async function OpsPage() {
         take: 20,
         include: { order: { select: { orderNumber: true } } },
       }),
+      prisma.order.findMany({
+        where: { vendorId: null, status: { not: "CANCELLED" } },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+      }),
     ]);
 
   const showSupport = hasPermission(role, "support:manage") || role === "ADMIN";
@@ -94,6 +100,7 @@ export default async function OpsPage() {
   const showQc = hasPermission(role, "qc:manage") || role === "ADMIN";
   const showModeration =
     hasPermission(role, "design:moderate") || role === "ADMIN";
+  const canAssign = hasPermission(role, "vendor:assign") || role === "ADMIN";
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
@@ -112,6 +119,44 @@ export default async function OpsPage() {
         <Stat label="QC / reprint queue" value={String(qcOrders.length)} />
         <Stat label="Pending listings" value={String(pendingListings.length)} />
       </div>
+
+      {canAssign ? (
+        <section className="mt-12">
+          <h2 className="text-lg font-medium tracking-tight">Unassigned orders</h2>
+          {unassignedOrders.length === 0 ? (
+            <p className="mt-3 text-sm text-[var(--muted)]">No unassigned orders.</p>
+          ) : (
+            <ul className="mt-4 space-y-4">
+              {unassignedOrders.map((order) => (
+                <li
+                  key={order.id}
+                  className="grid gap-4 rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-4 lg:grid-cols-[1.2fr_0.8fr]"
+                >
+                  <div>
+                    <Link href={`/orders/${order.id}`} className="font-medium underline">
+                      {order.orderNumber}
+                    </Link>
+                    <p className="mt-1 text-xs uppercase tracking-[0.12em] text-[var(--muted)]">
+                      {statusLabel(order.status)} · {order.shippingCity}
+                    </p>
+                    <p className="mt-1 text-sm text-[var(--muted)]">
+                      {order.shippingName} · {formatPkr(order.subtotal + order.deliveryFee)}
+                    </p>
+                  </div>
+                  <AssignVendorForm
+                    orderId={order.id}
+                    vendors={vendors.map((v) => ({
+                      id: v.id,
+                      businessName: v.businessName,
+                      city: v.city,
+                    }))}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
 
       {showModeration ? (
         <section className="mt-12">

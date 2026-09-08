@@ -151,7 +151,7 @@ export async function placeOrder(
         shipments: {
           create: {
             status: "pending",
-            carrier: "Vendor courier (TBD)",
+            carrier: "Pakistan courier network",
           },
         },
       },

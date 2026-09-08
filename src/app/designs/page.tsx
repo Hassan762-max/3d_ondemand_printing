@@ -13,12 +13,13 @@ import {
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Design library" };
 
-type Props = { searchParams: Promise<{ category?: string }> };
+type Props = { searchParams: Promise<{ category?: string; q?: string }> };
 
 export default async function DesignsPage({ searchParams }: Props) {
   const session = await auth();
-  const { category: categoryRaw } = await searchParams;
+  const { category: categoryRaw, q } = await searchParams;
   const category = normalizeCategory(categoryRaw);
+  const query = q?.trim().toLowerCase() ?? "";
 
   const designs = await prisma.design.findMany({
     where: {
@@ -30,9 +31,10 @@ export default async function DesignsPage({ searchParams }: Props) {
     orderBy: [{ isLibrary: "desc" }, { createdAt: "desc" }],
   });
 
-  const filtered = category
+  const filtered = (category
     ? designs.filter((d) => designMatchesCategory(d.tags, category))
-    : designs;
+    : designs
+  ).filter((d) => !query || d.title.toLowerCase().includes(query));
 
   const savedIds = new Set(
     session?.user?.id
@@ -73,6 +75,23 @@ export default async function DesignsPage({ searchParams }: Props) {
         </div>
       </div>
 
+      <form method="get" className="mt-8 flex flex-wrap gap-2">
+        {category ? <input type="hidden" name="category" value={category} /> : null}
+        <input
+          type="search"
+          name="q"
+          defaultValue={q ?? ""}
+          placeholder="Search designs…"
+          className="h-10 min-w-[200px] flex-1 rounded-md border border-[var(--ink)]/12 bg-white/80 px-3 text-sm sm:max-w-xs"
+        />
+        <button
+          type="submit"
+          className="h-10 rounded-md border border-[var(--ink)]/12 bg-[var(--ink)] px-4 text-xs uppercase tracking-[0.12em] text-[var(--paper)]"
+        >
+          Search
+        </button>
+      </form>
+
       <div className="mt-8 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <CategoryChip href="/designs" active={!category} label="All" />
         {DESIGN_CATEGORIES.map((c) => (
@@ -88,9 +107,11 @@ export default async function DesignsPage({ searchParams }: Props) {
       {filtered.length === 0 ? (
         <div className="mt-16 rounded-xl border border-dashed border-[var(--ink)]/15 px-6 py-16 text-center">
           <p className="text-sm text-[var(--muted)]">
-            {category
-              ? `No designs tagged “${category}” yet. Try another category or upload your own.`
-              : "No designs yet. Upload one to get started."}
+            {query
+              ? `No designs matching “${q}”. Try another search or clear filters.`
+              : category
+                ? `No designs tagged “${category}” yet. Try another category or upload your own.`
+                : "No designs yet. Upload one to get started."}
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             {category ? (

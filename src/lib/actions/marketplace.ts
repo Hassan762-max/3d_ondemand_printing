@@ -164,6 +164,21 @@ export async function licenseDesign(designId: string): Promise<MarketplaceAction
     return { ok: true, message: "Already in your collection." };
   }
 
+  if (design.listedPrice > 0) {
+    const { getPaymentProvider } = await import("@/lib/orders/payment");
+    const payment = await getPaymentProvider().capture({
+      orderNumber: `LIC-${designId.slice(0, 8)}`,
+      amount: design.listedPrice,
+      kind: "FULL_ONLINE",
+    });
+    if (!payment.ok || payment.status === "FAILED") {
+      return {
+        ok: false,
+        message: payment.message ?? "License payment failed.",
+      };
+    }
+  }
+
   await prisma.$transaction(async (tx) => {
     await tx.designLicense.create({
       data: {
@@ -189,7 +204,7 @@ export async function licenseDesign(designId: string): Promise<MarketplaceAction
           title: "Marketplace sale",
           body:
             design.listedPrice > 0
-              ? `"${design.title}" licensed for Rs. ${design.listedPrice}.`
+              ? `"${design.title}" licensed for Rs. ${design.listedPrice} (simulated capture).`
               : `"${design.title}" was added by a buyer (free listing).`,
           href: "/creator",
         },
@@ -211,9 +226,19 @@ export async function licenseDesign(designId: string): Promise<MarketplaceAction
         action: "design.license",
         entity: "Design",
         entityId: designId,
-        metaJson: JSON.stringify({ amount: design.listedPrice }),
+        metaJson: JSON.stringify({
+          amount: design.listedPrice,
+          paid: design.listedPrice > 0,
+        }),
       },
     });
+  });
+
+  const { notifyOutbound } = await import("@/lib/notify/outbound");
+  await notifyOutbound({
+    to: user.email,
+    subject: `Design licensed: ${design.title}`,
+    body: `You licensed "${design.title}" on Nivaro.`,
   });
 
   revalidatePath("/marketplace");

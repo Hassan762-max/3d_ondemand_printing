@@ -93,6 +93,7 @@ model User {
   role           Role      @default(CUSTOMER)
   city           String?
   province       String?
+  active         Boolean   @default(true)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 

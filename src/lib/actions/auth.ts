@@ -5,6 +5,7 @@ import { AuthError } from "next-auth";
 import { z } from "zod";
 import { signIn } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const signUpSchema = z.object({
   name: z.string().min(2).max(80),
@@ -22,6 +23,15 @@ export async function registerUser(
   _prev: AuthActionState,
   formData: FormData,
 ): Promise<AuthActionState> {
+  const emailHint = String(formData.get("email") ?? "anon");
+  const limited = checkRateLimit(`signup:${emailHint.toLowerCase()}`, 5, 60_000);
+  if (!limited.ok) {
+    return {
+      ok: false,
+      message: `Too many sign-up attempts. Try again in ${limited.retryAfterSec}s.`,
+    };
+  }
+
   const parsed = signUpSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
@@ -72,6 +82,14 @@ export async function loginUser(
 ): Promise<AuthActionState> {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
+
+  const limited = checkRateLimit(`signin:${email.toLowerCase() || "anon"}`, 12, 60_000);
+  if (!limited.ok) {
+    return {
+      ok: false,
+      message: `Too many sign-in attempts. Try again in ${limited.retryAfterSec}s.`,
+    };
+  }
 
   try {
     await signIn("credentials", {

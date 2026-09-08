@@ -66,6 +66,11 @@ export default async function VendorOrderPage({ params }: Props) {
         <p className="mt-2 text-sm text-[var(--muted)]">
           Print-ready artwork, placement, size, color, and shipping label data.
         </p>
+        <a href={`/api/vendor/orders/${order.id}/package`} className="mt-4 inline-block">
+          <Button variant="outline" size="sm">
+            Download print package JSON
+          </Button>
+        </a>
         <ul className="mt-6 space-y-4">
           {order.items.map((item) => {
             const placement = JSON.parse(item.placementJson || "{}") as Record<

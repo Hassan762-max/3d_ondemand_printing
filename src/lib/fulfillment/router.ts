@@ -152,9 +152,58 @@ export async function assignVendorToOrder(orderId: string) {
     return { alreadyAssigned: false as const, order, best: null, ranked };
   }
 
-  const vendor = await prisma.vendor.findUniqueOrThrow({
-    where: { id: best.vendorId },
+  return applyVendorAssignment(order.id, best.vendorId, {
+    score: best.score,
+    reasonJson: JSON.stringify({ best, alternatives: ranked.slice(0, 3), mode: "auto" }),
   });
+}
+
+/** Manual or forced reassignment for ops. */
+export async function reassignVendorToOrder(
+  orderId: string,
+  vendorId: string,
+  reason?: string,
+) {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: { items: { include: { product: true } } },
+  });
+  if (!order) throw new Error("Order not found");
+
+  const vendor = await prisma.vendor.findFirst({
+    where: { id: vendorId, active: true },
+  });
+  if (!vendor) throw new Error("Vendor not found");
+
+  const categories = [
+    ...new Set(order.items.map((i) => i.product.category)),
+  ] as ProductCategory[];
+  const units = order.items.reduce((sum, i) => sum + i.quantity, 0);
+  const ranked = await scoreVendorsForOrder({
+    customerCity: order.shippingCity,
+    categories,
+    units,
+  });
+  const scoreRow = ranked.find((r) => r.vendorId === vendorId);
+
+  return applyVendorAssignment(order.id, vendorId, {
+    score: scoreRow?.score ?? 0,
+    reasonJson: JSON.stringify({
+      mode: "manual",
+      reason: reason || "ops_override",
+      selected: scoreRow ?? { vendorId, businessName: vendor.businessName },
+      alternatives: ranked.slice(0, 5),
+    }),
+  });
+}
+
+async function applyVendorAssignment(
+  orderId: string,
+  vendorId: string,
+  meta: { score: number; reasonJson: string },
+) {
+  const order = await prisma.order.findUniqueOrThrow({ where: { id: orderId } });
+  const vendor = await prisma.vendor.findUniqueOrThrow({ where: { id: vendorId } });
   const vendorCost = Math.round(order.subtotal * 0.58 * vendor.baseCostFactor);
   const platformMargin = Math.max(0, order.subtotal - vendorCost);
 
@@ -162,20 +211,21 @@ export async function assignVendorToOrder(orderId: string) {
     const assignment = await tx.fulfillmentAssignment.create({
       data: {
         orderId: order.id,
-        vendorId: best.vendorId,
-        score: best.score,
-        reasonJson: JSON.stringify({
-          best,
-          alternatives: ranked.slice(0, 3),
-        }),
+        vendorId,
+        score: meta.score,
+        reasonJson: meta.reasonJson,
       },
     });
 
     const next = await tx.order.update({
       where: { id: order.id },
       data: {
-        vendorId: best.vendorId,
-        status: "ASSIGNED",
+        vendorId,
+        status: ["CANCELLED", "REFUNDED", "DELIVERED", "SHIPPED", "OUT_FOR_DELIVERY", "RETURN_REQUESTED"].includes(
+          order.status,
+        )
+          ? order.status
+          : "ASSIGNED",
         vendorCost,
         platformMargin,
       },
@@ -184,7 +234,7 @@ export async function assignVendorToOrder(orderId: string) {
     await tx.shipment.updateMany({
       where: { orderId: order.id },
       data: {
-        carrier: `${best.businessName} courier`,
+        carrier: `${vendor.businessName} courier`,
         status: "awaiting_production",
       },
     });
@@ -193,7 +243,7 @@ export async function assignVendorToOrder(orderId: string) {
       data: {
         userId: vendor.userId,
         title: "New production order",
-        body: `${order.orderNumber} assigned · score ${best.score}`,
+        body: `${order.orderNumber} assigned · score ${meta.score}`,
         href: `/vendor/orders/${order.id}`,
       },
     });
@@ -202,7 +252,7 @@ export async function assignVendorToOrder(orderId: string) {
       data: {
         userId: order.userId,
         title: "Vendor assigned",
-        body: `${order.orderNumber} will be printed by ${best.businessName} (${best.city}).`,
+        body: `${order.orderNumber} will be printed by ${vendor.businessName} (${vendor.city}).`,
         href: `/orders/${order.id}`,
       },
     });
@@ -212,18 +262,17 @@ export async function assignVendorToOrder(orderId: string) {
         action: "fulfillment.assign",
         entity: "Order",
         entityId: order.id,
-        metaJson: JSON.stringify({ vendorId: best.vendorId, score: best.score }),
+        metaJson: JSON.stringify({ vendorId, score: meta.score }),
       },
     });
 
-    return { next, assignment };
+    return { next, assignment, best: { vendorId, businessName: vendor.businessName, city: vendor.city, score: meta.score } };
   });
 
   return {
     alreadyAssigned: false as const,
     order: updated.next,
-    best,
-    ranked,
+    best: updated.best,
     assignmentId: updated.assignment.id,
   };
 }
