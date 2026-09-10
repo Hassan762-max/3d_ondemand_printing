@@ -70,8 +70,8 @@ export default async function TryOnPage() {
             <li>05 · Apply changes & regenerate</li>
             <li>06 · Compare · finalize</li>
           </ol>
-          <Link href="/studio" className="mt-8 inline-block">
-            <Button variant="secondary">Customize in 3D first</Button>
+          <Link href="/products" className="mt-8 inline-block">
+            <Button variant="secondary">Choose a product first</Button>
           </Link>
         </aside>
       </div>

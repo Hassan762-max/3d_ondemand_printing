@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import {
@@ -110,9 +111,9 @@ export function CartItems({ items }: { items: CartLine[] }) {
           Checkout uses Rs. 500 advance + remaining amount on COD.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <Button type="button" onClick={() => router.push("/checkout")}>
-            Proceed to checkout
-          </Button>
+          <Link href="/checkout">
+            <Button type="button">Proceed to checkout</Button>
+          </Link>
           <Button
             type="button"
             variant="outline"

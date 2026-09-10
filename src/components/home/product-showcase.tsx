@@ -75,7 +75,7 @@ export function ProductShowcase({ products }: { products: ShowcaseProduct[] }) {
                         ))}
                       </div>
                     ) : null}
-                    <Link href={`/studio?product=${product.slug}`}>
+                    <Link href={`/products/${product.slug}`}>
                       <Button size="sm" variant="outline">
                         Start Designing
                       </Button>

@@ -14,7 +14,7 @@ export default function HelpPage() {
     >
       <Faq
         q="How do I start a design?"
-        a="Open Designs to pick a library print, Upload to add your file, or AI Studio to generate one — then continue in 3D Studio."
+        a="Open Designs to pick a library print, Upload to add your file, or AI Studio to generate one — then apply it to a product."
       />
       <Faq
         q="What does the advance payment cover?"

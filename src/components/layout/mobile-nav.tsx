@@ -9,14 +9,18 @@ export type NavLink = { href: string; label: string };
 
 export function MobileNav({
   links,
+  roleLinks = [],
   cartCount,
   signedIn,
   firstName,
+  portalHref = "/customer",
 }: {
   links: NavLink[];
+  roleLinks?: NavLink[];
   cartCount: number;
   signedIn: boolean;
   firstName?: string | null;
+  portalHref?: string;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -55,6 +59,20 @@ export function MobileNav({
               </Link>
             ))}
           </nav>
+          {roleLinks.length > 0 ? (
+            <nav className="mt-3 flex flex-col gap-1 border-t border-[var(--ink)]/8 pt-3">
+              {roleLinks.map((link) => (
+                <Link
+                  key={`${link.href}-${link.label}`}
+                  href={link.href}
+                  className="rounded-md px-3 py-2.5 text-sm text-[var(--ink)] hover:bg-[var(--ink)]/[0.04]"
+                  onClick={() => setOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          ) : null}
           <div className="mt-4 flex flex-col gap-2 border-t border-[var(--ink)]/8 pt-4">
             <Link href="/cart" onClick={() => setOpen(false)}>
               <Button variant="outline" className="w-full justify-between" size="sm">
@@ -63,9 +81,9 @@ export function MobileNav({
               </Button>
             </Link>
             {signedIn ? (
-              <Link href="/account" onClick={() => setOpen(false)}>
+              <Link href={portalHref} onClick={() => setOpen(false)}>
                 <Button className="w-full" size="sm">
-                  {firstName ?? "Account"}
+                  {firstName ?? "Portal"}
                 </Button>
               </Link>
             ) : (

@@ -35,7 +35,7 @@ export function HeroStage() {
           Plain black tee · 3D model
         </p>
         <p className="mt-2 max-w-xs text-xs leading-relaxed text-[var(--muted)]">
-          Drag to orbit — then place artwork in 3D Studio.
+          Drag to orbit — then choose a design to print.
         </p>
         <p className="mt-3 text-[10px] text-[var(--muted)]/80">
           Model:{" "}

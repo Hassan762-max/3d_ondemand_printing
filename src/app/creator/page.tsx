@@ -43,15 +43,15 @@ export default async function CreatorHubPage() {
             Creator hub
           </h1>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Publish uploads to the marketplace and track licenses.
+            Manage your uploads and track design licenses.
           </p>
         </div>
         <div className="flex gap-3">
           <Link href="/designs/upload">
             <Button>Upload design</Button>
           </Link>
-          <Link href="/marketplace">
-            <Button variant="outline">Browse marketplace</Button>
+          <Link href="/designs">
+            <Button variant="outline">Design library</Button>
           </Link>
         </div>
       </div>

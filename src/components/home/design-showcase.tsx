@@ -56,7 +56,7 @@ export function DesignShowcase({
             return (
               <article key={design.id} className="group">
                 <div className="relative aspect-square overflow-hidden rounded-2xl bg-[#F5F5F5] ring-1 ring-[var(--ink)]/[0.06]">
-                  <Link href={`/studio?design=${design.id}`} className="absolute inset-0 block">
+                  <Link href={`/products?design=${design.id}`} className="absolute inset-0 block">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={design.imageUrl}
@@ -89,10 +89,7 @@ export function DesignShowcase({
                     </div>
                   ) : null}
                   <div className="flex flex-wrap gap-3 text-sm">
-                    <Link href={`/studio?design=${design.id}`} className="underline">
-                      Use in 3D Studio
-                    </Link>
-                    <Link href={`/products?design=${design.id}`} className="text-[var(--muted)] underline">
+                    <Link href={`/products?design=${design.id}`} className="underline">
                       Apply to Product
                     </Link>
                   </div>

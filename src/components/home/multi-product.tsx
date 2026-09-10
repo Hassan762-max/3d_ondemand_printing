@@ -21,7 +21,7 @@ export function MultiProduct() {
             One design. Multiple ways to wear it.
           </h2>
         </div>
-        <Link href="/studio">
+        <Link href="/designs">
           <Button>Try Your Design</Button>
         </Link>
       </div>

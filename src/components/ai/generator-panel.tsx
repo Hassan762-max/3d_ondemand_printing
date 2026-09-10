@@ -73,8 +73,8 @@ export function GeneratorPanel() {
           <p className="mt-3 text-xs text-[var(--muted)]">{data.promptUsed}</p>
           {state.designId ? (
             <div className="mt-3 flex flex-wrap gap-3 text-sm">
-              <Link href={`/studio?design=${state.designId}`} className="underline">
-                Open in Studio
+              <Link href={`/products?design=${state.designId}`} className="underline">
+                Apply to product
               </Link>
               <Link href="/account/designs" className="underline">
                 View saved

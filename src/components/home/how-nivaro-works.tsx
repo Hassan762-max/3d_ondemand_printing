@@ -1,7 +1,7 @@
 const steps = [
   { n: "01", title: "Choose or Upload", body: "Library design or your own file." },
   { n: "02", title: "AI Enhances", body: "Print-ready quality and guidance." },
-  { n: "03", title: "Customize in 3D", body: "Place, scale, rotate, recolor." },
+  { n: "03", title: "Pick a Product", body: "Apply your design to the right blank." },
   { n: "04", title: "Try It On", body: "See it on your photo with AI." },
   { n: "05", title: "Order", body: "Advance + COD across Pakistan." },
 ];

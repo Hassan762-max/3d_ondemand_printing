@@ -4,12 +4,11 @@ import { brand } from "@/lib/brand";
 import { prisma } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { portalHomeForRole } from "@/components/portal/portal-nav";
 
 const links = [
   { href: "/products", label: "Products" },
   { href: "/designs", label: "Designs" },
-  { href: "/marketplace", label: "Marketplace" },
-  { href: "/studio", label: "3D Studio" },
   { href: "/ai", label: "AI Studio" },
   { href: "/try-on", label: "Try-On" },
 ];
@@ -24,7 +23,8 @@ export async function SiteHeader() {
         where: { userId: session.user.id, read: false },
       })
     : 0;
-  const isVendor = session?.user?.role === "VENDOR";
+  const role = session?.user?.role;
+  const isVendor = role === "VENDOR";
   const opsRoles = new Set([
     "ADMIN",
     "SUPER_ADMIN",
@@ -33,9 +33,21 @@ export async function SiteHeader() {
     "FINANCE_MANAGER",
     "PRODUCTION_MANAGER",
   ]);
-  const isOps = session?.user?.role ? opsRoles.has(session.user.role) : false;
-  const isAdmin =
-    session?.user?.role === "ADMIN" || session?.user?.role === "SUPER_ADMIN";
+  const isOps = role ? opsRoles.has(role) : false;
+  const isAdmin = role === "ADMIN" || role === "SUPER_ADMIN";
+  const portalHref = role ? portalHomeForRole(role) : "/customer";
+
+  const isCustomerLike =
+    role === "CUSTOMER" || role === "DESIGNER" || !role;
+
+  const roleLinks = [
+    ...(isVendor ? [{ href: "/vendor", label: "Vendor" }] : []),
+    ...(isOps ? [{ href: "/ops", label: "Ops" }] : []),
+    ...(isAdmin ? [{ href: "/admin", label: "Admin" }] : []),
+    ...(session?.user && isCustomerLike
+      ? [{ href: portalHref, label: "Portal" }]
+      : []),
+  ];
 
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--ink)]/8 bg-[var(--paper)]/90 backdrop-blur-md">
@@ -110,9 +122,9 @@ export async function SiteHeader() {
                   Admin
                 </Link>
               ) : null}
-              <Link href="/account" className="hidden sm:inline-flex">
+              <Link href={portalHref} className="hidden sm:inline-flex">
                 <Button variant="outline" size="sm">
-                  {session.user.name?.split(" ")[0] ?? "Account"}
+                  {session.user.name?.split(" ")[0] ?? "Portal"}
                 </Button>
               </Link>
             </>
@@ -131,9 +143,11 @@ export async function SiteHeader() {
 
           <MobileNav
             links={links}
+            roleLinks={roleLinks}
             cartCount={cartCount}
             signedIn={Boolean(session?.user)}
             firstName={session?.user?.name?.split(" ")[0]}
+            portalHref={portalHref}
           />
         </div>
       </div>

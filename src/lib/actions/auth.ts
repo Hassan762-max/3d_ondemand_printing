@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { AuthError } from "next-auth";
 import { z } from "zod";
 import { signIn } from "@/lib/auth";
+import { portalHomeForRole } from "@/components/portal/portal-nav";
 import { prisma } from "@/lib/db";
 import { checkRateLimit } from "@/lib/rate-limit";
 
@@ -18,6 +19,15 @@ export type AuthActionState = {
   ok: boolean;
   message?: string;
 };
+
+/** Only allow same-origin relative redirects (e.g. /checkout). */
+function safeCallbackUrl(raw: FormDataEntryValue | null, fallback: string) {
+  const value = String(raw ?? "").trim();
+  if (!value.startsWith("/") || value.startsWith("//") || value.includes("://")) {
+    return fallback;
+  }
+  return value;
+}
 
 export async function registerUser(
   _prev: AuthActionState,
@@ -60,11 +70,13 @@ export async function registerUser(
     },
   });
 
+  const redirectTo = safeCallbackUrl(formData.get("callbackUrl"), "/customer");
+
   try {
     await signIn("credentials", {
       email,
       password: parsed.data.password,
-      redirectTo: "/account",
+      redirectTo,
     });
   } catch (error) {
     if (error instanceof AuthError) {
@@ -91,11 +103,18 @@ export async function loginUser(
     };
   }
 
+  const existing = await prisma.user.findUnique({
+    where: { email: email.toLowerCase() },
+    select: { role: true },
+  });
+  const portalHome = existing ? portalHomeForRole(existing.role) : "/customer";
+  const redirectTo = safeCallbackUrl(formData.get("callbackUrl"), portalHome);
+
   try {
     await signIn("credentials", {
       email,
       password,
-      redirectTo: "/account",
+      redirectTo,
     });
   } catch (error) {
     if (error instanceof AuthError) {

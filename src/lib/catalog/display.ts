@@ -46,7 +46,6 @@ export type CatalogGroup =
   | "tshirts"
   | "hoodies"
   | "outerwear"
-  | "bottoms"
   | "accessories";
 
 export const CATALOG_GROUPS: { id: CatalogGroup; label: string; categories: ProductCategory[] }[] =
@@ -55,7 +54,7 @@ export const CATALOG_GROUPS: { id: CatalogGroup; label: string; categories: Prod
     {
       id: "tshirts",
       label: "T-Shirts",
-      categories: ["T_SHIRT", "OVERSIZED_T_SHIRT", "POLO", "CASUAL_SHIRT"],
+      categories: ["T_SHIRT", "OVERSIZED_T_SHIRT"],
     },
     {
       id: "hoodies",
@@ -66,11 +65,6 @@ export const CATALOG_GROUPS: { id: CatalogGroup; label: string; categories: Prod
       id: "outerwear",
       label: "Outerwear",
       categories: ["JACKET"],
-    },
-    {
-      id: "bottoms",
-      label: "Bottoms",
-      categories: ["JOGGERS", "SHORTS"],
     },
     {
       id: "accessories",
