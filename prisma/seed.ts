@@ -389,6 +389,7 @@ async function main() {
           qualityScore: v.qualityScore,
           deliveryScore: v.deliveryScore,
           active: true,
+          approvalStatus: "APPROVED",
         },
       });
       for (const category of v.categories) {
@@ -413,6 +414,8 @@ async function main() {
         baseCostFactor: v.baseCostFactor,
         qualityScore: v.qualityScore,
         deliveryScore: v.deliveryScore,
+        active: true,
+        approvalStatus: "APPROVED",
         capabilities: {
           create: v.categories.map((category) => ({ category })),
         },
@@ -420,7 +423,15 @@ async function main() {
     });
   }
 
+  const hiddenSlugs = new Set([
+    "studio-joggers",
+    "court-shorts",
+    "city-polo",
+    "everyday-casual-shirt",
+  ]);
+
   for (const p of products) {
+    const isVisible = !hiddenSlugs.has(p.slug);
     const product = await prisma.product.upsert({
       where: { slug: p.slug },
       update: {
@@ -428,7 +439,7 @@ async function main() {
         description: p.description,
         basePrice: p.basePrice,
         imageUrl: p.imageUrl,
-        active: true,
+        active: isVisible,
       },
       create: {
         slug: p.slug,
@@ -437,6 +448,7 @@ async function main() {
         category: p.category,
         basePrice: p.basePrice,
         imageUrl: p.imageUrl,
+        active: isVisible,
       },
     });
 

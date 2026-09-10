@@ -16,6 +16,9 @@ function isActive(pathname: string, item: PortalNavItem) {
     const base = item.href.split("#")[0] || "/";
     return pathname === base || pathname.startsWith(`${base}/`);
   }
+  if (item.href === "/vendor/jobs" && pathname.startsWith("/vendor/orders")) {
+    return true;
+  }
   if (item.match === "prefix") {
     return pathname === item.href || pathname.startsWith(`${item.href}/`);
   }
@@ -40,23 +43,19 @@ export function PortalShell({
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const meta = portalMeta(variant);
+  const lightChrome = true;
 
-  const sidebarTone =
-    variant === "vendor"
-      ? "bg-[var(--ink)] text-[var(--paper)]"
-      : variant === "admin"
-        ? "bg-[var(--ink-soft)] text-[var(--paper)]"
-        : "bg-[var(--paper-elevated)] text-[var(--ink)] ring-1 ring-[var(--ink)]/8";
+  const sidebarTone = lightChrome
+    ? "bg-[var(--paper-elevated)] text-[var(--ink)] ring-1 ring-[var(--ink)]/8"
+    : "bg-[var(--ink-soft)] text-[var(--paper)]";
 
-  const linkIdle =
-    variant === "customer"
-      ? "text-[var(--muted)] hover:bg-[var(--ink)]/[0.04] hover:text-[var(--ink)]"
-      : "text-white/65 hover:bg-white/10 hover:text-white";
+  const linkIdle = lightChrome
+    ? "text-[var(--muted)] hover:bg-[var(--ink)]/[0.04] hover:text-[var(--ink)]"
+    : "text-white/65 hover:bg-white/10 hover:text-white";
 
-  const linkActive =
-    variant === "customer"
-      ? "bg-[var(--ink)] text-[var(--paper)]"
-      : "bg-white/15 text-white";
+  const linkActive = lightChrome
+    ? "bg-[var(--ink)] text-[var(--paper)]"
+    : "bg-white/15 text-white";
 
   const NavLinks = ({ onNavigate }: { onNavigate?: () => void }) => (
     <nav className="flex flex-col gap-1">
@@ -78,28 +77,31 @@ export function PortalShell({
     </nav>
   );
 
+  const homeHref =
+    variant === "customer"
+      ? "/customer"
+      : variant === "vendor"
+        ? "/vendor"
+        : variant === "ops"
+          ? "/ops"
+          : "/admin";
+
   return (
     <div className={`-mt-0 ${meta.variantClass}`}>
       <div className="mx-auto flex max-w-7xl items-start gap-0 lg:gap-8 lg:px-6 lg:py-8">
-        {/* Desktop sidebar — sticky so it stays filled while the page scrolls */}
+        {/* Desktop sidebar — sticky, content-height so nav + account stay one block */}
         <aside
-          className={`sticky top-20 hidden max-h-[calc(100vh-6rem)] w-64 shrink-0 flex-col overflow-y-auto rounded-2xl p-5 lg:flex ${sidebarTone}`}
+          className={`sticky top-20 hidden h-fit w-64 shrink-0 flex-col self-start overflow-y-auto rounded-2xl p-5 lg:flex ${sidebarTone}`}
         >
           <p
             className={`text-[10px] uppercase tracking-[0.16em] ${
-              variant === "customer" ? "text-[var(--accent)]" : "text-white/50"
+              lightChrome ? "text-[var(--accent)]" : "text-white/50"
             }`}
           >
             {meta.eyebrow}
           </p>
           <Link
-            href={
-              variant === "customer"
-                ? "/customer"
-                : variant === "vendor"
-                  ? "/vendor"
-                  : "/admin"
-            }
+            href={homeHref}
             className="mt-2 font-[family-name:var(--font-display)] text-xl tracking-tight hover:opacity-80"
           >
             {meta.title}
@@ -107,7 +109,7 @@ export function PortalShell({
           {badge ? (
             <p
               className={`mt-2 text-xs ${
-                variant === "customer" ? "text-[var(--muted)]" : "text-white/55"
+                lightChrome ? "text-[var(--muted)]" : "text-white/55"
               }`}
             >
               {badge}
@@ -117,14 +119,14 @@ export function PortalShell({
             <NavLinks />
           </div>
           <div
-            className={`mt-8 border-t pt-4 ${
-              variant === "customer" ? "border-[var(--ink)]/10" : "border-white/10"
+            className={`mt-6 border-t pt-4 ${
+              lightChrome ? "border-[var(--ink)]/10" : "border-white/10"
             }`}
           >
             <p className="truncate text-sm font-medium">{userName ?? "Account"}</p>
             <p
               className={`mt-0.5 truncate text-xs ${
-                variant === "customer" ? "text-[var(--muted)]" : "text-white/50"
+                lightChrome ? "text-[var(--muted)]" : "text-white/50"
               }`}
             >
               {userEmail}
@@ -133,9 +135,9 @@ export function PortalShell({
               <Button
                 type="submit"
                 size="sm"
-                variant={variant === "customer" ? "outline" : "secondary"}
+                variant={lightChrome ? "outline" : "secondary"}
                 className={
-                  variant === "customer"
+                  lightChrome
                     ? "w-full"
                     : "w-full border-white/20 bg-white/10 text-white hover:bg-white/20"
                 }
@@ -154,13 +156,7 @@ export function PortalShell({
                 {meta.eyebrow}
               </p>
               <Link
-                href={
-                  variant === "customer"
-                    ? "/customer"
-                    : variant === "vendor"
-                      ? "/vendor"
-                      : "/admin"
-                }
+                href={homeHref}
                 className="font-[family-name:var(--font-display)] text-xl tracking-tight hover:opacity-80"
               >
                 {meta.title}

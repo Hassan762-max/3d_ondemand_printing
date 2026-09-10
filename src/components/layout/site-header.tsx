@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { portalHomeForRole } from "@/components/portal/portal-nav";
 
-const links = [
+const storefrontLinks = [
   { href: "/products", label: "Products" },
   { href: "/designs", label: "Designs" },
   { href: "/try-on", label: "Try-On" },
@@ -36,6 +36,8 @@ export async function SiteHeader() {
   const isAdmin = role === "ADMIN" || role === "SUPER_ADMIN";
   const portalHref = role ? portalHomeForRole(role) : "/customer";
   const brandHref = session?.user ? portalHref : "/";
+  const isStaff = isVendor || isOps || isAdmin;
+  const showStorefront = !session?.user || !isStaff;
 
   const isCustomerLike =
     role === "CUSTOMER" || role === "DESIGNER" || !role;
@@ -49,6 +51,8 @@ export async function SiteHeader() {
       : []),
   ];
 
+  const navLinks = showStorefront ? storefrontLinks : roleLinks;
+
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--ink)]/8 bg-[var(--paper)]/90 backdrop-blur-md">
       <div className="relative mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
@@ -60,9 +64,9 @@ export async function SiteHeader() {
             {brand.name}
           </Link>
           <nav className="hidden items-center gap-6 md:flex">
-            {links.map((link) => (
+            {navLinks.map((link) => (
               <Link
-                key={link.href}
+                key={`${link.href}-${link.label}`}
                 href={link.href}
                 className="text-sm text-[var(--muted)] transition hover:text-[var(--ink)]"
               >
@@ -73,53 +77,33 @@ export async function SiteHeader() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Link
-            href="/cart"
-            className="relative hidden text-sm text-[var(--muted)] hover:text-[var(--ink)] sm:inline"
-          >
-            Cart
-            {cartCount > 0 ? (
-              <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--accent)] px-1.5 text-[10px] font-medium text-white">
-                {cartCount}
-              </span>
-            ) : null}
-          </Link>
+          {showStorefront ? (
+            <Link
+              href="/cart"
+              className="relative hidden text-sm text-[var(--muted)] hover:text-[var(--ink)] sm:inline"
+            >
+              Cart
+              {cartCount > 0 ? (
+                <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--accent)] px-1.5 text-[10px] font-medium text-white">
+                  {cartCount}
+                </span>
+              ) : null}
+            </Link>
+          ) : null}
 
           {session?.user ? (
             <>
-              <Link
-                href="/account/notifications"
-                className="relative hidden text-sm text-[var(--muted)] hover:text-[var(--ink)] lg:inline"
-              >
-                Alerts
-                {unreadCount > 0 ? (
-                  <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--ink)] px-1.5 text-[10px] font-medium text-[var(--paper)]">
-                    {unreadCount}
-                  </span>
-                ) : null}
-              </Link>
-              {isVendor ? (
+              {!isStaff ? (
                 <Link
-                  href="/vendor"
-                  className="hidden text-sm text-[var(--muted)] hover:text-[var(--ink)] lg:inline"
+                  href="/account/notifications"
+                  className="relative hidden text-sm text-[var(--muted)] hover:text-[var(--ink)] lg:inline"
                 >
-                  Vendor
-                </Link>
-              ) : null}
-              {isOps ? (
-                <Link
-                  href="/ops"
-                  className="hidden text-sm text-[var(--muted)] hover:text-[var(--ink)] lg:inline"
-                >
-                  Ops
-                </Link>
-              ) : null}
-              {isAdmin ? (
-                <Link
-                  href="/admin"
-                  className="hidden text-sm text-[var(--muted)] hover:text-[var(--ink)] lg:inline"
-                >
-                  Admin
+                  Alerts
+                  {unreadCount > 0 ? (
+                    <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--ink)] px-1.5 text-[10px] font-medium text-[var(--paper)]">
+                      {unreadCount}
+                    </span>
+                  ) : null}
                 </Link>
               ) : null}
               <Link href={portalHref} className="hidden sm:inline-flex">
@@ -142,12 +126,13 @@ export async function SiteHeader() {
           )}
 
           <MobileNav
-            links={links}
-            roleLinks={roleLinks}
-            cartCount={cartCount}
+            links={navLinks}
+            roleLinks={showStorefront ? roleLinks : []}
+            cartCount={showStorefront ? cartCount : 0}
             signedIn={Boolean(session?.user)}
             firstName={session?.user?.name?.split(" ")[0]}
             portalHref={portalHref}
+            showCart={showStorefront}
           />
         </div>
       </div>

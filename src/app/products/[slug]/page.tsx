@@ -6,6 +6,7 @@ import {
   catalogCategoryTag,
   catalogDisplayName,
   catalogImageUrl,
+  isHiddenCatalogSlug,
 } from "@/lib/catalog/display";
 import { prisma } from "@/lib/db";
 import { formatPkr } from "@/lib/utils";
@@ -19,6 +20,7 @@ type Props = {
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
+  if (isHiddenCatalogSlug(slug)) return { title: "Product" };
   const product = await prisma.product.findUnique({ where: { slug } });
   return {
     title: product
@@ -31,11 +33,12 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
   const { slug } = await params;
   const { design: designParam } = await searchParams;
   const session = await auth();
+  if (isHiddenCatalogSlug(slug)) notFound();
   const product = await prisma.product.findUnique({
     where: { slug },
     include: { variants: true },
   });
-  if (!product) notFound();
+  if (!product || !product.active) notFound();
 
   const displayName = catalogDisplayName(product.slug, product.name);
   const imageUrl = catalogImageUrl(product.slug, product.imageUrl);

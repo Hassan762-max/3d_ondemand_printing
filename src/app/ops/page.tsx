@@ -8,7 +8,6 @@ import {
   ResolveTicketForm,
 } from "@/components/ops/ops-actions";
 import { ModerateDesignButtons } from "@/components/ops/moderate-design-buttons";
-import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { hasAnyPermission, hasPermission } from "@/lib/rbac";
@@ -103,16 +102,20 @@ export default async function OpsPage() {
   const canAssign = hasPermission(role, "vendor:assign") || role === "ADMIN";
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-      <p className="text-xs uppercase tracking-[0.16em] text-[var(--accent)]">Operations</p>
-      <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl tracking-tight">
-        Returns, QC & finance
-      </h1>
-      <p className="mt-2 text-sm text-[var(--muted)]">
-        Signed in as {role.replaceAll("_", " ")}
-      </p>
+    <div className="space-y-10">
+      <header>
+        <p className="text-xs uppercase tracking-[0.16em] text-[var(--accent)]">
+          Platform control
+        </p>
+        <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl tracking-tight sm:text-4xl">
+          Ops desk
+        </h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">
+          Returns, QC & finance · signed in as {role.replaceAll("_", " ")}
+        </p>
+      </header>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Stat label="Open returns" value={String(openReturns.length)} />
         <Stat label="Open tickets" value={String(openTickets.length)} />
         <Stat label="Pending refunds" value={String(pendingRefunds.length)} />
@@ -367,12 +370,6 @@ export default async function OpsPage() {
           ))}
         </ul>
       </section>
-
-      <div className="mt-10">
-        <Link href="/">
-          <Button variant="outline">Storefront</Button>
-        </Link>
-      </div>
     </div>
   );
 }

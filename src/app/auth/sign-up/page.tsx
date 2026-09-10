@@ -74,15 +74,22 @@ export default function SignUpPage() {
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 py-16">
       <h1 className="font-[family-name:var(--font-display)] text-3xl tracking-tight">
-        Create your {brand.name}
+        Create a customer account
       </h1>
       <p className="mt-2 text-sm text-[var(--muted)]">
-        Start designing custom clothing with AI and 3D tools.
+        Design custom clothing with AI and 3D tools, then order across Pakistan.
       </p>
 
       <Suspense fallback={<p className="mt-8 text-sm text-[var(--muted)]">Loading…</p>}>
         <SignUpForm />
       </Suspense>
+
+      <p className="mt-8 text-sm text-[var(--muted)]">
+        Own a print shop?{" "}
+        <Link href="/auth/vendor/sign-up" className="text-[var(--ink)] underline">
+          Apply as a vendor
+        </Link>
+      </p>
     </div>
   );
 }

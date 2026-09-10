@@ -1,5 +1,6 @@
 import { StudioShell } from "@/components/studio/studio-shell";
 import { auth } from "@/lib/auth";
+import { catalogProductWhere } from "@/lib/catalog/display";
 import { designsAvailableToUser } from "@/lib/designs/access";
 import { prisma } from "@/lib/db";
 
@@ -15,7 +16,7 @@ export default async function StudioPage({ searchParams }: Props) {
   const session = await auth();
 
   const productsRaw = await prisma.product.findMany({
-    where: { active: true },
+    where: catalogProductWhere(),
     include: { variants: true },
     orderBy: { name: "asc" },
   });

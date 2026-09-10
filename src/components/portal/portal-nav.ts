@@ -7,7 +7,7 @@ export type PortalNavItem = {
   match?: "exact" | "prefix";
 };
 
-export type PortalVariant = "customer" | "vendor" | "admin";
+export type PortalVariant = "customer" | "vendor" | "admin" | "ops";
 
 export function portalHomeForRole(role: Role): string {
   switch (role) {
@@ -41,18 +41,23 @@ export const CUSTOMER_NAV: PortalNavItem[] = [
 
 export const VENDOR_NAV: PortalNavItem[] = [
   { href: "/vendor", label: "Dashboard", match: "exact" },
-  { href: "/vendor#queue", label: "Active queue", match: "exact" },
-  { href: "/vendor#all", label: "All jobs", match: "exact" },
-  { href: "/", label: "Storefront", match: "exact" },
+  { href: "/vendor/queue", label: "Queue", match: "prefix" },
+  { href: "/vendor/jobs", label: "All jobs", match: "prefix" },
+  { href: "/vendor/profile", label: "Profile", match: "exact" },
 ];
 
 export const ADMIN_NAV: PortalNavItem[] = [
   { href: "/admin", label: "Dashboard", match: "exact" },
-  { href: "/admin#catalog", label: "Catalog", match: "exact" },
-  { href: "/admin#users", label: "Users", match: "exact" },
-  { href: "/admin#finance", label: "Finance", match: "exact" },
+  { href: "/admin/vendors", label: "Vendors", match: "prefix" },
+  { href: "/admin/catalog", label: "Catalog", match: "prefix" },
+  { href: "/admin/users", label: "Users", match: "prefix" },
+  { href: "/admin/finance", label: "Finance", match: "prefix" },
+  { href: "/admin/health", label: "Health", match: "prefix" },
   { href: "/ops", label: "Ops desk", match: "prefix" },
-  { href: "/api/health", label: "Health", match: "exact" },
+];
+
+export const OPS_NAV: PortalNavItem[] = [
+  { href: "/ops", label: "Dashboard", match: "exact" },
 ];
 
 export function portalMeta(variant: PortalVariant) {
@@ -74,6 +79,12 @@ export function portalMeta(variant: PortalVariant) {
         title: "Admin console",
         eyebrow: "Platform control",
         variantClass: "portal-admin",
+      };
+    case "ops":
+      return {
+        title: "Ops desk",
+        eyebrow: "Operations",
+        variantClass: "portal-ops",
       };
   }
 }

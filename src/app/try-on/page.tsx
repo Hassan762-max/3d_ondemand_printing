@@ -4,6 +4,7 @@ import { TryOnCreateForm } from "@/components/try-on/try-on-create-form";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";
 import { designsAvailableToUser } from "@/lib/designs/access";
+import { catalogProductWhere } from "@/lib/catalog/display";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +17,7 @@ export default async function TryOnPage() {
   }
 
   const productsRaw = await prisma.product.findMany({
-    where: { active: true },
+    where: catalogProductWhere(),
     include: { variants: true },
     orderBy: { name: "asc" },
   });

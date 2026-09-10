@@ -2,13 +2,9 @@
 export const PRODUCT_CATEGORY_OPTIONS = [
   { value: "T_SHIRT", label: "T-Shirt" },
   { value: "OVERSIZED_T_SHIRT", label: "Drop Shoulder" },
-  { value: "POLO", label: "Polo" },
   { value: "HOODIE", label: "Hoodie" },
   { value: "SWEATSHIRT", label: "Sweatshirt" },
-  { value: "CASUAL_SHIRT", label: "Casual Shirt" },
   { value: "JACKET", label: "Jacket" },
-  { value: "JOGGERS", label: "Joggers" },
-  { value: "SHORTS", label: "Shorts" },
   { value: "CAP", label: "Cap" },
 ] as const;
 

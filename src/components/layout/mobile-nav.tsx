@@ -14,6 +14,7 @@ export function MobileNav({
   signedIn,
   firstName,
   portalHref = "/customer",
+  showCart = true,
 }: {
   links: NavLink[];
   roleLinks?: NavLink[];
@@ -21,6 +22,7 @@ export function MobileNav({
   signedIn: boolean;
   firstName?: string | null;
   portalHref?: string;
+  showCart?: boolean;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -50,7 +52,7 @@ export function MobileNav({
           <nav className="flex flex-col gap-1">
             {links.map((link) => (
               <Link
-                key={link.href}
+                key={`${link.href}-${link.label}`}
                 href={link.href}
                 className="rounded-md px-3 py-2.5 text-sm text-[var(--ink)] hover:bg-[var(--ink)]/[0.04]"
                 onClick={() => setOpen(false)}
@@ -74,12 +76,14 @@ export function MobileNav({
             </nav>
           ) : null}
           <div className="mt-4 flex flex-col gap-2 border-t border-[var(--ink)]/8 pt-4">
-            <Link href="/cart" onClick={() => setOpen(false)}>
-              <Button variant="outline" className="w-full justify-between" size="sm">
-                Cart
-                {cartCount > 0 ? <span>{cartCount}</span> : null}
-              </Button>
-            </Link>
+            {showCart ? (
+              <Link href="/cart" onClick={() => setOpen(false)}>
+                <Button variant="outline" className="w-full justify-between" size="sm">
+                  Cart
+                  {cartCount > 0 ? <span>{cartCount}</span> : null}
+                </Button>
+              </Link>
+            ) : null}
             {signedIn ? (
               <Link href={portalHref} onClick={() => setOpen(false)}>
                 <Button className="w-full" size="sm">
