@@ -32,6 +32,12 @@ enum ProductCategory {
   CAP
 }
 
+enum VendorApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum OrderStatus {
   DRAFT
   PENDING_PAYMENT
@@ -338,24 +344,28 @@ model PaymentLedger {
 }
 
 model Vendor {
-  id               String   @id @default(cuid())
-  userId           String   @unique
+  id               String               @id @default(cuid())
+  userId           String               @unique
   businessName     String
   city             String
   province         String
   phone            String
-  active           Boolean  @default(true)
-  capacityDaily    Int      @default(50)
-  baseCostFactor   Float    @default(1)
-  qualityScore     Float    @default(4)
-  cancelRate       Float    @default(0)
-  returnRate       Float    @default(0)
-  defectRate       Float    @default(0)
-  qcFailRate       Float    @default(0)
-  deliveryScore    Float    @default(4)
-  rating           Float    @default(4)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  active           Boolean              @default(true)
+  approvalStatus   VendorApprovalStatus @default(APPROVED)
+  servicesNote     String?
+  capacityDaily    Int                  @default(50)
+  baseCostFactor   Float                @default(1)
+  qualityScore     Float                @default(4)
+  cancelRate       Float                @default(0)
+  returnRate       Float                @default(0)
+  defectRate       Float                @default(0)
+  qcFailRate       Float                @default(0)
+  deliveryScore    Float                @default(4)
+  rating           Float                @default(4)
+  reviewedAt       DateTime?
+  reviewedById     String?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
 
   user             User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   capabilities     VendorCapability[]

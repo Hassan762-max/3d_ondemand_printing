@@ -12,6 +12,7 @@ import { QuickCreate } from "@/components/home/quick-create";
 import { ReviewsDemo } from "@/components/home/reviews-demo";
 import { StudioHighlight } from "@/components/home/studio-highlight";
 import { auth } from "@/lib/auth";
+import { catalogProductWhere } from "@/lib/catalog/display";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -21,17 +22,7 @@ export default async function HomePage() {
 
   const [productsRaw, designs, saved, reviewRows] = await Promise.all([
     prisma.product.findMany({
-      where: {
-        active: true,
-        slug: {
-          notIn: [
-            "studio-joggers",
-            "court-shorts",
-            "city-polo",
-            "everyday-casual-shirt",
-          ],
-        },
-      },
+      where: catalogProductWhere(),
       take: 9,
       orderBy: { basePrice: "asc" },
       include: { variants: { select: { color: true, colorHex: true } } },

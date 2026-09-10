@@ -1,5 +1,25 @@
 import type { ProductCategory } from "@prisma/client";
 
+/** Removed from storefront, portals, studio, and try-on. */
+export const HIDDEN_CATALOG_SLUGS = [
+  "studio-joggers",
+  "court-shorts",
+  "city-polo",
+  "everyday-casual-shirt",
+] as const;
+
+export function catalogProductWhere(extra: Record<string, unknown> = {}) {
+  return {
+    active: true,
+    ...extra,
+    slug: { notIn: [...HIDDEN_CATALOG_SLUGS] },
+  };
+}
+
+export function isHiddenCatalogSlug(slug: string) {
+  return (HIDDEN_CATALOG_SLUGS as readonly string[]).includes(slug);
+}
+
 /** Simplified fashion names shown in catalog (DB may keep longer legacy names). */
 const DISPLAY_NAMES: Record<string, string> = {
   "essential-tee": "Tee",

@@ -54,9 +54,13 @@ function SignInForm() {
       </form>
 
       <p className="mt-6 text-sm text-[var(--muted)]">
-        New here?{" "}
+        New customer?{" "}
         <Link href={signUpHref} className="text-[var(--ink)] underline">
           Create an account
+        </Link>
+        {" · "}
+        <Link href="/auth/vendor/sign-up" className="text-[var(--ink)] underline">
+          Vendor application
         </Link>
       </p>
       <p className="mt-4 text-xs text-[var(--muted)]">

@@ -14,8 +14,16 @@ export default async function VendorLayout({
 
   const vendor = await prisma.vendor.findUnique({
     where: { userId: session.user.id },
-    select: { businessName: true, city: true },
+    select: { businessName: true, city: true, approvalStatus: true },
   });
+
+  const badge = !vendor
+    ? "No vendor profile linked"
+    : vendor.approvalStatus === "PENDING"
+      ? `${vendor.businessName} · pending approval`
+      : vendor.approvalStatus === "REJECTED"
+        ? `${vendor.businessName} · not approved`
+        : `${vendor.businessName} · ${vendor.city}`;
 
   return (
     <PortalShell
@@ -23,11 +31,7 @@ export default async function VendorLayout({
       nav={VENDOR_NAV}
       userName={session.user.name}
       userEmail={session.user.email}
-      badge={
-        vendor
-          ? `${vendor.businessName} · ${vendor.city}`
-          : "No vendor profile linked"
-      }
+      badge={badge}
     >
       {children}
     </PortalShell>

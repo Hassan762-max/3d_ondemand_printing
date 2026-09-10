@@ -33,6 +33,7 @@ export async function toggleProductActive(
   });
 
   revalidatePath("/admin");
+  revalidatePath("/admin/catalog");
   revalidatePath("/products");
   revalidatePath(`/products/${product.slug}`);
   return {
@@ -104,6 +105,7 @@ export async function settleVendorOrder(orderId: string): Promise<AdminActionRes
   });
 
   revalidatePath("/admin");
+  revalidatePath("/admin/finance");
   revalidatePath("/ops");
   revalidatePath(`/orders/${order.id}`);
   revalidatePath(`/vendor/orders/${order.id}`);
@@ -145,6 +147,7 @@ export async function collectCodRemaining(
   });
 
   revalidatePath("/admin");
+  revalidatePath("/admin/finance");
   revalidatePath(`/orders/${order.id}`);
   return { ok: true, message: "COD marked collected." };
 }
@@ -192,6 +195,7 @@ export async function setUserRole(
   });
 
   revalidatePath("/admin");
+  revalidatePath("/admin/users");
   return { ok: true, message: `Role set to ${parsed.data}.` };
 }
 
@@ -223,5 +227,6 @@ export async function setUserActive(
   });
 
   revalidatePath("/admin");
+  revalidatePath("/admin/users");
   return { ok: true, message: active ? "User activated." : "User deactivated." };
 }

@@ -1,11 +1,12 @@
 import type { MetadataRoute } from "next";
+import { catalogProductWhere } from "@/lib/catalog/display";
 import { prisma } from "@/lib/db";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = (process.env.AUTH_URL || "http://localhost:3000").replace(/\/$/, "");
 
   const products = await prisma.product.findMany({
-    where: { active: true },
+    where: catalogProductWhere(),
     select: { slug: true, updatedAt: true },
   });
 

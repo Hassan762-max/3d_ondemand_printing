@@ -43,25 +43,30 @@ export default async function VendorOrderPage({ params }: Props) {
     : null;
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
+    <div className="space-y-10">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">
             {statusLabel(order.status)}
           </p>
-          <h1 className="mt-2 font-[family-name:var(--font-display)] text-4xl tracking-tight">
+          <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl tracking-tight sm:text-4xl">
             {order.orderNumber}
           </h1>
           <p className="mt-2 text-sm text-[var(--muted)]">
             Ship to {order.shippingName} · {order.shippingCity} · {order.shippingPhone}
           </p>
         </div>
-        <Link href="/vendor">
-          <Button variant="outline">Queue</Button>
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/vendor/queue">
+            <Button variant="outline">Queue</Button>
+          </Link>
+          <Link href="/vendor/jobs">
+            <Button variant="outline">All jobs</Button>
+          </Link>
+        </div>
       </div>
 
-      <section className="mt-10 rounded-2xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-6">
+      <section className="rounded-2xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-6">
         <h2 className="text-lg font-medium tracking-tight">Production package</h2>
         <p className="mt-2 text-sm text-[var(--muted)]">
           Print-ready artwork, placement, size, color, and shipping label data.

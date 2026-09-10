@@ -3,6 +3,7 @@ import {
   catalogDisplayName,
   catalogFitForSlug,
   catalogImageUrl,
+  catalogProductWhere,
   categoriesForGroup,
   normalizeCatalogFit,
   normalizeCatalogGroup,
@@ -40,21 +41,12 @@ export default async function ProductsPage({ searchParams }: Props) {
 
   const [productsRaw, design] = await Promise.all([
     prisma.product.findMany({
-      where: {
-        active: true,
-        slug: {
-          notIn: [
-            "studio-joggers",
-            "court-shorts",
-            "city-polo",
-            "everyday-casual-shirt",
-          ],
-        },
+      where: catalogProductWhere({
         ...(groupCategories ? { category: { in: groupCategories } } : {}),
         ...(sp.category && !sp.group
           ? { category: sp.category.toUpperCase() as never }
           : {}),
-      },
+      }),
       include: {
         variants: { select: { color: true, colorHex: true } },
       },
