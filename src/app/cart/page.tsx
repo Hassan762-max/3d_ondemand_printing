@@ -15,10 +15,20 @@ export default async function CartPage() {
       <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
         <h1 className="font-[family-name:var(--font-display)] text-4xl tracking-tight">Cart</h1>
         <div className="mt-12 rounded-xl border border-dashed border-[var(--ink)]/15 px-6 py-16 text-center">
-          <p className="text-sm text-[var(--muted)]">Sign in to view and manage your cart.</p>
-          <Link href="/auth/sign-in?callbackUrl=/cart" className="mt-6 inline-block">
-            <Button>Sign in</Button>
-          </Link>
+          <p className="text-sm text-[var(--muted)]">
+            Sign in as a customer to view your cart and checkout.
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <Link href="/auth/sign-in?callbackUrl=/cart">
+              <Button>Sign in to continue</Button>
+            </Link>
+            <Link href="/auth/sign-up?callbackUrl=/cart">
+              <Button variant="outline">Create account</Button>
+            </Link>
+          </div>
+          <p className="mt-4 text-xs text-[var(--muted)]">
+            Demo: <span className="font-mono">customer@printora.pk</span> / password123
+          </p>
         </div>
       </div>
     );

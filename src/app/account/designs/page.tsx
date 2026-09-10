@@ -62,8 +62,8 @@ export default async function SavedDesignsPage() {
                 <div className="flex items-center justify-between gap-2 p-4">
                   <div>
                     <p className="font-medium">{design.title}</p>
-                    <Link href={`/studio?design=${design.id}`} className="text-xs underline">
-                      Open in Studio
+                    <Link href={`/products?design=${design.id}`} className="text-xs underline">
+                      Apply to product
                     </Link>
                   </div>
                   <SaveDesignButton designId={design.id} initiallySaved />
@@ -92,9 +92,9 @@ export default async function SavedDesignsPage() {
                 <div className="space-y-3 p-4">
                   <p className="font-medium">{design.title}</p>
                   <div className="flex flex-wrap gap-2">
-                    <Link href={`/studio?design=${design.id}`}>
+                    <Link href={`/products?design=${design.id}`}>
                       <Button size="sm" variant="outline">
-                        Studio
+                        Apply
                       </Button>
                     </Link>
                     <form

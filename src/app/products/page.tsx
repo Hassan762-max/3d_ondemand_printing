@@ -42,6 +42,14 @@ export default async function ProductsPage({ searchParams }: Props) {
     prisma.product.findMany({
       where: {
         active: true,
+        slug: {
+          notIn: [
+            "studio-joggers",
+            "court-shorts",
+            "city-polo",
+            "everyday-casual-shirt",
+          ],
+        },
         ...(groupCategories ? { category: { in: groupCategories } } : {}),
         ...(sp.category && !sp.group
           ? { category: sp.category.toUpperCase() as never }
@@ -153,9 +161,6 @@ export default async function ProductsPage({ searchParams }: Props) {
                   imageUrl: product.imageUrl,
                   colors: product.colors,
                   href: `/products/${product.slug}${designQuery}`,
-                  studioHref: `/studio?product=${product.slug}${
-                    design ? `&design=${design.id}` : ""
-                  }`,
                 }}
               />
             ))}

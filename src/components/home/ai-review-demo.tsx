@@ -23,12 +23,12 @@ export function AiReviewDemo() {
             <Link href="/try-on">
               <Button>Apply Suggestion</Button>
             </Link>
-            <Link href="/studio">
+            <Link href="/products">
               <Button variant="outline">Try Another Look</Button>
             </Link>
           </div>
           <p className="mt-4 text-xs text-[var(--muted)]">
-            Opens live Try-On / Studio tools — suggestions become real edits there.
+            Opens live Try-On and product tools — suggestions become real edits there.
           </p>
         </div>
       </div>

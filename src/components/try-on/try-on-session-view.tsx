@@ -170,14 +170,11 @@ export function TryOnSessionView({
         <div className="rounded-2xl border border-[var(--accent)]/30 bg-[var(--accent)]/5 p-6">
           <p className="font-medium text-[var(--accent)]">Look finalized</p>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Continue in Studio to fine-tune placement, then add to cart.
+            Continue to the product page to add this look to cart.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Link href={`/studio?product=${meta.productSlug}${meta.designId ? `&design=${meta.designId}` : ""}`}>
-              <Button>Open in Studio</Button>
-            </Link>
-            <Link href={`/products/${meta.productSlug}`}>
-              <Button variant="outline">View product</Button>
+            <Link href={`/products/${meta.productSlug}${meta.designId ? `?design=${meta.designId}` : ""}`}>
+              <Button>View product</Button>
             </Link>
           </div>
         </div>

@@ -69,19 +69,13 @@ export default async function DesignsPage({ searchParams }: Props) {
               Design Library
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-[var(--muted)] sm:text-lg">
-              Browse curated prints, access the marketplace, or upload your own artwork to apply to
-              any product.
+              Browse curated prints or upload your own artwork to apply to any product.
             </p>
           </div>
 
           <div className="flex flex-wrap gap-3 max-sm:sticky max-sm:bottom-4 max-sm:z-30 max-sm:rounded-2xl max-sm:border max-sm:border-[var(--ink)]/8 max-sm:bg-[var(--paper)]/95 max-sm:p-3 max-sm:shadow-lg max-sm:backdrop-blur-md lg:justify-end">
             <Link href="/designs/upload" className="max-sm:flex-1">
               <Button className="w-full sm:w-auto">Upload Design</Button>
-            </Link>
-            <Link href="/marketplace" className="max-sm:flex-1">
-              <Button variant="outline" className="w-full sm:w-auto">
-                Marketplace
-              </Button>
             </Link>
             <Link href="/account/designs" className="max-sm:w-full">
               <Button variant="outline" className="w-full sm:w-auto">

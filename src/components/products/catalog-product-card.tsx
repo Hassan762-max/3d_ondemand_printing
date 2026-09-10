@@ -14,7 +14,6 @@ export type CatalogProductCardData = {
   imageUrl: string;
   colors: { name: string; hex: string }[];
   href: string;
-  studioHref: string;
 };
 
 export function CatalogProductCard({ product }: { product: CatalogProductCardData }) {
@@ -32,16 +31,10 @@ export function CatalogProductCard({ product }: { product: CatalogProductCardDat
         <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-t from-[var(--ink)]/60 via-[var(--ink)]/10 to-transparent opacity-0 transition duration-500 group-hover:opacity-100 md:block" />
         <div className="absolute inset-x-0 bottom-0 z-10 hidden flex-col gap-2 p-4 opacity-0 transition duration-500 group-hover:opacity-100 md:flex">
           <Link
-            href={product.studioHref}
+            href={product.href}
             className="pointer-events-auto inline-flex h-11 items-center justify-center rounded-md bg-[var(--paper)] px-4 text-sm font-medium text-[var(--ink)] transition hover:bg-white"
           >
             Start Designing
-          </Link>
-          <Link
-            href={product.href}
-            className="pointer-events-auto text-center text-sm text-white/90 underline decoration-white/40 underline-offset-4 hover:decoration-white"
-          >
-            View Details
           </Link>
         </div>
       </div>
@@ -75,16 +68,10 @@ export function CatalogProductCard({ product }: { product: CatalogProductCardDat
 
         <div className="mt-3 flex flex-wrap gap-3 md:hidden">
           <Link
-            href={product.studioHref}
+            href={product.href}
             className="inline-flex h-11 min-w-[9.5rem] flex-1 items-center justify-center rounded-md bg-[var(--ink)] px-4 text-sm font-medium text-[var(--paper)]"
           >
             Start Designing
-          </Link>
-          <Link
-            href={product.href}
-            className="inline-flex h-11 items-center justify-center px-2 text-sm text-[var(--muted)] underline underline-offset-4"
-          >
-            View Details
           </Link>
         </div>
       </div>

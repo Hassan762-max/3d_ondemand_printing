@@ -53,8 +53,8 @@ export function EnhancePanel({
         </ul>
       ) : null}
       {state.designId ? (
-        <Link href={`/studio?design=${state.designId}`} className="text-sm underline">
-          Open enhanced design in Studio
+        <Link href={`/products?design=${state.designId}`} className="text-sm underline">
+          Apply enhanced design to a product
         </Link>
       ) : null}
     </form>

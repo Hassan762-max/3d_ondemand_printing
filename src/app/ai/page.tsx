@@ -51,11 +51,11 @@ export default async function AiPage() {
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[var(--muted)]">
             Enhance prints, diagnose readiness, generate new artwork, and get style or design
-            guidance — before you customize in 3D.
+            guidance — before you apply it to a product.
           </p>
         </div>
-        <Link href="/studio">
-          <Button variant="outline">Open 3D Studio</Button>
+        <Link href="/products">
+          <Button variant="outline">Browse products</Button>
         </Link>
       </div>
 

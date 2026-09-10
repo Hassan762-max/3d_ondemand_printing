@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { Suspense, useActionState } from "react";
+import { useSearchParams } from "next/navigation";
 import { registerUser, type AuthActionState } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
@@ -9,19 +10,20 @@ import { brand } from "@/lib/brand";
 
 const initial: AuthActionState = { ok: false };
 
-export default function SignUpPage() {
+function SignUpForm() {
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "";
   const [state, action, pending] = useActionState(registerUser, initial);
+  const signInHref = callbackUrl
+    ? `/auth/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`
+    : "/auth/sign-in";
 
   return (
-    <div className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 py-16">
-      <h1 className="font-[family-name:var(--font-display)] text-3xl tracking-tight">
-        Create your {brand.name}
-      </h1>
-      <p className="mt-2 text-sm text-[var(--muted)]">
-        Start designing custom clothing with AI and 3D tools.
-      </p>
-
+    <>
       <form action={action} className="mt-8 space-y-4">
+        {callbackUrl ? (
+          <input type="hidden" name="callbackUrl" value={callbackUrl} />
+        ) : null}
         <div>
           <Label htmlFor="name">Full name</Label>
           <Input id="name" name="name" required autoComplete="name" />
@@ -32,7 +34,12 @@ export default function SignUpPage() {
         </div>
         <div>
           <Label htmlFor="city">City (Pakistan)</Label>
-          <Input id="city" name="city" placeholder="Lahore, Karachi, …" autoComplete="address-level2" />
+          <Input
+            id="city"
+            name="city"
+            placeholder="Lahore, Karachi, …"
+            autoComplete="address-level2"
+          />
         </div>
         <div>
           <Label htmlFor="password">Password</Label>
@@ -55,10 +62,27 @@ export default function SignUpPage() {
 
       <p className="mt-6 text-sm text-[var(--muted)]">
         Already have an account?{" "}
-        <Link href="/auth/sign-in" className="text-[var(--ink)] underline">
+        <Link href={signInHref} className="text-[var(--ink)] underline">
           Sign in
         </Link>
       </p>
+    </>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <div className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 py-16">
+      <h1 className="font-[family-name:var(--font-display)] text-3xl tracking-tight">
+        Create your {brand.name}
+      </h1>
+      <p className="mt-2 text-sm text-[var(--muted)]">
+        Start designing custom clothing with AI and 3D tools.
+      </p>
+
+      <Suspense fallback={<p className="mt-8 text-sm text-[var(--muted)]">Loading…</p>}>
+        <SignUpForm />
+      </Suspense>
     </div>
   );
 }

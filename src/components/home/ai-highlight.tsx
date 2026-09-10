@@ -50,7 +50,7 @@ export function AiHighlight() {
             <Bubble role="you">Enhance this logo for an oversized black tee.</Bubble>
             <Bubble role="ai">
               Sharpen edges for DTG, boost contrast, and keep a 0.5&quot; safe margin
-              from seams. Ready for Studio placement.
+              from seams. Ready for product print.
             </Bubble>
             <Bubble role="ai">
               Suggested next: open Design Doctor, then try-on for fit feedback.

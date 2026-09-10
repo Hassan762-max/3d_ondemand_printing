@@ -51,13 +51,17 @@ export function AddToCartForm({
           const result = await addToCart(fd);
           if (!result.ok) {
             if (result.message?.toLowerCase().includes("sign in")) {
-              router.push("/auth/sign-in?callbackUrl=/products");
+              const next = `${window.location.pathname}${window.location.search}`;
+              router.push(
+                `/auth/sign-in?callbackUrl=${encodeURIComponent(next || "/cart")}`,
+              );
               return;
             }
             setMessage(result.message ?? "Could not add to cart.");
             return;
           }
           setMessage(result.message ?? "Added.");
+          router.push("/cart");
           router.refresh();
         });
       }}

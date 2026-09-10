@@ -1,8 +1,6 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AddToCartForm } from "@/components/products/add-to-cart-form";
 import { WishlistButton } from "@/components/products/wishlist-button";
-import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";
 import {
   catalogCategoryTag,
@@ -149,11 +147,6 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
 
         <div className="mt-6 flex flex-wrap gap-3">
           <WishlistButton productId={product.id} initiallySaved={wishlisted} />
-          <Link href={`/studio?product=${product.slug}`}>
-            <Button size="lg" variant="outline">
-              Start Designing
-            </Button>
-          </Link>
         </div>
 
         {productReviews.length > 0 ? (

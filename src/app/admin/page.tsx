@@ -7,14 +7,16 @@ import {
   ToggleProductButton,
   ToggleUserActiveButton,
 } from "@/components/admin/admin-actions";
+import { PortalSection } from "@/components/portal/portal-section";
+import { PortalStat } from "@/components/portal/portal-stat";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";
+import { getAiProvider } from "@/lib/ai";
 import { prisma } from "@/lib/db";
-import { hasAnyPermission, hasPermission } from "@/lib/rbac";
+import { hasPermission } from "@/lib/rbac";
+import { getPaymentProvider } from "@/lib/orders/payment";
 import { statusLabel } from "@/lib/orders/tracking";
 import { formatPkr } from "@/lib/utils";
-import { getPaymentProvider } from "@/lib/orders/payment";
-import { getAiProvider } from "@/lib/ai";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin" };
@@ -24,30 +26,10 @@ export default async function AdminPage() {
   if (!session?.user) redirect("/auth/sign-in?callbackUrl=/admin");
 
   const role = session.user.role;
-  const allowed =
+  const canManageUsers =
+    hasPermission(role, "user:manage") ||
     role === "ADMIN" ||
-    role === "SUPER_ADMIN" ||
-    hasAnyPermission(role, [
-      "catalog:write",
-      "finance:manage",
-      "audit:read",
-      "user:manage",
-    ]);
-
-  if (!allowed) {
-    return (
-      <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
-        <h1 className="font-[family-name:var(--font-display)] text-4xl tracking-tight">
-          Admin
-        </h1>
-        <p className="mt-4 text-sm text-[var(--muted)]">
-          This account does not have admin access.
-        </p>
-      </div>
-    );
-  }
-
-  const canManageUsers = hasPermission(role, "user:manage") || role === "ADMIN" || role === "SUPER_ADMIN";
+    role === "SUPER_ADMIN";
 
   const [
     productCount,
@@ -108,7 +90,13 @@ export default async function AdminPage() {
       ? prisma.user.findMany({
           orderBy: { createdAt: "desc" },
           take: 40,
-          select: { id: true, email: true, name: true, role: true, active: true },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            role: true,
+            active: true,
+          },
         })
       : Promise.resolve([]),
     prisma.paymentLedger.findMany({
@@ -123,54 +111,82 @@ export default async function AdminPage() {
   const ai = getAiProvider();
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-      <p className="text-xs uppercase tracking-[0.16em] text-[var(--accent)]">
-        Production · Admin
-      </p>
-      <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl tracking-tight">
-        Platform control
-      </h1>
-      <p className="mt-2 text-sm text-[var(--muted)]">
-        Signed in as {role.replaceAll("_", " ")} · payments via {payment.name} · AI via{" "}
-        {ai.name}
-      </p>
+    <div className="space-y-10">
+      <header>
+        <p className="text-xs uppercase tracking-[0.16em] text-[var(--accent)]">
+          Platform control
+        </p>
+        <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl tracking-tight sm:text-4xl">
+          Admin command center
+        </h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">
+          Signed in as {role.replaceAll("_", " ")}
+        </p>
+      </header>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
-        <Stat label="Products" value={`${activeProducts}/${productCount}`} />
-        <Stat label="Orders" value={String(orderCount)} />
-        <Stat label="Users" value={String(userCount)} />
-        <Stat label="Open returns" value={String(openReturns)} />
-        <Stat label="Pending refunds" value={String(pendingRefunds)} />
-        <Stat label="To settle" value={String(settleable.length)} />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+        <PortalStat
+          label="Products"
+          value={`${activeProducts}/${productCount}`}
+          hint="Active / total"
+        />
+        <PortalStat label="Orders" value={String(orderCount)} />
+        <PortalStat label="Users" value={String(userCount)} />
+        <PortalStat label="Open returns" value={String(openReturns)} />
+        <PortalStat label="Pending refunds" value={String(pendingRefunds)} />
+        <PortalStat label="To settle" value={String(settleable.length)} />
       </div>
 
-      <div className="mt-6 flex flex-wrap gap-3">
-        <Link href="/ops">
-          <Button variant="outline">Ops desk</Button>
-        </Link>
-        <Link href="/marketplace">
-          <Button variant="outline">Marketplace</Button>
-        </Link>
-        <Link href="/api/health">
-          <Button variant="ghost">Health JSON</Button>
-        </Link>
-      </div>
+      <PortalSection
+        id="health"
+        title="Provider health"
+        description="Live integrations used by checkout and AI tools."
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] px-4 py-3">
+            <p className="text-[10px] uppercase tracking-[0.14em] text-[var(--muted)]">
+              Payments
+            </p>
+            <p className="mt-1 font-medium">{payment.name}</p>
+          </div>
+          <div className="rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] px-4 py-3">
+            <p className="text-[10px] uppercase tracking-[0.14em] text-[var(--muted)]">
+              AI provider
+            </p>
+            <p className="mt-1 font-medium">{ai.name}</p>
+          </div>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <Link href="/ops">
+            <Button>Open Ops desk</Button>
+          </Link>
+          <Link href="/api/health">
+            <Button variant="outline">Health JSON</Button>
+          </Link>
+        </div>
+      </PortalSection>
 
-      <section className="mt-12">
-        <h2 className="text-lg font-medium tracking-tight">Catalog</h2>
-        <ul className="mt-4 divide-y divide-[var(--ink)]/8 rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)]">
+      <PortalSection
+        id="catalog"
+        title="Catalog"
+        description="Toggle blanks available on the storefront."
+      >
+        <ul className="divide-y divide-[var(--ink)]/8 overflow-hidden rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)]">
           {products.map((p) => (
             <li
               key={p.id}
               className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm"
             >
               <div>
-                <Link href={`/products/${p.slug}`} className="font-medium underline">
+                <Link
+                  href={`/products/${p.slug}`}
+                  className="font-medium underline"
+                >
                   {p.name}
                 </Link>
                 <p className="text-xs text-[var(--muted)]">
-                  {p.category.replaceAll("_", " ")} · {p._count.variants} variants ·{" "}
-                  {formatPkr(p.basePrice)}
+                  {p.category.replaceAll("_", " ")} · {p._count.variants}{" "}
+                  variants · {formatPkr(p.basePrice)}
                   {p.active ? "" : " · inactive"}
                 </p>
               </div>
@@ -178,97 +194,126 @@ export default async function AdminPage() {
             </li>
           ))}
         </ul>
-      </section>
+      </PortalSection>
 
-      <section className="mt-12">
-        <h2 className="text-lg font-medium tracking-tight">Pending COD collection</h2>
-        {pendingCod.length === 0 ? (
-          <p className="mt-3 text-sm text-[var(--muted)]">
-            No delivered orders with pending COD.
-          </p>
-        ) : (
-          <ul className="mt-4 space-y-3">
-            {pendingCod.map((order) => (
-              <li
-                key={order.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] px-4 py-3 text-sm"
-              >
-                <div>
-                  <Link href={`/orders/${order.id}`} className="font-medium underline">
-                    {order.orderNumber}
-                  </Link>
-                  <p className="text-xs text-[var(--muted)]">
-                    {formatPkr(
-                      order.payments.reduce((s, p) => s + p.amount, 0),
-                    )}{" "}
-                    pending · {statusLabel(order.status)}
-                  </p>
-                </div>
-                <CollectCodButton orderId={order.id} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <PortalSection
+        id="finance"
+        title="Finance"
+        description="COD collection and vendor settlements."
+      >
+        <div className="space-y-8">
+          <div>
+            <h3 className="text-sm font-medium tracking-tight">
+              Pending COD collection
+            </h3>
+            {pendingCod.length === 0 ? (
+              <p className="mt-3 text-sm text-[var(--muted)]">
+                No delivered orders with pending COD.
+              </p>
+            ) : (
+              <ul className="mt-3 space-y-3">
+                {pendingCod.map((order) => (
+                  <li
+                    key={order.id}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] px-4 py-3 text-sm"
+                  >
+                    <div>
+                      <Link
+                        href={`/orders/${order.id}`}
+                        className="font-medium underline"
+                      >
+                        {order.orderNumber}
+                      </Link>
+                      <p className="text-xs text-[var(--muted)]">
+                        {formatPkr(
+                          order.payments.reduce((s, p) => s + p.amount, 0),
+                        )}{" "}
+                        pending · {statusLabel(order.status)}
+                      </p>
+                    </div>
+                    <CollectCodButton orderId={order.id} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
 
-      <section className="mt-12">
-        <h2 className="text-lg font-medium tracking-tight">Vendor settlements</h2>
-        {settleable.length === 0 ? (
-          <p className="mt-3 text-sm text-[var(--muted)]">
-            No delivered orders awaiting settlement.
-          </p>
-        ) : (
-          <ul className="mt-4 space-y-3">
-            {settleable.map((order) => (
-              <li
-                key={order.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] px-4 py-3 text-sm"
-              >
-                <div>
-                  <Link href={`/orders/${order.id}`} className="font-medium underline">
-                    {order.orderNumber}
-                  </Link>
-                  <p className="text-xs text-[var(--muted)]">
-                    {order.vendor?.businessName} · {formatPkr(order.vendorCost)} ·{" "}
-                    {statusLabel(order.status)}
-                  </p>
-                </div>
-                <SettleOrderButton orderId={order.id} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+          <div>
+            <h3 className="text-sm font-medium tracking-tight">
+              Vendor settlements
+            </h3>
+            {settleable.length === 0 ? (
+              <p className="mt-3 text-sm text-[var(--muted)]">
+                No delivered orders awaiting settlement.
+              </p>
+            ) : (
+              <ul className="mt-3 space-y-3">
+                {settleable.map((order) => (
+                  <li
+                    key={order.id}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] px-4 py-3 text-sm"
+                  >
+                    <div>
+                      <Link
+                        href={`/orders/${order.id}`}
+                        className="font-medium underline"
+                      >
+                        {order.orderNumber}
+                      </Link>
+                      <p className="text-xs text-[var(--muted)]">
+                        {order.vendor?.businessName} ·{" "}
+                        {formatPkr(order.vendorCost)} ·{" "}
+                        {statusLabel(order.status)}
+                      </p>
+                    </div>
+                    <SettleOrderButton orderId={order.id} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
 
-      {settledHistory.length > 0 ? (
-        <section className="mt-12">
-          <h2 className="text-lg font-medium tracking-tight">Settlement history</h2>
-          <ul className="mt-4 divide-y divide-[var(--ink)]/8 rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)]">
-            {settledHistory.map((entry) => (
-              <li
-                key={entry.id}
-                className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm"
-              >
-                <div>
-                  <Link href={`/orders/${entry.orderId}`} className="font-medium underline">
-                    {entry.order.orderNumber}
-                  </Link>
-                  <p className="text-xs text-[var(--muted)]">
-                    {entry.order.vendor?.businessName ?? "Vendor"} ·{" "}
-                    {entry.createdAt.toLocaleString("en-PK")}
-                  </p>
-                </div>
-                <span className="font-medium">{formatPkr(entry.amount)}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+          {settledHistory.length > 0 ? (
+            <div>
+              <h3 className="text-sm font-medium tracking-tight">
+                Settlement history
+              </h3>
+              <ul className="mt-3 divide-y divide-[var(--ink)]/8 overflow-hidden rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)]">
+                {settledHistory.map((entry) => (
+                  <li
+                    key={entry.id}
+                    className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm"
+                  >
+                    <div>
+                      <Link
+                        href={`/orders/${entry.orderId}`}
+                        className="font-medium underline"
+                      >
+                        {entry.order.orderNumber}
+                      </Link>
+                      <p className="text-xs text-[var(--muted)]">
+                        {entry.order.vendor?.businessName ?? "Vendor"} ·{" "}
+                        {entry.createdAt.toLocaleString("en-PK")}
+                      </p>
+                    </div>
+                    <span className="font-medium">
+                      {formatPkr(entry.amount)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+      </PortalSection>
 
       {canManageUsers && users.length > 0 ? (
-        <section className="mt-12">
-          <h2 className="text-lg font-medium tracking-tight">User management</h2>
-          <div className="mt-4 overflow-x-auto rounded-xl border border-[var(--ink)]/10">
+        <PortalSection
+          id="users"
+          title="User management"
+          description="Roles and account status."
+        >
+          <div className="overflow-x-auto rounded-xl border border-[var(--ink)]/10">
             <table className="min-w-full text-left text-sm">
               <thead className="bg-[var(--mist)] text-xs uppercase tracking-[0.12em] text-[var(--muted)]">
                 <tr>
@@ -296,39 +341,32 @@ export default async function AdminPage() {
                       )}
                     </td>
                     <td className="px-3 py-2">
-                      <ToggleUserActiveButton userId={u.id} active={u.active} />
+                      <ToggleUserActiveButton
+                        userId={u.id}
+                        active={u.active}
+                      />
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        </section>
+        </PortalSection>
       ) : null}
 
-      <section className="mt-12">
-        <h2 className="text-lg font-medium tracking-tight">Recent audit</h2>
-        <ul className="mt-4 divide-y divide-[var(--ink)]/8 rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] text-sm">
+      <PortalSection title="Recent audit" description="Latest platform events.">
+        <ul className="divide-y divide-[var(--ink)]/8 overflow-hidden rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] text-sm">
           {audits.map((a) => (
             <li key={a.id} className="px-4 py-3">
               <p className="font-medium">{a.action}</p>
               <p className="text-xs text-[var(--muted)]">
-                {a.user?.email ?? "system"} · {a.entity ?? "—"} {a.entityId ?? ""} ·{" "}
-                {a.createdAt.toLocaleString("en-PK")}
+                {a.user?.email ?? "system"} · {a.entity ?? "—"} {a.entityId ?? ""}{" "}
+                · {a.createdAt.toLocaleString("en-PK")}
               </p>
             </li>
           ))}
         </ul>
-      </section>
-    </div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-4">
-      <p className="text-xs uppercase tracking-[0.12em] text-[var(--muted)]">{label}</p>
-      <p className="mt-2 text-xl font-medium">{value}</p>
+      </PortalSection>
     </div>
   );
 }

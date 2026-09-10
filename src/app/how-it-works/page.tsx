@@ -19,12 +19,6 @@ const steps = [
     cta: "See products",
   },
   {
-    title: "Customize in 3D",
-    body: "Move, resize, rotate, and recolor on a full-orbit preview. Front and back placements stay in sync with what vendors print.",
-    href: "/studio",
-    cta: "Open studio",
-  },
-  {
     title: "Try it on",
     body: "Upload a photo for virtual try-on. Get fit and placement hints, then iterate before you commit.",
     href: "/try-on",
@@ -86,8 +80,8 @@ export default function HowItWorksPage() {
         </ol>
 
         <div className="mt-6 flex flex-wrap gap-3 border-t border-[var(--ink)]/10 pt-10">
-          <Link href="/studio">
-            <Button>Open 3D Studio</Button>
+          <Link href="/designs">
+            <Button>Browse designs</Button>
           </Link>
           <Link href="/auth/sign-up">
             <Button variant="outline">Start creating</Button>
