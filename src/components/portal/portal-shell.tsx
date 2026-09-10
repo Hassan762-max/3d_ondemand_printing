@@ -92,9 +92,12 @@ export function PortalShell({
           >
             {meta.eyebrow}
           </p>
-          <p className="mt-2 font-[family-name:var(--font-display)] text-xl tracking-tight">
+          <Link
+            href={variant === "customer" ? "/customer" : variant === "vendor" ? "/vendor" : "/admin"}
+            className="mt-2 font-[family-name:var(--font-display)] text-xl tracking-tight hover:opacity-80"
+          >
             {meta.title}
-          </p>
+          </Link>
           {badge ? (
             <p
               className={`mt-2 text-xs ${
@@ -144,9 +147,18 @@ export function PortalShell({
               <p className="text-[10px] uppercase tracking-[0.16em] text-[var(--accent)]">
                 {meta.eyebrow}
               </p>
-              <p className="font-[family-name:var(--font-display)] text-xl tracking-tight">
+              <Link
+                href={
+                  variant === "customer"
+                    ? "/customer"
+                    : variant === "vendor"
+                      ? "/vendor"
+                      : "/admin"
+                }
+                className="font-[family-name:var(--font-display)] text-xl tracking-tight hover:opacity-80"
+              >
                 {meta.title}
-              </p>
+              </Link>
             </div>
             <Button
               type="button"

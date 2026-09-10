@@ -35,6 +35,7 @@ export async function SiteHeader() {
   const isOps = role ? opsRoles.has(role) : false;
   const isAdmin = role === "ADMIN" || role === "SUPER_ADMIN";
   const portalHref = role ? portalHomeForRole(role) : "/customer";
+  const brandHref = session?.user ? portalHref : "/";
 
   const isCustomerLike =
     role === "CUSTOMER" || role === "DESIGNER" || !role;
@@ -53,7 +54,7 @@ export async function SiteHeader() {
       <div className="relative mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-8">
           <Link
-            href="/"
+            href={brandHref}
             className="font-[family-name:var(--font-display)] text-xl tracking-tight text-[var(--ink)]"
           >
             {brand.name}
