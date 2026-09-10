@@ -28,8 +28,11 @@ export function portalHomeForRole(role: Role): string {
 
 export const CUSTOMER_NAV: PortalNavItem[] = [
   { href: "/customer", label: "Dashboard", match: "exact" },
+  { href: "/products", label: "Products", match: "prefix" },
+  { href: "/designs", label: "Designs", match: "prefix" },
+  { href: "/try-on", label: "Try-On", match: "prefix" },
   { href: "/orders", label: "Orders", match: "prefix" },
-  { href: "/account/designs", label: "Designs", match: "prefix" },
+  { href: "/account/designs", label: "Saved designs", match: "prefix" },
   { href: "/account/wishlist", label: "Wishlist", match: "exact" },
   { href: "/account/profile", label: "Profile", match: "exact" },
   { href: "/account/notifications", label: "Notifications", match: "exact" },

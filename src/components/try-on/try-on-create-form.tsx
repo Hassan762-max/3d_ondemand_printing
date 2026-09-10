@@ -48,7 +48,7 @@ export function TryOnCreateForm({
   }, [state, router]);
 
   return (
-    <form action={action} className="space-y-5" encType="multipart/form-data">
+    <form action={action} className="space-y-5">
       <div>
         <Label htmlFor="photo">Your photo</Label>
         <input

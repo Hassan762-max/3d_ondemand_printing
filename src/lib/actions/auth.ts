@@ -3,7 +3,7 @@
 import bcrypt from "bcryptjs";
 import { AuthError } from "next-auth";
 import { z } from "zod";
-import { signIn } from "@/lib/auth";
+import { signIn, signOut } from "@/lib/auth";
 import { portalHomeForRole } from "@/components/portal/portal-nav";
 import { prisma } from "@/lib/db";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -125,3 +125,8 @@ export async function loginUser(
 
   return { ok: true };
 }
+
+export async function signOutUser() {
+  await signOut({ redirectTo: "/" });
+}
+
