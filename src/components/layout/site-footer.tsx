@@ -3,8 +3,8 @@ import { brand } from "@/lib/brand";
 import { formatPkr } from "@/lib/utils";
 
 const create = [
-  { href: "/ai", label: "AI Studio" },
   { href: "/designs", label: "Design Library" },
+  { href: "/designs/upload", label: "Upload design" },
   { href: "/try-on", label: "Try-On" },
 ];
 

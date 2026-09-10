@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
-import { PortalShell } from "@/components/portal/portal-shell";
-import { CUSTOMER_NAV } from "@/components/portal/portal-nav";
+import { CustomerPortalFrame } from "@/components/portal/customer-portal-frame";
 import { auth } from "@/lib/auth";
 
 export default async function CustomerLayout({
@@ -12,14 +11,6 @@ export default async function CustomerLayout({
   if (!session?.user) redirect("/auth/sign-in?callbackUrl=/customer");
 
   return (
-    <PortalShell
-      variant="customer"
-      nav={CUSTOMER_NAV}
-      userName={session.user.name}
-      userEmail={session.user.email}
-      badge="Your orders, designs, and preferences"
-    >
-      {children}
-    </PortalShell>
+    <CustomerPortalFrame callbackUrl="/customer">{children}</CustomerPortalFrame>
   );
 }

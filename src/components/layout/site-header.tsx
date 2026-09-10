@@ -9,7 +9,6 @@ import { portalHomeForRole } from "@/components/portal/portal-nav";
 const links = [
   { href: "/products", label: "Products" },
   { href: "/designs", label: "Designs" },
-  { href: "/ai", label: "AI Studio" },
   { href: "/try-on", label: "Try-On" },
 ];
 

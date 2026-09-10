@@ -15,6 +15,12 @@ export default async function AiPage() {
     redirect("/auth/sign-in?callbackUrl=/ai");
   }
 
+  // Customers use Designs / Upload instead — keep AI Studio off the customer path.
+  const role = session.user.role;
+  if (role === "CUSTOMER" || role === "DESIGNER") {
+    redirect("/designs");
+  }
+
   const designs = await prisma.design.findMany({
     where: {
       OR: [{ isLibrary: true }, { ownerId: session.user.id }],

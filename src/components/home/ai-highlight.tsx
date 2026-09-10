@@ -18,7 +18,7 @@ export function AiHighlight() {
       <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:gap-14">
         <div>
           <p className="text-xs uppercase tracking-[0.16em] text-[var(--accent-bright)]">
-            AI Studio
+            Design help
           </p>
           <h2 className="mt-3 font-[family-name:var(--font-display)] text-3xl tracking-tight sm:text-4xl">
             Your AI design consultant.
@@ -35,9 +35,9 @@ export function AiHighlight() {
               </li>
             ))}
           </ul>
-          <Link href="/ai" className="mt-8 inline-block">
+          <Link href="/designs" className="mt-8 inline-block">
             <Button variant="secondary" size="lg">
-              Try AI Studio
+              Browse designs
             </Button>
           </Link>
         </div>
@@ -57,7 +57,7 @@ export function AiHighlight() {
             </Bubble>
           </div>
           <p className="mt-4 text-[11px] text-white/40">
-            Live tools run in AI Studio — this panel is a product preview.
+            Apply a design to a product, then use Try-On for fit feedback.
           </p>
         </div>
       </div>

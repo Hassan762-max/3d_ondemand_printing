@@ -18,10 +18,10 @@ const paths = [
   },
   {
     n: "03",
-    title: "Create with AI",
-    body: "Describe your idea and generate a design.",
-    href: "/ai",
-    cta: "Open AI Studio",
+    title: "Try it on",
+    body: "Preview your look with virtual try-on before you order.",
+    href: "/try-on",
+    cta: "Open Try-On",
   },
 ];
 

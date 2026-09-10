@@ -8,7 +8,7 @@ export const metadata = { title: "How it works" };
 const steps = [
   {
     title: "Find or create a design",
-    body: `Browse the ${brand.name} library by category, upload artwork, or generate in AI Studio. Enhance and check print readiness before you place it.`,
+    body: `Browse the ${brand.name} library by category or upload your own artwork before you place it on a garment.`,
     href: "/designs",
     cta: "Browse designs",
   },

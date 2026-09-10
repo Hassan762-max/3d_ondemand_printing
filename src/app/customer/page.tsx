@@ -94,9 +94,6 @@ export default async function CustomerDashboardPage() {
           <Link href="/try-on">
             <Button variant="outline">Try-On</Button>
           </Link>
-          <Link href="/ai">
-            <Button variant="outline">AI Studio</Button>
-          </Link>
         </div>
       </PortalSection>
 

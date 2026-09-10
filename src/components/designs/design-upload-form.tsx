@@ -20,7 +20,7 @@ export function DesignUploadForm() {
   }, [state, router]);
 
   return (
-    <form action={action} className="space-y-5" encType="multipart/form-data">
+    <form action={action} className="space-y-5">
       <div>
         <Label htmlFor="title">Design title</Label>
         <Input id="title" name="title" required minLength={2} maxLength={80} placeholder="My monogram" />
