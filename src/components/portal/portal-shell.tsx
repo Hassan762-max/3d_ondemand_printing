@@ -80,10 +80,10 @@ export function PortalShell({
 
   return (
     <div className={`-mt-0 ${meta.variantClass}`}>
-      <div className="mx-auto flex max-w-7xl gap-0 lg:gap-8 lg:px-6 lg:py-8">
-        {/* Desktop sidebar */}
+      <div className="mx-auto flex max-w-7xl items-start gap-0 lg:gap-8 lg:px-6 lg:py-8">
+        {/* Desktop sidebar — sticky so it stays filled while the page scrolls */}
         <aside
-          className={`hidden w-64 shrink-0 flex-col rounded-2xl p-5 lg:flex ${sidebarTone}`}
+          className={`sticky top-20 hidden max-h-[calc(100vh-6rem)] w-64 shrink-0 flex-col overflow-y-auto rounded-2xl p-5 lg:flex ${sidebarTone}`}
         >
           <p
             className={`text-[10px] uppercase tracking-[0.16em] ${
@@ -93,7 +93,13 @@ export function PortalShell({
             {meta.eyebrow}
           </p>
           <Link
-            href={variant === "customer" ? "/customer" : variant === "vendor" ? "/vendor" : "/admin"}
+            href={
+              variant === "customer"
+                ? "/customer"
+                : variant === "vendor"
+                  ? "/vendor"
+                  : "/admin"
+            }
             className="mt-2 font-[family-name:var(--font-display)] text-xl tracking-tight hover:opacity-80"
           >
             {meta.title}
@@ -107,7 +113,7 @@ export function PortalShell({
               {badge}
             </p>
           ) : null}
-          <div className="mt-8 flex-1">
+          <div className="mt-8">
             <NavLinks />
           </div>
           <div
@@ -174,6 +180,11 @@ export function PortalShell({
           {open ? (
             <div className="mb-6 rounded-2xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-4 lg:hidden">
               <NavLinks onNavigate={() => setOpen(false)} />
+              <form action={signOutUser} className="mt-4 border-t border-[var(--ink)]/10 pt-4">
+                <Button type="submit" size="sm" variant="outline" className="w-full">
+                  Sign out
+                </Button>
+              </form>
             </div>
           ) : null}
 
