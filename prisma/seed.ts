@@ -3,6 +3,15 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
+/** Standard blank colors available on every product. */
+const STANDARD_COLORS: { name: string; hex: string }[] = [
+  { name: "Charcoal Grey", hex: "#525866" },
+  { name: "Heather Grey", hex: "#8B8E96" },
+  { name: "Navy Blue", hex: "#1B2A4A" },
+  { name: "Off-White", hex: "#F2EDE6" },
+  { name: "Olive Green", hex: "#3F4A3A" },
+];
+
 const products: {
   slug: string;
   name: string;
@@ -21,11 +30,7 @@ const products: {
     basePrice: 1899,
     imageUrl: "/products/tee.png",
     sizes: ["S", "M", "L", "XL", "XXL"],
-    colors: [
-      { name: "Ink", hex: "#12141A" },
-      { name: "Bone", hex: "#F2EDE6" },
-      { name: "Forest", hex: "#1F6B5A" },
-    ],
+    colors: STANDARD_COLORS,
   },
   {
     slug: "oversized-studio-tee",
@@ -35,11 +40,7 @@ const products: {
     basePrice: 2499,
     imageUrl: "/products/oversized.png",
     sizes: ["M", "L", "XL", "XXL"],
-    colors: [
-      { name: "Charcoal", hex: "#2A2D34" },
-      { name: "Sand", hex: "#D9D0C3" },
-      { name: "Ink", hex: "#12141A" },
-    ],
+    colors: STANDARD_COLORS,
   },
   {
     slug: "city-polo",
@@ -49,10 +50,7 @@ const products: {
     basePrice: 2799,
     imageUrl: "/products/polo.png",
     sizes: ["S", "M", "L", "XL"],
-    colors: [
-      { name: "Navy", hex: "#1B2A4A" },
-      { name: "White", hex: "#FAFAF8" },
-    ],
+    colors: STANDARD_COLORS,
   },
   {
     slug: "monsoon-hoodie",
@@ -62,10 +60,7 @@ const products: {
     basePrice: 4499,
     imageUrl: "/products/hoodie.png",
     sizes: ["M", "L", "XL", "XXL"],
-    colors: [
-      { name: "Black", hex: "#0E1116" },
-      { name: "Heather", hex: "#6B6E76" },
-    ],
+    colors: STANDARD_COLORS,
   },
   {
     slug: "crew-sweat",
@@ -75,10 +70,7 @@ const products: {
     basePrice: 3999,
     imageUrl: "/products/sweat.png",
     sizes: ["S", "M", "L", "XL"],
-    colors: [
-      { name: "Stone", hex: "#C9C2B8" },
-      { name: "Ink", hex: "#12141A" },
-    ],
+    colors: STANDARD_COLORS,
   },
   {
     slug: "weekend-cap",
@@ -88,10 +80,7 @@ const products: {
     basePrice: 1499,
     imageUrl: "/products/cap.png",
     sizes: ["OS"],
-    colors: [
-      { name: "Black", hex: "#0E1116" },
-      { name: "Khaki", hex: "#A8906C" },
-    ],
+    colors: STANDARD_COLORS,
   },
   {
     slug: "everyday-casual-shirt",
@@ -101,10 +90,7 @@ const products: {
     basePrice: 3299,
     imageUrl: "/products/shirt.png",
     sizes: ["S", "M", "L", "XL"],
-    colors: [
-      { name: "Sky", hex: "#C5D4E0" },
-      { name: "Ink", hex: "#12141A" },
-    ],
+    colors: STANDARD_COLORS,
   },
   {
     slug: "city-shell-jacket",
@@ -114,10 +100,7 @@ const products: {
     basePrice: 5499,
     imageUrl: "/products/jacket.png",
     sizes: ["M", "L", "XL", "XXL"],
-    colors: [
-      { name: "Olive", hex: "#3F4A3A" },
-      { name: "Black", hex: "#0E1116" },
-    ],
+    colors: STANDARD_COLORS,
   },
   {
     slug: "studio-joggers",
@@ -127,10 +110,7 @@ const products: {
     basePrice: 3599,
     imageUrl: "/products/joggers.png",
     sizes: ["S", "M", "L", "XL"],
-    colors: [
-      { name: "Charcoal", hex: "#2A2D34" },
-      { name: "Stone", hex: "#C9C2B8" },
-    ],
+    colors: STANDARD_COLORS,
   },
   {
     slug: "court-shorts",
@@ -140,10 +120,7 @@ const products: {
     basePrice: 2199,
     imageUrl: "/products/shorts.png",
     sizes: ["S", "M", "L", "XL"],
-    colors: [
-      { name: "Navy", hex: "#1B2A4A" },
-      { name: "Bone", hex: "#F2EDE6" },
-    ],
+    colors: STANDARD_COLORS,
   },
 ];
 
@@ -452,12 +429,20 @@ async function main() {
       },
     });
 
+    const keepSkus = new Set<string>();
     for (const size of p.sizes) {
       for (const color of p.colors) {
-        const sku = `${p.slug}-${size}-${color.name}`.toUpperCase().replaceAll(" ", "-");
+        const sku = `${p.slug}-${size}-${color.name}`
+          .toUpperCase()
+          .replaceAll(" ", "-");
+        keepSkus.add(sku);
         await prisma.productVariant.upsert({
           where: { sku },
-          update: {},
+          update: {
+            size,
+            color: color.name,
+            colorHex: color.hex,
+          },
           create: {
             productId: product.id,
             sku,
@@ -468,6 +453,12 @@ async function main() {
         });
       }
     }
+    await prisma.productVariant.deleteMany({
+      where: {
+        productId: product.id,
+        sku: { notIn: [...keepSkus] },
+      },
+    });
   }
 
   // Rename legacy library title if present

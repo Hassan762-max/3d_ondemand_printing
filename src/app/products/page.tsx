@@ -1,5 +1,6 @@
 import { brand } from "@/lib/brand";
 import {
+  catalogColorOption,
   catalogDisplayName,
   catalogFitForSlug,
   catalogImageUrl,
@@ -62,7 +63,10 @@ export default async function ProductsPage({ searchParams }: Props) {
 
   let products = productsRaw.map((p) => {
     const colorMap = new Map(
-      p.variants.map((v) => [v.color, { name: v.color, hex: v.colorHex }]),
+      p.variants.map((v) => {
+        const option = catalogColorOption(v.color, v.colorHex);
+        return [option.name, option];
+      }),
     );
     return {
       ...p,
@@ -97,7 +101,7 @@ export default async function ProductsPage({ searchParams }: Props) {
         className="pointer-events-none absolute inset-x-0 top-0 h-[28rem] bg-[radial-gradient(ellipse_at_20%_0%,rgba(26,107,92,0.1),transparent_55%),radial-gradient(ellipse_at_90%_10%,rgba(12,14,18,0.05),transparent_45%)]"
       />
 
-      <div className="relative mx-auto max-w-6xl px-4 pb-20 pt-14 sm:px-6 sm:pt-16">
+      <div className="portal-bleed relative mx-auto max-w-6xl px-4 pb-20 pt-14 sm:px-6 sm:pt-16">
         <header className="max-w-2xl pb-12 sm:pb-16">
           <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">
             {brand.name} · Print on demand

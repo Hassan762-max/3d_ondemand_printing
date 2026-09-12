@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { catalogColorAliases } from "@/lib/catalog/display";
 import { prisma } from "@/lib/db";
 import { getAuthorizedUser, requireUser } from "@/lib/session";
 
@@ -74,11 +75,12 @@ export async function addToCart(formData: FormData): Promise<CartResult> {
     return { ok: false, message: "Product not available." };
   }
 
+  const colorAliases = catalogColorAliases(parsed.data.color);
   const variant = product.variants.find(
     (v) =>
       v.active &&
       v.size === parsed.data.size &&
-      v.color === parsed.data.color,
+      colorAliases.includes(v.color),
   );
   if (!variant) {
     return { ok: false, message: "That size/color combination is unavailable." };

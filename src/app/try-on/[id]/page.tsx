@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { TryOnSessionView } from "@/components/try-on/try-on-session-view";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";
+import { catalogColorOption } from "@/lib/catalog/display";
 import { prisma } from "@/lib/db";
 import { parseTryOnMeta } from "@/lib/try-on/types";
 
@@ -39,10 +40,15 @@ export default async function TryOnSessionPage({ params }: Props) {
   const colors = product
     ? [
         ...new Map(
-          product.variants.map((v) => [v.color, { name: v.color, hex: v.colorHex }]),
+          product.variants.map((v) => {
+            const option = catalogColorOption(v.color, v.colorHex);
+            return [option.name, option];
+          }),
         ).values(),
       ]
-    : [{ name: meta.color, hex: meta.colorHex }];
+    : [
+        catalogColorOption(meta.color, meta.colorHex),
+      ];
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">

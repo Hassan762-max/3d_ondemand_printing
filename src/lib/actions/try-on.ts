@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 import { runTryOnReview, runVirtualTryOn } from "@/lib/ai/orchestrator";
+import { catalogColorAliases, catalogColorHex, catalogColorLabel } from "@/lib/catalog/display";
 import { prisma } from "@/lib/db";
 import { getAuthorizedUser } from "@/lib/session";
 import {
@@ -59,8 +60,9 @@ export async function createTryOnSession(
     return { ok: false, message: "Product not available." };
   }
 
+  const colorAliases = catalogColorAliases(color);
   const variant = product.variants.find(
-    (v) => v.active && v.size === size && v.color === color,
+    (v) => v.active && v.size === size && colorAliases.includes(v.color),
   );
   if (!variant) {
     return { ok: false, message: "That size/color combination is unavailable." };
@@ -105,8 +107,8 @@ export async function createTryOnSession(
     productName: product.name,
     productSlug: product.slug,
     size,
-    color,
-    colorHex: variant.colorHex,
+    color: catalogColorLabel(color),
+    colorHex: catalogColorHex(color, variant.colorHex),
     designId: designId ?? null,
     designTitle,
     garmentPreviewUrl: product.imageUrl ?? "/products/tee.svg",
@@ -185,8 +187,10 @@ export async function iterateTryOnSession(
 
   const nextSize = parsed.data.size ?? meta.size;
   const nextColor = parsed.data.color ?? meta.color;
+  const nextColorAliases = catalogColorAliases(nextColor);
   const variant = product.variants.find(
-    (v) => v.active && v.size === nextSize && v.color === nextColor,
+    (v) =>
+      v.active && v.size === nextSize && nextColorAliases.includes(v.color),
   );
   if (!variant) {
     return { ok: false, message: "That size/color combination is unavailable." };
@@ -224,8 +228,8 @@ export async function iterateTryOnSession(
   const nextMeta: TryOnMeta = {
     ...meta,
     size: nextSize,
-    color: nextColor,
-    colorHex: variant.colorHex,
+    color: catalogColorLabel(nextColor),
+    colorHex: catalogColorHex(nextColor, variant.colorHex),
     confidence: tryOn.confidence,
     latestReview: review,
     history: [...meta.history, historyItem].slice(-6),
