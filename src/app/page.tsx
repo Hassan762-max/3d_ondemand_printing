@@ -12,7 +12,7 @@ import { QuickCreate } from "@/components/home/quick-create";
 import { ReviewsDemo } from "@/components/home/reviews-demo";
 import { StudioHighlight } from "@/components/home/studio-highlight";
 import { auth } from "@/lib/auth";
-import { catalogProductWhere } from "@/lib/catalog/display";
+import { catalogColorOption, catalogProductWhere } from "@/lib/catalog/display";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -59,7 +59,10 @@ export default async function HomePage() {
 
   const products = productsRaw.map((p) => {
     const colorMap = new Map(
-      p.variants.map((v) => [v.color, { name: v.color, hex: v.colorHex }]),
+      p.variants.map((v) => {
+        const option = catalogColorOption(v.color, v.colorHex);
+        return [option.name, option];
+      }),
     );
     return {
       id: p.id,

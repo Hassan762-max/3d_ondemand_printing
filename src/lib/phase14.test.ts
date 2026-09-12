@@ -23,7 +23,7 @@ describe("print package", () => {
           id: "i1",
           title: "Tee",
           size: "M",
-          color: "Black",
+          color: "Charcoal Grey",
           quantity: 1,
           placementJson: '{"side":"front","x":0.5}',
           product: { name: "Essential Tee", category: "T_SHIRT" },

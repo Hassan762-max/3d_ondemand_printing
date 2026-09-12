@@ -1,6 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" fill="none">
-  <rect width="400" height="500" fill="#C9C2B8"/>
-  <path d="M130 130h140l30 70v230H100V200l30-70z" fill="#0E1116"/>
-  <path d="M175 130v95h50V130" fill="#1C212B"/>
-  <path d="M155 280h90" stroke="#1F6B5A" stroke-width="8" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 520" fill="none">
+  <rect width="400" height="520" fill="#FFFFFF"/>
+  <!-- Body -->
+  <path d="M118 148c18-42 52-62 82-62s64 20 82 62l28 58v214c0 16-10 28-28 28H118c-18 0-28-12-28-28V206l28-58z" fill="#8B8E96"/>
+  <!-- Hood opening -->
+  <path d="M168 118c12-22 28-32 32-32s20 10 32 32v58H168V118z" fill="#6F737C"/>
+  <!-- Pocket -->
+  <path d="M152 292h96c8 0 14 6 14 14v62c0 8-6 14-14 14h-96c-8 0-14-6-14-14v-62c0-8 6-14 14-14z" fill="#7A7E87"/>
+  <!-- Drawstrings -->
+  <path d="M186 176v88M214 176v88" stroke="#5E626A" stroke-width="3" stroke-linecap="round"/>
+  <!-- Cuffs / hem shading -->
+  <path d="M90 430h220" stroke="#6F737C" stroke-width="10" stroke-linecap="round" opacity="0.35"/>
+  <path d="M96 210c-10 18-14 38-14 58M304 210c10 18 14 38 14 58" stroke="#6F737C" stroke-width="8" stroke-linecap="round" opacity="0.25"/>
 </svg>

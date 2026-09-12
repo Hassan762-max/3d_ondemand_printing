@@ -1,6 +1,6 @@
 import { StudioShell } from "@/components/studio/studio-shell";
 import { auth } from "@/lib/auth";
-import { catalogProductWhere } from "@/lib/catalog/display";
+import { catalogColorOption, catalogProductWhere } from "@/lib/catalog/display";
 import { designsAvailableToUser } from "@/lib/designs/access";
 import { prisma } from "@/lib/db";
 
@@ -25,7 +25,10 @@ export default async function StudioPage({ searchParams }: Props) {
     const sizes = [...new Set(p.variants.map((v) => v.size))];
     const colors = [
       ...new Map(
-        p.variants.map((v) => [v.color, { name: v.color, hex: v.colorHex }]),
+        p.variants.map((v) => {
+          const option = catalogColorOption(v.color, v.colorHex);
+          return [option.name, option];
+        }),
       ).values(),
     ];
     return {
