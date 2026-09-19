@@ -6,10 +6,10 @@ import { DESIGN_SIDE_PRICE, FLAT_DELIVERY_FEE } from "@/lib/orders/pricing";
  */
 export const brand = {
   name: process.env.NEXT_PUBLIC_APP_NAME?.trim() || "Nivaro",
-  tagline: "Design it. Try it on. Make it yours.",
+  tagline: "Design it. Print it. Make it yours.",
   description:
-    "Create custom clothing with AI, customize it in 3D, try it on virtually, and order from anywhere in Pakistan.",
-  trustLine: "AI-powered · 3D customization · Virtual try-on · Pakistan-wide fulfillment",
+    "Create custom clothing, place your design on quality blanks, and order from anywhere in Pakistan.",
+  trustLine: "Custom print · Quality blanks · Pakistan-wide fulfillment",
   deliveryFee: FLAT_DELIVERY_FEE,
   designSidePrice: DESIGN_SIDE_PRICE,
   region: "Pakistan",

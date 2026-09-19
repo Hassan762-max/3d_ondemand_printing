@@ -6,13 +6,13 @@ const DEMO_REVIEWS = [
   {
     rating: 5,
     name: "Demo customer",
-    body: "The 3D studio made placement obvious before I ordered. Try-on sealed it.",
+    body: "The studio made placement obvious before I ordered. Print matched the preview.",
     product: "Oversized Studio Tee",
   },
   {
     rating: 5,
     name: "Demo customer",
-    body: "AI doctor caught a low-contrast print issue I would have missed.",
+    body: "Print preview caught a low-contrast issue I would have missed.",
     product: "Essential Tee",
   },
   {

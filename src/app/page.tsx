@@ -1,5 +1,3 @@
-import { AiHighlight } from "@/components/home/ai-highlight";
-import { AiReviewDemo } from "@/components/home/ai-review-demo";
 import { DesignShowcase } from "@/components/home/design-showcase";
 import { FinalCta } from "@/components/home/final-cta";
 import { Fulfillment } from "@/components/home/fulfillment";
@@ -93,8 +91,6 @@ export default async function HomePage() {
       <DesignShowcase designs={designs} savedIds={savedIds} />
       <ProductShowcase products={products} />
       <StudioHighlight />
-      <AiHighlight />
-      <AiReviewDemo />
       <MultiProduct />
       <Fulfillment />
       <PaymentTrust />
