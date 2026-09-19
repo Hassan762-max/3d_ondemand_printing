@@ -29,4 +29,4 @@ jobs:
           AUTH_URL: "http://localhost:3000"
           AI_PROVIDER: "live-ready"
           PAYMENT_PROVIDER: "cod_hybrid"
-          NEXT_PUBLIC_ADVANCE_AMOUNT: "500"
+          # Do not set APP_ENV=production here — that enables deploy-time secret checks.

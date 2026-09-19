@@ -14,18 +14,20 @@ export default async function OpsLayout({
 
   const role = session.user.role;
   const isAdmin = role === "ADMIN" || role === "SUPER_ADMIN";
+  // Explicitly exclude VENDOR — they share production:manage for job updates
+  // but must not see platform-wide ops data.
   const allowed =
     isAdmin ||
-    hasAnyPermission(role, [
-      "support:manage",
-      "qc:manage",
-      "order:refund",
-      "finance:manage",
-      "order:read_all",
-      "production:manage",
-      "vendor:assign",
-      "design:moderate",
-    ]);
+    (role !== "VENDOR" &&
+      hasAnyPermission(role, [
+        "support:manage",
+        "qc:manage",
+        "order:refund",
+        "finance:manage",
+        "vendor:assign",
+        "design:moderate",
+        "production:manage",
+      ]));
 
   if (!allowed) {
     return (

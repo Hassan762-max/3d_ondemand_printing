@@ -19,14 +19,14 @@ const steps = [
     cta: "See products",
   },
   {
-    title: "Try it on",
-    body: "Upload a photo for virtual try-on. Get fit and placement hints, then iterate before you commit.",
-    href: "/try-on",
-    cta: "Try on",
+    title: "Customize in 3D",
+    body: "Place, scale, and rotate your design on the garment in the studio — then pick size and color before you commit.",
+    href: "/studio",
+    cta: "Open Studio",
   },
   {
-    title: "Pay advance, rest on COD",
-    body: `Confirm with ${formatPkr(brand.advanceAmount)} advance. Remaining balance is collected on delivery where COD is available.`,
+    title: "Place order, pay on delivery",
+    body: `Confirm your order and pay the full total on delivery (COD), including flat ${formatPkr(brand.deliveryFee)} delivery.`,
     href: "/checkout",
     cta: "Checkout",
   },
@@ -53,7 +53,7 @@ export default function HowItWorksPage() {
           How {brand.name} works
         </h1>
         <p className="mt-4 max-w-xl text-sm leading-relaxed text-[var(--muted)]">
-          From idea to garment in six steps — design tools, try-on, hybrid payment, and local
+          From idea to garment — design tools, 3D studio, hybrid payment, and local
           production across Pakistan.
         </p>
 

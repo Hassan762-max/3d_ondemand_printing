@@ -56,7 +56,7 @@ export default async function AdminUsersPage() {
         </p>
       </header>
 
-      <PortalSection title={`${users.length} accounts`}>
+      <PortalSection title={`${users.length} Accounts`}>
         <div className="overflow-x-auto rounded-xl border border-[var(--ink)]/10">
           <table className="min-w-full text-left text-sm">
             <thead className="bg-[var(--mist)] text-xs uppercase tracking-[0.12em] text-[var(--muted)]">

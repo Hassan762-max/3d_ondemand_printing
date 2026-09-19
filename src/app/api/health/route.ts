@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { FLAT_DELIVERY_FEE, DESIGN_SIDE_PRICE } from "@/lib/orders/pricing";
 import { getAiProvider } from "@/lib/ai";
 import { getPaymentProvider } from "@/lib/orders/payment";
 
@@ -16,17 +17,34 @@ export async function GET() {
     db = "down";
   }
 
-  const body = {
-    ok: db === "up",
-    service: "nivaro",
-    db,
-    ai: getAiProvider().name,
-    payment: getPaymentProvider().name,
-    advanceAmount: Number(process.env.NEXT_PUBLIC_ADVANCE_AMOUNT ?? 500),
-    nodeEnv: process.env.NODE_ENV ?? "development",
-    latencyMs: Date.now() - started,
-    timestamp: new Date().toISOString(),
-  };
+  const latencyMs = Date.now() - started;
+  const isProd = process.env.NODE_ENV === "production";
 
-  return NextResponse.json(body, { status: db === "up" ? 200 : 503 });
+  // Production: minimal surface for uptime probes (no provider / env leakage).
+  if (isProd) {
+    return NextResponse.json(
+      {
+        ok: db === "up",
+        latencyMs,
+        timestamp: new Date().toISOString(),
+      },
+      { status: db === "up" ? 200 : 503 },
+    );
+  }
+
+  return NextResponse.json(
+    {
+      ok: db === "up",
+      service: "nivaro",
+      db,
+      ai: getAiProvider().name,
+      payment: getPaymentProvider().name,
+      deliveryFee: FLAT_DELIVERY_FEE,
+      designSidePrice: DESIGN_SIDE_PRICE,
+      nodeEnv: process.env.NODE_ENV ?? "development",
+      latencyMs,
+      timestamp: new Date().toISOString(),
+    },
+    { status: db === "up" ? 200 : 503 },
+  );
 }

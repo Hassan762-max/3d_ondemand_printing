@@ -1,5 +1,4 @@
 import type { OrderStatus } from "@prisma/client";
-import { ADVANCE_AMOUNT } from "@/lib/orders/pricing";
 
 export type TrackingStep = {
   key: OrderStatus | "PLACED";
@@ -10,8 +9,8 @@ export type TrackingStep = {
 export const TRACKING_STEPS: TrackingStep[] = [
   {
     key: "ADVANCE_PAID",
-    label: "Advance paid",
-    description: `Rs. ${ADVANCE_AMOUNT} advance received; order confirmed`,
+    label: "Order confirmed",
+    description: "Order placed · full amount due on COD",
   },
   {
     key: "ASSIGNED",
@@ -36,7 +35,7 @@ export const TRACKING_STEPS: TrackingStep[] = [
   {
     key: "OUT_FOR_DELIVERY",
     label: "Out for delivery",
-    description: "Courier is on the way · COD remaining due",
+    description: "Courier is on the way · COD due on delivery",
   },
   {
     key: "DELIVERED",

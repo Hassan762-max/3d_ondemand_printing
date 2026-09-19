@@ -12,13 +12,23 @@ export default async function VendorLayout({
   const session = await auth();
   if (!session?.user) redirect("/auth/sign-in?callbackUrl=/vendor");
 
+  const role = session.user.role;
+  const isStaff = role === "ADMIN" || role === "SUPER_ADMIN";
+
   const vendor = await prisma.vendor.findUnique({
     where: { userId: session.user.id },
     select: { businessName: true, city: true, approvalStatus: true },
   });
 
+  // Only vendors (or admins inspecting) may use the vendor console chrome.
+  if (!vendor && !isStaff && role !== "VENDOR") {
+    redirect("/customer");
+  }
+
   const badge = !vendor
-    ? "No vendor profile linked"
+    ? isStaff
+      ? "Admin · vendor console"
+      : "No vendor profile linked"
     : vendor.approvalStatus === "PENDING"
       ? `${vendor.businessName} · pending approval`
       : vendor.approvalStatus === "REJECTED"

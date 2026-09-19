@@ -26,11 +26,11 @@ export default async function SavedDesignsPage() {
   ]);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+    <div className="space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Account</p>
-          <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl tracking-tight">
+          <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl tracking-tight sm:text-4xl">
             Your designs
           </h1>
         </div>

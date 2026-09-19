@@ -81,25 +81,20 @@ export default async function CustomerDashboardPage() {
       </div>
 
       <PortalSection
-        title="Quick actions"
+        title="Quick Actions"
         description="Pick up where you left off."
       >
         <div className="flex flex-wrap gap-3">
-          <Link href="/products">
-            <Button>Products</Button>
-          </Link>
-          <Link href="/designs">
-            <Button variant="outline">Designs</Button>
-          </Link>
-          <Link href="/try-on">
-            <Button variant="outline">Try-On</Button>
-          </Link>
+          <Button href="/products">Products</Button>
+          <Button href="/designs" variant="outline">
+            Designs
+          </Button>
         </div>
       </PortalSection>
 
       <div className="grid gap-10 lg:grid-cols-2">
         <PortalSection
-          title="Recent orders"
+          title="Recent Orders"
           action={
             <Link href="/orders" className="text-sm underline">
               View all
@@ -134,7 +129,7 @@ export default async function CustomerDashboardPage() {
         </PortalSection>
 
         <PortalSection
-          title="Saved designs"
+          title="Saved Designs"
           action={
             <Link href="/account/designs" className="text-sm underline">
               Library

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { PortalSection } from "@/components/portal/portal-section";
 import { PortalStat } from "@/components/portal/portal-stat";
@@ -17,6 +16,10 @@ export default async function AdminDashboardPage() {
   if (!session?.user) redirect("/auth/sign-in?callbackUrl=/admin");
 
   const role = session.user.role;
+  // Platform-wide dashboard is admin-only (not support/finance side doors).
+  if (role !== "ADMIN" && role !== "SUPER_ADMIN") {
+    redirect("/ops");
+  }
 
   const [
     productCount,
@@ -79,28 +82,28 @@ export default async function AdminDashboardPage() {
       </div>
 
       <PortalSection
-        title="Quick actions"
+        title="Quick Actions"
         description="Jump into vendors, catalog, users, finance, or ops."
       >
         <div className="flex flex-wrap gap-3">
-          <Link href="/admin/vendors">
-            <Button>Vendors{pendingVendors > 0 ? ` (${pendingVendors})` : ""}</Button>
-          </Link>
-          <Link href="/admin/catalog">
-            <Button variant="outline">Catalog</Button>
-          </Link>
-          <Link href="/admin/users">
-            <Button variant="outline">Users</Button>
-          </Link>
-          <Link href="/admin/finance">
-            <Button variant="outline">Finance</Button>
-          </Link>
-          <Link href="/admin/health">
-            <Button variant="outline">Health</Button>
-          </Link>
-          <Link href="/ops">
-            <Button variant="outline">Ops desk</Button>
-          </Link>
+          <Button href="/admin/vendors">
+            Vendors{pendingVendors > 0 ? ` (${pendingVendors})` : ""}
+          </Button>
+          <Button href="/admin/catalog" variant="outline">
+            Catalog
+          </Button>
+          <Button href="/admin/users" variant="outline">
+            Users
+          </Button>
+          <Button href="/admin/finance" variant="outline">
+            Finance
+          </Button>
+          <Button href="/admin/health" variant="outline">
+            Health
+          </Button>
+          <Button href="/ops" variant="outline">
+            Ops desk
+          </Button>
         </div>
       </PortalSection>
 
@@ -124,7 +127,7 @@ export default async function AdminDashboardPage() {
         </div>
       </PortalSection>
 
-      <PortalSection title="Recent audit" description="Latest platform events.">
+      <PortalSection title="Recent Audit" description="Latest platform events.">
         {audits.length === 0 ? (
           <p className="text-sm text-[var(--muted)]">No audit events yet.</p>
         ) : (

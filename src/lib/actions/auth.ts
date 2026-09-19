@@ -6,6 +6,7 @@ import { z } from "zod";
 import { signIn, signOut } from "@/lib/auth";
 import { portalHomeForRole } from "@/components/portal/portal-nav";
 import { prisma } from "@/lib/db";
+import { safeCallbackUrl } from "@/lib/auth/safe-callback-url";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 const signUpSchema = z.object({
@@ -18,16 +19,9 @@ const signUpSchema = z.object({
 export type AuthActionState = {
   ok: boolean;
   message?: string;
+  /** Hard-navigate here after success (avoids Server Action + Auth.js redirect 405). */
+  redirectTo?: string;
 };
-
-/** Only allow same-origin relative redirects (e.g. /checkout). */
-function safeCallbackUrl(raw: FormDataEntryValue | null, fallback: string) {
-  const value = String(raw ?? "").trim();
-  if (!value.startsWith("/") || value.startsWith("//") || value.includes("://")) {
-    return fallback;
-  }
-  return value;
-}
 
 export async function registerUser(
   _prev: AuthActionState,
@@ -70,22 +64,25 @@ export async function registerUser(
     },
   });
 
-  const redirectTo = safeCallbackUrl(formData.get("callbackUrl"), "/customer");
+  const dest = safeCallbackUrl(formData.get("callbackUrl"), "/customer");
+  const redirectTo = `/auth/establish?next=${encodeURIComponent(dest)}`;
 
   try {
-    await signIn("credentials", {
+    const result = await signIn("credentials", {
       email,
       password: parsed.data.password,
-      redirectTo,
+      redirect: false,
     });
+    if (result?.error) {
+      return { ok: false, message: "Account created. Please sign in." };
+    }
+    return { ok: true, redirectTo };
   } catch (error) {
     if (error instanceof AuthError) {
       return { ok: false, message: "Account created. Please sign in." };
     }
     throw error;
   }
-
-  return { ok: true };
 }
 
 export async function loginUser(
@@ -108,25 +105,27 @@ export async function loginUser(
     select: { role: true },
   });
   const portalHome = existing ? portalHomeForRole(existing.role) : "/customer";
-  const redirectTo = safeCallbackUrl(formData.get("callbackUrl"), portalHome);
+  const dest = safeCallbackUrl(formData.get("callbackUrl"), portalHome);
+  const redirectTo = `/auth/establish?next=${encodeURIComponent(dest)}`;
 
   try {
-    await signIn("credentials", {
+    const result = await signIn("credentials", {
       email,
       password,
-      redirectTo,
+      redirect: false,
     });
+    if (result?.error) {
+      return { ok: false, message: "Invalid email or password." };
+    }
+    return { ok: true, redirectTo };
   } catch (error) {
     if (error instanceof AuthError) {
       return { ok: false, message: "Invalid email or password." };
     }
     throw error;
   }
-
-  return { ok: true };
 }
 
 export async function signOutUser() {
   await signOut({ redirectTo: "/" });
 }
-

@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { PortalSection } from "@/components/portal/portal-section";
-import { auth } from "@/lib/auth";
+import { requirePagePermission } from "@/lib/auth/require-page-permission";
 import { catalogProductWhere } from "@/lib/catalog/display";
 import { prisma } from "@/lib/db";
 import { formatPkr } from "@/lib/utils";
@@ -10,8 +9,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin catalog" };
 
 export default async function AdminCatalogPage() {
-  const session = await auth();
-  if (!session?.user) redirect("/auth/sign-in?callbackUrl=/admin/catalog");
+  await requirePagePermission("catalog:write", "/admin/catalog");
 
   const products = await prisma.product.findMany({
     where: catalogProductWhere(),
@@ -33,7 +31,7 @@ export default async function AdminCatalogPage() {
         </p>
       </header>
 
-      <PortalSection title={`${products.length} products`}>
+      <PortalSection title={`${products.length} Products`}>
         <ul className="divide-y divide-[var(--ink)]/8 overflow-hidden rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)]">
           {products.map((p) => (
             <li key={p.id} className="px-4 py-3 text-sm">

@@ -3,6 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/3d_ondemand_printing.iml" filepath="$PROJECT_DIR$/.idea/3d_ondemand_printing.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/app/src/androidTest/androidTest.iml" filepath="$PROJECT_DIR$/android/app/src/androidTest/androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/app/src/main/main.iml" filepath="$PROJECT_DIR$/android/app/src/main/main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/app/src/test/test.iml" filepath="$PROJECT_DIR$/android/app/src/test/test.iml" />
     </modules>
   </component>
 </project>

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { PortalSection } from "@/components/portal/portal-section";
 import { VendorQueueList } from "@/components/vendor/vendor-queue-list";
@@ -38,12 +37,15 @@ export default async function VendorQueuePage() {
             Jobs that need production, QC, or dispatch attention.
           </p>
         </div>
-        <Link href="/vendor/jobs">
-          <Button variant="outline">All jobs</Button>
-        </Link>
+        <Button href="/vendor/jobs" variant="outline">
+          All jobs
+        </Button>
       </header>
 
-      <PortalSection title={`${queue.length} open`} description={vendor.businessName}>
+      <PortalSection
+        title={`${queue.length} Open`}
+        description={vendor.businessName}
+      >
         <VendorQueueList orders={queue} />
       </PortalSection>
     </div>

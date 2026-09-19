@@ -19,10 +19,25 @@ export class ConsoleOutboundNotifier implements OutboundNotifier {
   readonly name = "console";
 
   async send(message: OutboundMessage) {
+    const to =
+      process.env.NODE_ENV === "production"
+        ? maskRecipient(message.to)
+        : message.to;
     console.info(
-      `[notify:${message.channel ?? "email"}] to=${message.to} · ${message.subject} — ${message.body.slice(0, 160)}`,
+      `[notify:${message.channel ?? "email"}] to=${to} · ${message.subject} — ${message.body.slice(0, 160)}`,
     );
   }
+}
+
+function maskRecipient(value: string) {
+  if (value.includes("@")) {
+    const [user, domain] = value.split("@");
+    const safeUser =
+      user.length <= 2 ? "*" : `${user.slice(0, 1)}***${user.slice(-1)}`;
+    return `${safeUser}@${domain}`;
+  }
+  if (value.length <= 4) return "****";
+  return `${value.slice(0, 2)}****${value.slice(-2)}`;
 }
 
 export class NoopOutboundNotifier implements OutboundNotifier {

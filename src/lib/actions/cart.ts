@@ -2,8 +2,19 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { catalogColorAliases } from "@/lib/catalog/display";
+import {
+  catalogColorAliases,
+  designIdsFromPlacement,
+  parseDualCartPlacement,
+  primaryDesignIdFromPlacement,
+  serializeDualCartPlacement,
+  type DualCartPlacement,
+} from "@/lib/catalog/display";
 import { prisma } from "@/lib/db";
+import {
+  computeLineUnitPrice,
+  countDesignSides,
+} from "@/lib/orders/pricing";
 import { getAuthorizedUser, requireUser } from "@/lib/session";
 
 export type CartResult = { ok: boolean; message?: string };
@@ -25,6 +36,40 @@ const addSchema = z.object({
   placementJson: z.string().optional(),
 });
 
+function defaultPlacement(): DualCartPlacement {
+  return {
+    side: "front",
+    x: 0.5,
+    y: 0.4,
+    scale: 1,
+    rotation: 0,
+  };
+}
+
+function placementDesignKey(placement: DualCartPlacement): string {
+  return `${placement.front?.designId ?? ""}|${placement.back?.designId ?? ""}`;
+}
+
+async function assertDesignAllowed(
+  designId: string,
+  userId: string,
+): Promise<CartResult | null> {
+  const design = await prisma.design.findUnique({ where: { id: designId } });
+  if (!design) return { ok: false, message: "Design not found." };
+  const allowed =
+    design.isLibrary ||
+    design.ownerId === userId ||
+    Boolean(
+      await prisma.designLicense.findFirst({
+        where: { designId: design.id, buyerId: userId },
+      }),
+    );
+  if (!allowed) {
+    return { ok: false, message: "You cannot use this design." };
+  }
+  return null;
+}
+
 export async function addToCart(formData: FormData): Promise<CartResult> {
   const user = await getAuthorizedUser("cart:manage");
   if (!user) return { ok: false, message: "Please sign in to add items to your cart." };
@@ -42,30 +87,63 @@ export async function addToCart(formData: FormData): Promise<CartResult> {
     return { ok: false, message: "Select size and color to add to cart." };
   }
 
-  let placementJson = JSON.stringify({
-    side: "front",
-    x: 0.5,
-    y: 0.4,
-    scale: 1,
-    rotation: 0,
-  });
+  let placement: DualCartPlacement = defaultPlacement();
   if (parsed.data.placementJson) {
     try {
-      const parsedPlacement = JSON.parse(parsed.data.placementJson) as Record<
-        string,
-        unknown
-      >;
-      placementJson = JSON.stringify({
-        side: parsedPlacement.side === "back" ? "back" : "front",
-        x: Number(parsedPlacement.x ?? 0.5),
-        y: Number(parsedPlacement.y ?? 0.4),
-        scale: Number(parsedPlacement.scale ?? 1),
-        rotation: Number(parsedPlacement.rotation ?? 0),
-      });
+      placement = parseDualCartPlacement(parsed.data.placementJson);
+      // Dual payload from PDP — keep front/back as parsed.
+      // Legacy flat payload — attach top-level designId to the active side when provided.
+      if (
+        !("front" in placement) &&
+        !("back" in placement) &&
+        parsed.data.designId
+      ) {
+        const sidePlacement = {
+          designId: parsed.data.designId,
+          x: placement.x,
+          y: placement.y,
+          scale: placement.scale,
+          rotation: placement.rotation,
+        };
+        placement = {
+          ...placement,
+          front: placement.side === "front" ? sidePlacement : null,
+          back: placement.side === "back" ? sidePlacement : null,
+        };
+      }
     } catch {
       return { ok: false, message: "Invalid placement data." };
     }
+  } else if (parsed.data.designId) {
+    placement = {
+      ...defaultPlacement(),
+      front: {
+        designId: parsed.data.designId,
+        x: 0.5,
+        y: 0.4,
+        scale: 1,
+        rotation: 0,
+      },
+      back: null,
+    };
   }
+
+  const designIds = designIdsFromPlacement(placement);
+  // Also accept a lone form designId when placement has no designs (studio blank coords).
+  if (designIds.length === 0 && parsed.data.designId) {
+    designIds.push(parsed.data.designId);
+  }
+
+  for (const id of designIds) {
+    const err = await assertDesignAllowed(id, user.id);
+    if (err) return err;
+  }
+
+  const primaryDesignId =
+    primaryDesignIdFromPlacement(placement, parsed.data.designId ?? null) ??
+    null;
+
+  const placementJson = serializeDualCartPlacement(placement);
 
   const product = await prisma.product.findUnique({
     where: { id: parsed.data.productId },
@@ -86,34 +164,22 @@ export async function addToCart(formData: FormData): Promise<CartResult> {
     return { ok: false, message: "That size/color combination is unavailable." };
   }
 
-  if (parsed.data.designId) {
-    const design = await prisma.design.findUnique({
-      where: { id: parsed.data.designId },
-    });
-    if (!design) return { ok: false, message: "Design not found." };
-    const allowed =
-      design.isLibrary ||
-      design.ownerId === user.id ||
-      Boolean(
-        await prisma.designLicense.findFirst({
-          where: { designId: design.id, buyerId: user.id },
-        }),
-      );
-    if (!allowed) {
-      return { ok: false, message: "You cannot use this design." };
-    }
-  }
-
   const cart = await getOrCreateCart(user.id);
+  const designKey = placementDesignKey(placement);
 
-  const existing = await prisma.cartItem.findFirst({
+  const candidates = await prisma.cartItem.findMany({
     where: {
       cartId: cart.id,
       productId: product.id,
-      designId: parsed.data.designId ?? null,
+      designId: primaryDesignId,
       size: parsed.data.size,
       color: parsed.data.color,
     },
+  });
+
+  const existing = candidates.find((item) => {
+    const other = parseDualCartPlacement(item.placementJson);
+    return placementDesignKey(other) === designKey;
   });
 
   if (existing) {
@@ -125,15 +191,17 @@ export async function addToCart(formData: FormData): Promise<CartResult> {
       },
     });
   } else {
+    let designSides = countDesignSides(placement);
+    if (designSides === 0 && primaryDesignId) designSides = 1;
     await prisma.cartItem.create({
       data: {
         cartId: cart.id,
         productId: product.id,
-        designId: parsed.data.designId,
+        designId: primaryDesignId,
         size: parsed.data.size,
         color: parsed.data.color,
         quantity: parsed.data.quantity,
-        unitPrice: product.basePrice,
+        unitPrice: computeLineUnitPrice(product.basePrice, designSides),
         placementJson,
       },
     });

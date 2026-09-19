@@ -1,6 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 import { computeOrderTotals, generateOrderNumber } from "../src/lib/orders/pricing";
-import { getPaymentProvider } from "../src/lib/orders/payment";
 
 const prisma = new PrismaClient();
 
@@ -33,17 +32,12 @@ async function main() {
 
   const totals = computeOrderTotals(product.basePrice, "Lahore");
   const orderNumber = generateOrderNumber();
-  const capture = await getPaymentProvider().capture({
-    orderNumber,
-    amount: totals.advanceAmount,
-    kind: "ADVANCE",
-  });
 
   console.log({
-    ok: capture.ok && capture.status === "COMPLETED",
+    ok: totals.advanceAmount === 0 && totals.remainingAmount === totals.totalPayable,
     orderNumber,
+    productBase: product.basePrice,
     totals,
-    reference: capture.reference,
   });
 }
 

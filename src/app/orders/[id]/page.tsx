@@ -15,8 +15,13 @@ export const dynamic = "force-dynamic";
 type Props = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Props) {
+  const session = await auth();
   const { id } = await params;
-  const order = await prisma.order.findUnique({ where: { id } });
+  if (!session?.user) return { title: "Order" };
+  const order = await prisma.order.findFirst({
+    where: { id, userId: session.user.id },
+    select: { orderNumber: true },
+  });
   return { title: order?.orderNumber ?? "Order" };
 }
 
@@ -57,7 +62,7 @@ export default async function OrderDetailPage({ params }: Props) {
   const existingReview = order.reviews[0];
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
+    <div className="space-y-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">
@@ -181,12 +186,8 @@ export default async function OrderDetailPage({ params }: Props) {
               <dt className="text-[var(--muted)]">Delivery</dt>
               <dd>{formatPkr(order.deliveryFee)}</dd>
             </div>
-            <div className="flex justify-between gap-3">
-              <dt className="text-[var(--muted)]">Advance paid</dt>
-              <dd>{formatPkr(order.advanceAmount)}</dd>
-            </div>
             <div className="flex justify-between gap-3 font-medium">
-              <dt>Remaining COD</dt>
+              <dt>Due on delivery (COD)</dt>
               <dd>{formatPkr(order.remainingAmount)}</dd>
             </div>
           </dl>

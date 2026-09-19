@@ -56,8 +56,9 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "cart:manage",
     "order:create",
   ],
+  // Vendors manage assigned jobs only — never platform-wide order:read_all
+  // (that permission previously also unlocked /ops).
   VENDOR: [
-    "order:read_all",
     "order:update_status",
     "production:manage",
     "vendor:read",

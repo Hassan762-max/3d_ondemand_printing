@@ -59,7 +59,7 @@ export default async function DesignsPage({ searchParams }: Props) {
         className="pointer-events-none absolute inset-x-0 top-0 h-[26rem] bg-[radial-gradient(ellipse_at_15%_0%,rgba(26,107,92,0.09),transparent_55%),radial-gradient(ellipse_at_85%_5%,rgba(12,14,18,0.04),transparent_40%)]"
       />
 
-      <div className="relative mx-auto max-w-6xl px-4 pb-20 pt-14 sm:px-6 sm:pt-16">
+      <div className="portal-bleed relative mx-auto max-w-6xl px-4 pb-20 pt-14 sm:px-6 sm:pt-16">
         <header className="flex flex-col gap-8 border-b border-[var(--ink)]/8 pb-10 sm:pb-12 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
             <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">

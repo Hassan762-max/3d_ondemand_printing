@@ -18,10 +18,10 @@ const paths = [
   },
   {
     n: "03",
-    title: "Try it on",
-    body: "Preview your look with virtual try-on before you order.",
-    href: "/try-on",
-    cta: "Open Try-On",
+    title: "Customize in 3D",
+    body: "Place your design on the garment in the studio before you order.",
+    href: "/studio",
+    cta: "Open Studio",
   },
 ];
 

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export function AiReviewDemo() {
@@ -20,15 +19,13 @@ export function AiReviewDemo() {
             the print slightly and move it higher for a cleaner streetwear look.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/try-on">
-              <Button>Apply Suggestion</Button>
-            </Link>
-            <Link href="/products">
-              <Button variant="outline">Try Another Look</Button>
-            </Link>
+            <Button href="/studio">Open Studio</Button>
+            <Button href="/products" variant="outline">
+              Browse products
+            </Button>
           </div>
           <p className="mt-4 text-xs text-[var(--muted)]">
-            Opens live Try-On and product tools — suggestions become real edits there.
+            Jump into the 3D studio or product catalog to apply suggestions for real.
           </p>
         </div>
       </div>

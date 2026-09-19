@@ -15,13 +15,13 @@ export function PortalSection({
 }) {
   return (
     <section id={id} className="scroll-mt-24">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 className="font-[family-name:var(--font-display)] text-xl tracking-tight">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
+          <h2 className="font-[family-name:var(--font-display)] text-xl tracking-tight text-[var(--ink)]">
             {title}
           </h2>
           {description ? (
-            <p className="mt-1 text-sm text-[var(--muted)]">{description}</p>
+            <p className="text-sm text-[var(--muted)]">{description}</p>
           ) : null}
         </div>
         {action}

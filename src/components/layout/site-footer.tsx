@@ -1,11 +1,12 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { brand } from "@/lib/brand";
+import { isPortalAppPath } from "@/lib/portal-paths";
 import { formatPkr } from "@/lib/utils";
 
 const create = [
   { href: "/designs", label: "Design Library" },
   { href: "/designs/upload", label: "Upload design" },
-  { href: "/try-on", label: "Try-On" },
 ];
 
 const explore = [
@@ -26,7 +27,10 @@ const legal = [
   { href: "/legal/terms", label: "Terms" },
 ];
 
-export function SiteFooter() {
+export async function SiteFooter() {
+  const pathname = (await headers()).get("x-pathname") ?? "";
+  if (pathname && isPortalAppPath(pathname)) return null;
+
   return (
     <footer className="mt-auto border-t border-[var(--ink)]/8 bg-[var(--ink)] text-[var(--paper)]">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
@@ -54,7 +58,7 @@ export function SiteFooter() {
             © {new Date().getFullYear()} {brand.name} · {brand.region}
           </span>
           <span>
-            {formatPkr(brand.advanceAmount)} advance · remaining on COD
+            Flat {formatPkr(brand.deliveryFee)} delivery · full amount on COD
           </span>
         </div>
       </div>

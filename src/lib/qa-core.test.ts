@@ -9,29 +9,6 @@ import { trackingProgress } from "@/lib/orders/tracking";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { formatPkr } from "@/lib/utils";
 
-describe("vendor locationScore — routing matrix", () => {
-  it("scores same city as 1", () => {
-    expect(locationScore("Lahore", "lahore")).toBe(1);
-  });
-
-  it("scores same region lower than same city", () => {
-    expect(regionOf("Lahore")).toBe("punjab_central");
-    expect(regionOf("Faisalabad")).toBe("punjab_central");
-    expect(locationScore("Lahore", "Faisalabad")).toBe(0.72);
-  });
-
-  it("scores distant cities at floor", () => {
-    expect(locationScore("Karachi", "Peshawar")).toBe(0.2);
-  });
-
-  it("clamps capacity and cost scores to [0,1]", () => {
-    expect(capacityScore(0, 100)).toBe(1);
-    expect(capacityScore(200, 100)).toBe(0);
-    expect(costScore(1)).toBe(1);
-    expect(costScore(3)).toBe(0);
-  });
-});
-
 describe("trackingProgress — status isolation", () => {
   it("marks cancelled / refunded timeline as cancelled", () => {
     const cancelled = trackingProgress("CANCELLED");
@@ -44,6 +21,54 @@ describe("trackingProgress — status isolation", () => {
     const steps = trackingProgress("RETURN_REQUESTED");
     const delivered = steps.find((s) => s.key === "DELIVERED");
     expect(delivered?.state).toBe("done");
+  });
+
+  it("keeps PENDING_PAYMENT steps as todo", () => {
+    const steps = trackingProgress("PENDING_PAYMENT");
+    expect(steps.every((s) => s.state === "todo")).toBe(true);
+  });
+
+  it("marks all steps done when delivered", () => {
+    const steps = trackingProgress("DELIVERED");
+    expect(steps.every((s) => s.state === "done")).toBe(true);
+  });
+
+  it("treats REPRINT / REPLACEMENT as mid-production progress", () => {
+    const reprint = trackingProgress("REPRINT");
+    const production = reprint.find((s) => s.key === "IN_PRODUCTION");
+    const shipped = reprint.find((s) => s.key === "SHIPPED");
+    expect(production?.state).toBe("done");
+    expect(shipped?.state).toBe("todo");
+
+    const replacement = trackingProgress("REPLACEMENT");
+    expect(replacement.find((s) => s.key === "IN_PRODUCTION")?.state).toBe("done");
+  });
+});
+
+describe("vendor locationScore — routing matrix", () => {
+  it("scores same city as 1", () => {
+    expect(locationScore("Lahore", "lahore")).toBe(1);
+  });
+
+  it("scores same region lower than same city", () => {
+    expect(regionOf("Lahore")).toBe("punjab_central");
+    expect(regionOf("Faisalabad")).toBe("punjab_central");
+    expect(locationScore("Lahore", "Faisalabad")).toBe(0.72);
+  });
+
+  it("scores neighbor regions at 0.45", () => {
+    expect(locationScore("Lahore", "Islamabad")).toBe(0.45);
+  });
+
+  it("scores distant cities at floor", () => {
+    expect(locationScore("Karachi", "Peshawar")).toBe(0.2);
+  });
+
+  it("clamps capacity and cost scores to [0,1]", () => {
+    expect(capacityScore(0, 100)).toBe(1);
+    expect(capacityScore(200, 100)).toBe(0);
+    expect(costScore(1)).toBe(1);
+    expect(costScore(3)).toBe(0);
   });
 });
 

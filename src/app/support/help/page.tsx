@@ -17,8 +17,8 @@ export default function HelpPage() {
         a="Open Designs to pick a library print, or Upload to add your own file — then apply it to a product."
       />
       <Faq
-        q="What does the advance payment cover?"
-        a={`Checkout collects ${formatPkr(brand.advanceAmount)} advance to confirm the order. Remaining balance is due on COD where available.`}
+        q="How does payment work?"
+        a={`You pay the full order total on delivery (COD). Flat ${formatPkr(brand.deliveryFee)} delivery; print fee is ${formatPkr(brand.designSidePrice)} per side (Front and/or Back) — no separate sticker charge.`}
       />
       <Faq
         q="Can I return a custom print?"

@@ -30,7 +30,6 @@ export const CUSTOMER_NAV: PortalNavItem[] = [
   { href: "/customer", label: "Dashboard", match: "exact" },
   { href: "/products", label: "Products", match: "prefix" },
   { href: "/designs", label: "Designs", match: "prefix" },
-  { href: "/try-on", label: "Try-On", match: "prefix" },
   { href: "/orders", label: "Orders", match: "prefix" },
   { href: "/account/designs", label: "Saved designs", match: "prefix" },
   { href: "/account/wishlist", label: "Wishlist", match: "exact" },

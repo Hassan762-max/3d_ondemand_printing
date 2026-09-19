@@ -67,7 +67,7 @@ export default async function AdminVendorsPage() {
       </div>
 
       <PortalSection
-        title="Awaiting approval"
+        title="Awaiting Approval"
         description="New vendors cannot receive jobs until approved."
       >
         {pending.length === 0 ? (
@@ -115,7 +115,7 @@ export default async function AdminVendorsPage() {
         )}
       </PortalSection>
 
-      <PortalSection title="All partners" description={`${vendors.length} total`}>
+      <PortalSection title="All Partners" description={`${vendors.length} Total`}>
         <div className="overflow-x-auto rounded-xl border border-[var(--ink)]/10">
           <table className="min-w-full text-left text-sm">
             <thead className="bg-[var(--mist)] text-xs uppercase tracking-[0.12em] text-[var(--muted)]">

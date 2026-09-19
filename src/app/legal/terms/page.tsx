@@ -16,7 +16,7 @@ export default function TermsPage() {
         },
         {
           heading: "Orders & payment",
-          body: `Orders typically require a ${formatPkr(brand.advanceAmount)} advance. Remaining amounts may be collected via COD where available. Customized goods follow our returns policy for defects and fulfillment issues.`,
+          body: `Orders are confirmed at checkout and the full total (items + flat ${formatPkr(brand.deliveryFee)} delivery) is collected via COD where available. Print charges are ${formatPkr(brand.designSidePrice)} per printed side (Front and/or Back); there is no separate sticker fee. Customized goods follow our returns policy for defects and fulfillment issues.`,
         },
         {
           heading: "Your content",

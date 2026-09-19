@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useActionState } from "react";
+import { Suspense, useActionState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { ClearAuthLifetimeOnMount } from "@/components/auth/session-lifetime-root";
 import { registerUser, type AuthActionState } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
@@ -18,8 +19,17 @@ function SignUpForm() {
     ? `/auth/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`
     : "/auth/sign-in";
 
+  useEffect(() => {
+    if (state.ok && state.redirectTo) {
+      window.location.assign(state.redirectTo);
+    }
+  }, [state.ok, state.redirectTo]);
+
+  const redirecting = state.ok && !!state.redirectTo;
+
   return (
     <>
+      <ClearAuthLifetimeOnMount />
       <form action={action} className="mt-8 space-y-4">
         {callbackUrl ? (
           <input type="hidden" name="callbackUrl" value={callbackUrl} />
@@ -55,8 +65,8 @@ function SignUpForm() {
         {state.message ? (
           <p className="text-sm text-[var(--danger)]">{state.message}</p>
         ) : null}
-        <Button type="submit" className="w-full" disabled={pending}>
-          {pending ? "Creating…" : "Create account"}
+        <Button type="submit" className="w-full" disabled={pending || redirecting}>
+          {pending || redirecting ? "Creating…" : "Create account"}
         </Button>
       </form>
 

@@ -18,7 +18,7 @@ const DEMO_REVIEWS = [
   {
     rating: 4,
     name: "Demo customer",
-    body: "Advance + COD felt straightforward. Print quality matched the preview.",
+    body: "COD checkout felt straightforward. Print quality matched the preview.",
     product: "Monsoon Hoodie",
   },
 ];

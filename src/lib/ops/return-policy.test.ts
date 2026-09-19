@@ -50,4 +50,41 @@ describe("canRequestReturn — policy state machine", () => {
     });
     expect(res.ok).toBe(false);
   });
+
+  it("blocks cancelled and refunded orders", () => {
+    expect(
+      canRequestReturn({
+        orderStatus: "CANCELLED",
+        hasCustomDesign: false,
+        reason: "printing_defect",
+      }).ok,
+    ).toBe(false);
+    expect(
+      canRequestReturn({
+        orderStatus: "REFUNDED",
+        hasCustomDesign: false,
+        reason: "printing_defect",
+      }).ok,
+    ).toBe(false);
+  });
+
+  it("blocks failed_delivery before the order ships", () => {
+    const res = canRequestReturn({
+      orderStatus: "IN_PRODUCTION",
+      hasCustomDesign: true,
+      reason: "failed_delivery",
+    });
+    expect(res.ok).toBe(false);
+    expect(res.message).toMatch(/after the order ships/i);
+  });
+
+  it("allows change-of-mind for non-custom orders within 7 days", () => {
+    const res = canRequestReturn({
+      orderStatus: "DELIVERED",
+      hasCustomDesign: false,
+      deliveredAt: new Date(),
+      reason: "changed_mind",
+    });
+    expect(res.ok).toBe(true);
+  });
 });

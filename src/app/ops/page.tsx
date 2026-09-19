@@ -22,17 +22,20 @@ export default async function OpsPage() {
   if (!session?.user) redirect("/auth/sign-in?callbackUrl=/ops");
 
   const role = session.user.role;
-  const canOps = hasAnyPermission(role, [
-    "support:manage",
-    "qc:manage",
-    "order:refund",
-    "finance:manage",
-    "order:read_all",
-    "production:manage",
-    "vendor:assign",
-    "design:moderate",
-  ]);
-  if (!canOps && role !== "ADMIN" && role !== "SUPER_ADMIN") {
+  const canOps =
+    role === "ADMIN" ||
+    role === "SUPER_ADMIN" ||
+    (role !== "VENDOR" &&
+      hasAnyPermission(role, [
+        "support:manage",
+        "qc:manage",
+        "order:refund",
+        "finance:manage",
+        "vendor:assign",
+        "design:moderate",
+        "production:manage",
+      ]));
+  if (!canOps) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
         <h1 className="font-[family-name:var(--font-display)] text-4xl tracking-tight">Ops</h1>

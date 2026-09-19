@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { DM_Sans, Syne } from "next/font/google";
+import Script from "next/script";
+import { SessionLifetimeRoot } from "@/components/auth/session-lifetime-root";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { sessionLifetimeBootstrapScript } from "@/lib/auth/session-lifetime";
 import { brand } from "@/lib/brand";
+import { isPortalAppPath } from "@/lib/portal-paths";
 import "./globals.css";
 
 const display = Syne({
@@ -42,13 +47,30 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const pathname = (await headers()).get("x-pathname") ?? "";
+  const portal = pathname ? isPortalAppPath(pathname) : false;
+
   return (
     <html lang="en" className={`${display.variable} ${body.variable} h-full`}>
       <body className="flex min-h-full flex-col antialiased">
-        <SiteHeader />
-        <main className="flex-1">{children}</main>
-        <SiteFooter />
+        <Script
+          id="nivaro-session-lifetime"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: sessionLifetimeBootstrapScript(),
+          }}
+        />
+        <SessionLifetimeRoot />
+        {portal ? (
+          <div className="flex min-h-full flex-1 flex-col">{children}</div>
+        ) : (
+          <>
+            <SiteHeader />
+            <main className="flex-1">{children}</main>
+            <SiteFooter />
+          </>
+        )}
       </body>
     </html>
   );

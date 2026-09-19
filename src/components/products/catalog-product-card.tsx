@@ -19,7 +19,7 @@ export type CatalogProductCardData = {
 export function CatalogProductCard({ product }: { product: CatalogProductCardData }) {
   return (
     <article className="group relative flex flex-col">
-      <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-[#efece6] shadow-[0_1px_0_rgba(12,14,18,0.04)] ring-1 ring-[var(--ink)]/[0.06]">
+      <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-white shadow-[0_1px_0_rgba(12,14,18,0.04)] ring-1 ring-[var(--ink)]/[0.06]">
         <Link href={product.href} className="absolute inset-0 z-0 block" aria-label={product.displayName}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { DeleteDesignButton } from "@/components/designs/delete-design-button";
 import { SaveDesignButton } from "@/components/designs/save-design-button";
 import { designStyleTags } from "@/lib/design-categories";
 
@@ -17,6 +18,7 @@ export type DesignCardData = {
 export function DesignLibraryCard({ design }: { design: DesignCardData }) {
   const tags = designStyleTags(design.tags, 3);
   const productHref = `/products?design=${design.id}`;
+  const canDelete = !design.isLibrary;
 
   return (
     <article className="group relative flex flex-col">
@@ -30,12 +32,19 @@ export function DesignLibraryCard({ design }: { design: DesignCardData }) {
           />
         </Link>
 
-        <div className="absolute right-3 top-3 z-20">
+        <div className="absolute right-3 top-3 z-20 flex flex-col gap-2">
           <SaveDesignButton
             designId={design.id}
             initiallySaved={design.saved}
             variant="icon"
           />
+          {canDelete ? (
+            <DeleteDesignButton
+              designId={design.id}
+              designTitle={design.title}
+              variant="icon"
+            />
+          ) : null}
         </div>
 
         <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-t from-[var(--ink)]/65 via-[var(--ink)]/10 to-transparent opacity-0 transition duration-500 group-hover:opacity-100 md:block" />
