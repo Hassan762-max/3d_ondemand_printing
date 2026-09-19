@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 const features = [
-  "360° preview",
+  "Live preview",
   "Move design",
   "Resize",
   "Rotate",
@@ -62,7 +62,7 @@ export function StudioHighlight() {
       <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
         <div>
           <p className="text-xs uppercase tracking-[0.16em] text-[var(--accent)]">
-            3D Studio
+            Studio
           </p>
           <h2 className="mt-3 font-[family-name:var(--font-display)] text-3xl tracking-tight sm:text-4xl">
             See your design before you print it.
@@ -82,7 +82,7 @@ export function StudioHighlight() {
             ))}
           </ul>
           <Link href="/studio" className="mt-8 inline-block">
-            <Button size="lg">Open 3D Studio</Button>
+            <Button size="lg">Open Studio</Button>
           </Link>
         </div>
 

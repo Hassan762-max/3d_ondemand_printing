@@ -12,13 +12,13 @@ const paths = [
   {
     n: "02",
     title: "Upload Your Design",
-    body: "Upload your artwork and let AI make it print-ready.",
+    body: "Upload your artwork and get it print-ready.",
     href: "/designs/upload",
     cta: "Upload artwork",
   },
   {
     n: "03",
-    title: "Customize in 3D",
+    title: "Customize your print",
     body: "Place your design on the garment in the studio before you order.",
     href: "/studio",
     cta: "Open Studio",
