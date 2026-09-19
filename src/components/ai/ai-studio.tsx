@@ -75,7 +75,7 @@ export function AiStudio({
             <li>· Every run is logged as an AiJob</li>
             <li>· Generated art can save to your library</li>
             <li>· Enhanced copies keep originals intact</li>
-            <li>· Virtual Try-On lives at /try-on</li>
+            <li>· Use Enhance and Design Doctor before adding to cart</li>
           </ul>
         </aside>
       </div>

@@ -1,14 +1,12 @@
-import { redirect } from "next/navigation";
 import { CustomerPortalFrame } from "@/components/portal/customer-portal-frame";
-import { auth } from "@/lib/auth";
+import { requireFreshSession } from "@/lib/auth/fresh-session";
 
 export default async function CustomerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
-  if (!session?.user) redirect("/auth/sign-in?callbackUrl=/customer");
+  await requireFreshSession("/customer");
 
   return (
     <CustomerPortalFrame callbackUrl="/customer">{children}</CustomerPortalFrame>

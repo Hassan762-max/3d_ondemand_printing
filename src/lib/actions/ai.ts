@@ -77,6 +77,9 @@ export async function diagnoseDesignAction(
   const category = String(formData.get("category") ?? "") || undefined;
   const design = await prisma.design.findUnique({ where: { id: designId } });
   if (!design) return { ok: false, message: "Design not found." };
+  if (!design.isLibrary && design.ownerId !== user.id) {
+    return { ok: false, message: "You cannot diagnose this design." };
+  }
 
   const { result } = await runDiagnose({
     imageUrl: design.imageUrl,

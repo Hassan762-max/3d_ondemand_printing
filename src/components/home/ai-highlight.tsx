@@ -53,11 +53,11 @@ export function AiHighlight() {
               from seams. Ready for product print.
             </Bubble>
             <Bubble role="ai">
-              Suggested next: open Design Doctor, then try-on for fit feedback.
+              Suggested next: open Design Doctor, then refine placement in the studio.
             </Bubble>
           </div>
           <p className="mt-4 text-[11px] text-white/40">
-            Apply a design to a product, then use Try-On for fit feedback.
+            Apply a design to a product, then refine it in the 3D studio.
           </p>
         </div>
       </div>

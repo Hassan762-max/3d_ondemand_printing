@@ -1,7 +1,13 @@
 import Link from "next/link";
+import { cookies, headers } from "next/headers";
 import { auth } from "@/lib/auth";
+import {
+  AUTH_PRESENCE_COOKIE,
+  isAuthPresenceValid,
+} from "@/lib/auth/session-lifetime";
 import { brand } from "@/lib/brand";
 import { prisma } from "@/lib/db";
+import { isPortalAppPath } from "@/lib/portal-paths";
 import { Button } from "@/components/ui/button";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { portalHomeForRole } from "@/components/portal/portal-nav";
@@ -9,20 +15,28 @@ import { portalHomeForRole } from "@/components/portal/portal-nav";
 const storefrontLinks = [
   { href: "/products", label: "Products" },
   { href: "/designs", label: "Designs" },
-  { href: "/try-on", label: "Try-On" },
 ];
 
 export async function SiteHeader() {
+  const pathname = (await headers()).get("x-pathname") ?? "";
+  // Avoid double chrome when portal shell is also rendering.
+  if (pathname && isPortalAppPath(pathname)) return null;
+
   const session = await auth();
-  const cartCount = session?.user?.id
-    ? await prisma.cartItem.count({ where: { cart: { userId: session.user.id } } })
+  const presence = (await cookies()).get(AUTH_PRESENCE_COOKIE)?.value;
+  // Require a FRESH presence timestamp — Chrome can restore stale cookies.
+  const user =
+    session?.user && isAuthPresenceValid(presence) ? session.user : null;
+
+  const cartCount = user?.id
+    ? await prisma.cartItem.count({ where: { cart: { userId: user.id } } })
     : 0;
-  const unreadCount = session?.user?.id
+  const unreadCount = user?.id
     ? await prisma.notification.count({
-        where: { userId: session.user.id, read: false },
+        where: { userId: user.id, read: false },
       })
     : 0;
-  const role = session?.user?.role;
+  const role = user?.role;
   const isVendor = role === "VENDOR";
   const opsRoles = new Set([
     "ADMIN",
@@ -35,9 +49,9 @@ export async function SiteHeader() {
   const isOps = role ? opsRoles.has(role) : false;
   const isAdmin = role === "ADMIN" || role === "SUPER_ADMIN";
   const portalHref = role ? portalHomeForRole(role) : "/customer";
-  const brandHref = session?.user ? portalHref : "/";
+  const brandHref = user ? portalHref : "/";
   const isStaff = isVendor || isOps || isAdmin;
-  const showStorefront = !session?.user || !isStaff;
+  const showStorefront = !user || !isStaff;
 
   const isCustomerLike =
     role === "CUSTOMER" || role === "DESIGNER" || !role;
@@ -46,7 +60,7 @@ export async function SiteHeader() {
     ...(isVendor ? [{ href: "/vendor", label: "Vendor" }] : []),
     ...(isOps ? [{ href: "/ops", label: "Ops" }] : []),
     ...(isAdmin ? [{ href: "/admin", label: "Admin" }] : []),
-    ...(session?.user && isCustomerLike
+    ...(user && isCustomerLike
       ? [{ href: portalHref, label: "Portal" }]
       : []),
   ];
@@ -91,7 +105,7 @@ export async function SiteHeader() {
             </Link>
           ) : null}
 
-          {session?.user ? (
+          {user ? (
             <>
               {!isStaff ? (
                 <Link
@@ -108,14 +122,14 @@ export async function SiteHeader() {
               ) : null}
               <Link href={portalHref} className="hidden sm:inline-flex">
                 <Button variant="outline" size="sm">
-                  {session.user.name?.split(" ")[0] ?? "Portal"}
+                  {user.name?.split(" ")[0] ?? "Portal"}
                 </Button>
               </Link>
             </>
           ) : (
             <>
               <Link href="/auth/sign-in" className="hidden sm:block">
-                <Button variant="ghost" size="sm">
+                <Button variant="outline" size="sm">
                   Sign In
                 </Button>
               </Link>
@@ -129,8 +143,8 @@ export async function SiteHeader() {
             links={navLinks}
             roleLinks={showStorefront ? roleLinks : []}
             cartCount={showStorefront ? cartCount : 0}
-            signedIn={Boolean(session?.user)}
-            firstName={session?.user?.name?.split(" ")[0]}
+            signedIn={Boolean(user)}
+            firstName={user?.name?.split(" ")[0]}
             portalHref={portalHref}
             showCart={showStorefront}
           />

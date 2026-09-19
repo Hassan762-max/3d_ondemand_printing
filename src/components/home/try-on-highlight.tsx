@@ -43,8 +43,8 @@ export function TryOnHighlight() {
               </li>
             ))}
           </ol>
-          <Link href="/try-on" className="mt-8 inline-block">
-            <Button size="lg">Try Virtual Try-On</Button>
+          <Link href="/studio" className="mt-8 inline-block">
+            <Button size="lg">Open 3D Studio</Button>
           </Link>
         </div>
       </div>

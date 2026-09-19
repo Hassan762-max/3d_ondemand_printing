@@ -25,7 +25,7 @@ export default function ReturnsSupportPage() {
               My Orders
             </Link>
             , choose the order, and submit a return with photos when asked. Ops reviews QC and may
-            approve refunds against eligible advance/COD ledger rows.
+            approve refunds against eligible completed COD ledger rows.
           </p>
         </div>
         <div>
@@ -38,8 +38,8 @@ export default function ReturnsSupportPage() {
         <div>
           <h2 className="font-medium tracking-tight">Refunds</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Approved refunds follow collected advance and COD amounts. Unpaid COD balances are not
-            refunded as cash.
+            Approved refunds follow collected COD amounts. Unpaid COD balances are not refunded as
+            cash.
           </p>
         </div>
       </div>

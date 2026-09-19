@@ -1,12 +1,23 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useCallback, useMemo, useRef, useState, useTransition } from "react";
 import { addToCart } from "@/lib/actions/cart";
 import { Button } from "@/components/ui/button";
 import { WishlistButton } from "@/components/products/wishlist-button";
 import { ProductLivePreview } from "@/components/products/product-live-preview";
-import type { PrintZones, ProductSpecs } from "@/lib/catalog/display";
+import {
+  buildDualCartPlacement,
+  printZoneToCartPlacement,
+  serializeDualCartPlacement,
+  type CartPlacement,
+  type PrintZones,
+  type ProductSpecs,
+} from "@/lib/catalog/display";
+import {
+  DESIGN_SIDE_PRICE,
+  linePriceBreakdown,
+} from "@/lib/orders/pricing";
 import { formatPkr } from "@/lib/utils";
 
 type ColorOption = { name: string; hex: string };
@@ -18,6 +29,38 @@ type Review = {
   body: string | null;
   userName: string | null;
 };
+
+function DesignSelect({
+  label,
+  value,
+  designs,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  designs: DesignOption[];
+  onChange: (id: string) => void;
+}) {
+  return (
+    <div>
+      <p className="text-xs uppercase tracking-[0.12em] text-[var(--muted)]">
+        {label}
+      </p>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="mt-3 h-11 w-full rounded-md border border-[var(--ink)]/12 bg-white/70 px-3 text-sm"
+      >
+        <option value="">Blank — no print</option>
+        {designs.map((d) => (
+          <option key={d.id} value={d.id}>
+            {d.title}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
 
 export function ProductConfigurator({
   productId,
@@ -73,16 +116,37 @@ export function ProductConfigurator({
       colors[0]?.name ??
       "",
   );
-  const [designId, setDesignId] = useState(preferredDesign);
+  const [frontDesignId, setFrontDesignId] = useState(preferredDesign);
+  const [backDesignId, setBackDesignId] = useState("");
   const [side, setSide] = useState<"front" | "back">("front");
   const [message, setMessage] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-
-  const selectedDesign = useMemo(
-    () => designs.find((d) => d.id === designId) ?? null,
-    [designs, designId],
+  const placementsRef = useRef<{ front: CartPlacement; back: CartPlacement }>({
+    front: printZoneToCartPlacement(printZones.front, "front", printZones.front),
+    back: printZoneToCartPlacement(printZones.back, "back", printZones.back),
+  });
+  const handlePlacementChange = useCallback(
+    (placements: { front: CartPlacement; back: CartPlacement }) => {
+      placementsRef.current = placements;
+    },
+    [],
   );
+
+  const frontDesign = useMemo(
+    () => designs.find((d) => d.id === frontDesignId) ?? null,
+    [designs, frontDesignId],
+  );
+  const backDesign = useMemo(
+    () => designs.find((d) => d.id === backDesignId) ?? null,
+    [designs, backDesignId],
+  );
+  const activeDesign = side === "front" ? frontDesign : backDesign;
   const colorHex = colors.find((c) => c.name === color)?.hex;
+  const hasAnyDesign = Boolean(frontDesignId || backDesignId);
+  const price = linePriceBreakdown(basePrice, {
+    front: Boolean(frontDesignId),
+    back: Boolean(showSideToggle && backDesignId),
+  });
 
   return (
     <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-2">
@@ -90,8 +154,8 @@ export function ProductConfigurator({
         garmentSrc={imageUrl}
         garmentBackSrc={imageBackUrl}
         productName={displayName}
-        designSrc={selectedDesign?.imageUrl}
-        designTitle={selectedDesign?.title}
+        designSrc={activeDesign?.imageUrl}
+        designTitle={activeDesign?.title}
         colorHex={colorHex}
         side={side}
         onSideChange={setSide}
@@ -99,11 +163,12 @@ export function ProductConfigurator({
         backZone={printZones.back}
         showSideToggle={showSideToggle}
         squareFrame={!showSideToggle}
+        onPlacementChange={handlePlacementChange}
       />
 
       <div className="flex flex-col justify-center">
         <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">
-          {categoryTag} · Starts at {formatPkr(basePrice)}
+          {categoryTag} · Blank {formatPkr(basePrice)}
           {avgRating
             ? ` · ${avgRating.toFixed(1)}/5 (${reviews.length})`
             : ""}
@@ -114,6 +179,32 @@ export function ProductConfigurator({
         <p className="mt-4 text-sm leading-relaxed text-[var(--muted)]">
           {description}
         </p>
+        <dl className="mt-5 space-y-1.5 text-sm">
+          <div className="flex justify-between gap-3">
+            <dt className="text-[var(--muted)]">Blank garment</dt>
+            <dd>{formatPkr(price.basePrice)}</dd>
+          </div>
+          {price.hasFront ? (
+            <div className="flex justify-between gap-3">
+              <dt className="text-[var(--muted)]">Front print</dt>
+              <dd>+{formatPkr(DESIGN_SIDE_PRICE)}</dd>
+            </div>
+          ) : null}
+          {price.hasBack ? (
+            <div className="flex justify-between gap-3">
+              <dt className="text-[var(--muted)]">Back print</dt>
+              <dd>+{formatPkr(DESIGN_SIDE_PRICE)}</dd>
+            </div>
+          ) : null}
+          <div className="flex justify-between gap-3 border-t border-[var(--ink)]/8 pt-2 font-medium">
+            <dt>Unit price</dt>
+            <dd>{formatPkr(price.unitPrice)}</dd>
+          </div>
+        </dl>
+        <p className="mt-2 text-xs text-[var(--muted)]">
+          Print fee is {formatPkr(DESIGN_SIDE_PRICE)} per side with a design — no
+          extra sticker charge.
+        </p>
 
         <form
           className="mt-8 space-y-6"
@@ -123,8 +214,28 @@ export function ProductConfigurator({
             fd.set("productId", productId);
             fd.set("size", size);
             fd.set("color", color);
-            if (designId) fd.set("designId", designId);
             fd.set("quantity", "1");
+
+            const { front, back } = placementsRef.current;
+            const dual = buildDualCartPlacement({
+              front:
+                frontDesignId && front
+                  ? { ...front, designId: frontDesignId }
+                  : null,
+              back:
+                showSideToggle && backDesignId && back
+                  ? { ...back, designId: backDesignId }
+                  : null,
+              activeSide: side,
+            });
+
+            const primary =
+              dual.front?.designId ?? dual.back?.designId ?? undefined;
+            if (primary) fd.set("designId", primary);
+            if (hasAnyDesign || dual.front || dual.back) {
+              fd.set("placementJson", serializeDualCartPlacement(dual));
+            }
+
             setMessage(null);
             startTransition(async () => {
               const result = await addToCart(fd);
@@ -194,25 +305,41 @@ export function ProductConfigurator({
           </div>
 
           {designs.length > 0 ? (
-            <div>
-              <p className="text-xs uppercase tracking-[0.12em] text-[var(--muted)]">
-                Design (optional)
-              </p>
-              <select
-                value={designId}
-                onChange={(e) => setDesignId(e.target.value)}
-                className="mt-3 h-11 w-full rounded-md border border-[var(--ink)]/12 bg-white/70 px-3 text-sm"
-              >
-                <option value="">Blank — no print</option>
-                {designs.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.title}
-                  </option>
-                ))}
-              </select>
-              {selectedDesign ? (
-                <p className="mt-2 text-xs text-[var(--muted)]">
-                  Preview updates live — drag the slider and switch front/back.
+            <div className="space-y-5">
+              {showSideToggle ? (
+                <>
+                  <DesignSelect
+                    label={`Front design (optional · +${formatPkr(DESIGN_SIDE_PRICE)})`}
+                    value={frontDesignId}
+                    designs={designs}
+                    onChange={(id) => {
+                      setFrontDesignId(id);
+                      if (id) setSide("front");
+                    }}
+                  />
+                  <DesignSelect
+                    label={`Back design (optional · +${formatPkr(DESIGN_SIDE_PRICE)})`}
+                    value={backDesignId}
+                    designs={designs}
+                    onChange={(id) => {
+                      setBackDesignId(id);
+                      if (id) setSide("back");
+                    }}
+                  />
+                </>
+              ) : (
+                <DesignSelect
+                  label={`Design (optional · +${formatPkr(DESIGN_SIDE_PRICE)})`}
+                  value={frontDesignId}
+                  designs={designs}
+                  onChange={setFrontDesignId}
+                />
+              )}
+              {hasAnyDesign ? (
+                <p className="text-xs text-[var(--muted)]">
+                  {showSideToggle
+                    ? "Toggle FRONT/BACK in the preview to place each print. Leave a side blank for no print fee on that side."
+                    : "Switch to After, then drag the print to place it and use the corner to resize."}
                 </p>
               ) : null}
             </div>

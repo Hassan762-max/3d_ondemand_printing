@@ -13,6 +13,10 @@ export function catalogProductWhere(extra: Record<string, unknown> = {}) {
     active: true,
     ...extra,
     slug: { notIn: [...HIDDEN_CATALOG_SLUGS] },
+  } as {
+    active: boolean;
+    slug: { notIn: string[] };
+    [key: string]: unknown;
   };
 }
 
@@ -292,18 +296,273 @@ export type PrintZones = {
   back: PrintZone;
 };
 
+/** Cart / studio placement payload derived from a PDP print zone. */
+export type CartPlacement = {
+  side: "front" | "back";
+  x: number;
+  y: number;
+  scale: number;
+  rotation: number;
+};
+
+/** One print side inside a dual-sided cart/order placement payload. */
+export type CartSidePlacement = {
+  designId: string;
+  x: number;
+  y: number;
+  scale: number;
+  rotation: number;
+};
+
+/**
+ * Dual-sided cart placement stored in `placementJson`.
+ * Legacy rows keep the flat `{ side, x, y, scale, rotation }` shape;
+ * new PDP adds may include `front` / `back` (omit a side for blank).
+ */
+export type DualCartPlacement = {
+  /** Active / legacy side hint (kept for studio + older consumers). */
+  side: "front" | "back";
+  x: number;
+  y: number;
+  scale: number;
+  rotation: number;
+  front?: CartSidePlacement | null;
+  back?: CartSidePlacement | null;
+};
+
+/**
+ * Map CSS print-zone percents → cart/studio placement.
+ * `scale` is relative to the catalog baseline width for that side (1 = default).
+ */
+export function printZoneToCartPlacement(
+  zone: PrintZone,
+  side: "front" | "back",
+  baseline: PrintZone,
+): CartPlacement {
+  const baseWidth = Math.max(baseline.widthPct, 1);
+  return {
+    side,
+    x: (zone.leftPct ?? 50) / 100,
+    y: zone.topPct / 100,
+    scale: Math.round((zone.widthPct / baseWidth) * 1000) / 1000,
+    rotation: 0,
+  };
+}
+
+function normalizeSidePlacement(
+  raw: unknown,
+): CartSidePlacement | null {
+  if (!raw || typeof raw !== "object") return null;
+  const rec = raw as Record<string, unknown>;
+  const designId = typeof rec.designId === "string" ? rec.designId.trim() : "";
+  if (!designId) return null;
+  return {
+    designId,
+    x: Number(rec.x ?? 0.5),
+    y: Number(rec.y ?? 0.4),
+    scale: Number(rec.scale ?? 1),
+    rotation: Number(rec.rotation ?? 0),
+  };
+}
+
+/** Parse cart/order placement JSON; supports legacy single-side and dual-side shapes. */
+export function parseDualCartPlacement(
+  raw: string | Record<string, unknown> | null | undefined,
+): DualCartPlacement {
+  let parsed: Record<string, unknown> = {};
+  if (typeof raw === "string") {
+    try {
+      parsed = JSON.parse(raw || "{}") as Record<string, unknown>;
+    } catch {
+      parsed = {};
+    }
+  } else if (raw && typeof raw === "object") {
+    parsed = raw;
+  }
+
+  const side = parsed.side === "back" ? "back" : "front";
+  const legacy: CartPlacement = {
+    side,
+    x: Number(parsed.x ?? 0.5),
+    y: Number(parsed.y ?? 0.4),
+    scale: Number(parsed.scale ?? 1),
+    rotation: Number(parsed.rotation ?? 0),
+  };
+
+  const hasDualKeys = "front" in parsed || "back" in parsed;
+  const front = normalizeSidePlacement(parsed.front);
+  const back = normalizeSidePlacement(parsed.back);
+
+  // Legacy row: no front/back keys — treat active side coords as that side only
+  // when a top-level designId is present (studio / older cart).
+  if (
+    !hasDualKeys &&
+    typeof parsed.designId === "string" &&
+    parsed.designId.trim()
+  ) {
+    const sidePlacement: CartSidePlacement = {
+      designId: parsed.designId.trim(),
+      x: legacy.x,
+      y: legacy.y,
+      scale: legacy.scale,
+      rotation: legacy.rotation,
+    };
+    return {
+      ...legacy,
+      front: side === "front" ? sidePlacement : null,
+      back: side === "back" ? sidePlacement : null,
+    };
+  }
+
+  if (hasDualKeys) {
+    return {
+      ...legacy,
+      front,
+      back,
+    };
+  }
+
+  return legacy;
+}
+
+/** Primary design FK for CartItem/OrderItem (front preferred, else back). */
+export function primaryDesignIdFromPlacement(
+  placement: DualCartPlacement,
+  fallbackDesignId?: string | null,
+): string | null {
+  return (
+    placement.front?.designId ??
+    placement.back?.designId ??
+    fallbackDesignId ??
+    null
+  );
+}
+
+/** All design IDs referenced by a dual (or legacy) placement. */
+export function designIdsFromPlacement(placement: DualCartPlacement): string[] {
+  const ids = new Set<string>();
+  if (placement.front?.designId) ids.add(placement.front.designId);
+  if (placement.back?.designId) ids.add(placement.back.designId);
+  return [...ids];
+}
+
+/** Build dual placement JSON for cart persistence. */
+export function buildDualCartPlacement(input: {
+  front: (CartPlacement & { designId: string }) | null;
+  back: (CartPlacement & { designId: string }) | null;
+  activeSide?: "front" | "back";
+}): DualCartPlacement {
+  const activeSide =
+    input.activeSide ??
+    (input.front ? "front" : input.back ? "back" : "front");
+  const active =
+    (activeSide === "front" ? input.front : input.back) ??
+    input.front ??
+    input.back;
+
+  return {
+    side: activeSide,
+    x: active?.x ?? 0.5,
+    y: active?.y ?? 0.4,
+    scale: active?.scale ?? 1,
+    rotation: active?.rotation ?? 0,
+    front: input.front
+      ? {
+          designId: input.front.designId,
+          x: input.front.x,
+          y: input.front.y,
+          scale: input.front.scale,
+          rotation: input.front.rotation,
+        }
+      : null,
+    back: input.back
+      ? {
+          designId: input.back.designId,
+          x: input.back.x,
+          y: input.back.y,
+          scale: input.back.scale,
+          rotation: input.back.rotation,
+        }
+      : null,
+  };
+}
+
+export function serializeDualCartPlacement(placement: DualCartPlacement): string {
+  const payload: Record<string, unknown> = {
+    side: placement.side,
+    x: placement.x,
+    y: placement.y,
+    scale: placement.scale,
+    rotation: placement.rotation,
+  };
+  if ("front" in placement || "back" in placement) {
+    payload.front = placement.front ?? null;
+    payload.back = placement.back ?? null;
+  }
+  return JSON.stringify(payload);
+}
+
+/** Human-readable print label for cart/order lines (front/back aware). */
+export function formatPrintLabel(
+  placementJson: string | null | undefined,
+  primaryDesign: { id: string; title: string } | null | undefined,
+  titleById?: Map<string, string> | Record<string, string>,
+): string | null {
+  const placement = parseDualCartPlacement(placementJson);
+  const lookup = (id: string) => {
+    if (primaryDesign?.id === id) return primaryDesign.title;
+    if (!titleById) return undefined;
+    if (titleById instanceof Map) return titleById.get(id);
+    return titleById[id];
+  };
+
+  const frontTitle = placement.front?.designId
+    ? lookup(placement.front.designId)
+    : null;
+  const backTitle = placement.back?.designId
+    ? lookup(placement.back.designId)
+    : null;
+
+  if (frontTitle && backTitle) {
+    return frontTitle === backTitle
+      ? `Front & back · ${frontTitle}`
+      : `Front · ${frontTitle} · Back · ${backTitle}`;
+  }
+  if (frontTitle) {
+    return "front" in placement || "back" in placement
+      ? `Front · ${frontTitle}`
+      : frontTitle;
+  }
+  if (backTitle) return `Back · ${backTitle}`;
+  return primaryDesign?.title ?? null;
+}
+
+export function formatOrderItemTitle(
+  productName: string,
+  placementJson: string | null | undefined,
+  primaryDesign: { id: string; title: string } | null | undefined,
+  titleById?: Map<string, string> | Record<string, string>,
+): string {
+  const label = formatPrintLabel(placementJson, primaryDesign, titleById);
+  return label ? `${productName} · ${label}` : productName;
+}
+
 const PRINT_ZONES: Record<string, PrintZones> = {
   "essential-tee": {
     front: { widthPct: 42, topPct: 34 },
     back: { widthPct: 48, topPct: 30 },
   },
+  // Drop-shoulder blank is wide; default maxHeight 48% makes tall art (e.g. Cloud Dragon)
+  // read as full-torso. Keep chest / upper-back POD scale below the collar.
   "oversized-studio-tee": {
-    front: { widthPct: 44, topPct: 36 },
-    back: { widthPct: 52, topPct: 32 },
+    front: { widthPct: 34, topPct: 42, maxHeightPct: 28 },
+    back: { widthPct: 38, topPct: 40, maxHeightPct: 30 },
   },
+  // Hood occupies the upper third — keep chest/back prints below neckline & hood tip
+  // (tee-like topPct ~32–34 bleeds onto hood/drawstrings with tall artwork).
   "monsoon-hoodie": {
-    front: { widthPct: 40, topPct: 33 },
-    back: { widthPct: 46, topPct: 32 },
+    front: { widthPct: 34, topPct: 47, maxHeightPct: 24 },
+    back: { widthPct: 40, topPct: 52, maxHeightPct: 30 },
   },
   "crew-sweat": {
     front: { widthPct: 42, topPct: 34 },

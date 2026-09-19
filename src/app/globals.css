@@ -38,9 +38,35 @@ body {
 }
 
 ::selection {
-  background: rgba(26, 107, 92, 0.2);
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: var(--ink);
+}
+
+::-moz-selection {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: var(--ink);
+}
+
+input::selection,
+textarea::selection,
+input::-moz-selection,
+textarea::-moz-selection {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: var(--ink);
 }
 
 a {
   text-underline-offset: 3px;
+}
+
+/* Storefront pages (products/designs) drop marketing padding inside portal chrome. */
+.portal-customer .portal-bleed,
+.portal-vendor .portal-bleed,
+.portal-admin .portal-bleed,
+.portal-ops .portal-bleed {
+  max-width: none;
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: 0;
+  padding-bottom: 0;
 }

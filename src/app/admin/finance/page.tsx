@@ -1,12 +1,8 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import {
-  CollectCodButton,
-  SettleOrderButton,
-} from "@/components/admin/admin-actions";
+import { CollectCodButton, SettleOrderButton } from "@/components/admin/admin-actions";
 import { PortalSection } from "@/components/portal/portal-section";
 import { PortalStat } from "@/components/portal/portal-stat";
-import { auth } from "@/lib/auth";
+import { requirePagePermission } from "@/lib/auth/require-page-permission";
 import { prisma } from "@/lib/db";
 import { statusLabel } from "@/lib/orders/tracking";
 import { formatPkr } from "@/lib/utils";
@@ -15,8 +11,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin finance" };
 
 export default async function AdminFinancePage() {
-  const session = await auth();
-  if (!session?.user) redirect("/auth/sign-in?callbackUrl=/admin/finance");
+  await requirePagePermission("finance:manage", "/admin/finance");
 
   const [settleable, pendingCod, settledHistory, pendingRefunds] =
     await Promise.all([
@@ -75,7 +70,7 @@ export default async function AdminFinancePage() {
         <PortalStat label="Pending refunds" value={String(pendingRefunds)} />
       </div>
 
-      <PortalSection title="Pending COD collection">
+      <PortalSection title="Pending COD Collection">
         {pendingCod.length === 0 ? (
           <p className="text-sm text-[var(--muted)]">
             No delivered orders with pending COD.
@@ -108,7 +103,7 @@ export default async function AdminFinancePage() {
         )}
       </PortalSection>
 
-      <PortalSection title="Vendor settlements">
+      <PortalSection title="Vendor Settlements">
         {settleable.length === 0 ? (
           <p className="text-sm text-[var(--muted)]">
             No delivered orders awaiting settlement.
@@ -140,7 +135,7 @@ export default async function AdminFinancePage() {
       </PortalSection>
 
       {settledHistory.length > 0 ? (
-        <PortalSection title="Settlement history">
+        <PortalSection title="Settlement History">
           <ul className="divide-y divide-[var(--ink)]/8 overflow-hidden rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)]">
             {settledHistory.map((entry) => (
               <li

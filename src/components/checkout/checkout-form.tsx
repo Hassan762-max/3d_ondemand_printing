@@ -3,10 +3,7 @@
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { placeOrder, type OrderActionResult } from "@/lib/actions/orders";
-import {
-  ADVANCE_AMOUNT,
-  computeOrderTotals,
-} from "@/lib/orders/pricing";
+import { computeOrderTotals, DESIGN_SIDE_PRICE } from "@/lib/orders/pricing";
 import { formatPkr } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
@@ -69,8 +66,6 @@ export function CheckoutForm({
       router.refresh();
     }
   }, [state, router]);
-
-  const displayCity = shippingCity || "Other";
 
   return (
     <form action={action} className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
@@ -164,8 +159,9 @@ export function CheckoutForm({
           {paymentProviderLabel.replaceAll("_", " ")}
         </h2>
         <p className="mt-3 text-sm text-white/65">
-          Pay {formatPkr(ADVANCE_AMOUNT)} advance now. Remaining amount + delivery collected on
-          delivery.
+          Pay the full order total on delivery (COD). Print fee is{" "}
+          {formatPkr(DESIGN_SIDE_PRICE)} per side (Front and/or Back) — no
+          separate sticker charge.
         </p>
 
         <dl className="mt-8 space-y-3 text-sm">
@@ -174,22 +170,14 @@ export function CheckoutForm({
             <dd>{formatPkr(totals.subtotal)}</dd>
           </div>
           <div className="flex justify-between gap-3">
-            <dt className="text-white/55">Delivery ({displayCity})</dt>
+            <dt className="text-white/55">Delivery</dt>
             <dd>{formatPkr(totals.deliveryFee)}</dd>
           </div>
-          <div className="flex justify-between gap-3 border-t border-white/10 pt-3">
-            <dt className="text-white/55">Advance due now</dt>
-            <dd className="font-medium text-[var(--accent-bright)]">
-              {formatPkr(totals.advanceAmount)}
-            </dd>
-          </div>
-          <div className="flex justify-between gap-3">
-            <dt className="text-white/55">Remaining on COD</dt>
-            <dd>{formatPkr(totals.remainingAmount)}</dd>
-          </div>
           <div className="flex justify-between gap-3 border-t border-white/10 pt-3 font-medium">
-            <dt>Order total</dt>
-            <dd>{formatPkr(totals.totalPayable)}</dd>
+            <dt>Due on delivery (COD)</dt>
+            <dd className="text-[var(--accent-bright)]">
+              {formatPkr(totals.totalPayable)}
+            </dd>
           </div>
         </dl>
 
@@ -199,7 +187,7 @@ export function CheckoutForm({
           className="mt-8 w-full"
           disabled={pending || subtotal <= 0}
         >
-          {pending ? "Placing order…" : `Pay ${formatPkr(totals.advanceAmount)} advance & place order`}
+          {pending ? "Placing order…" : `Place order · ${formatPkr(totals.totalPayable)} COD`}
         </Button>
         <p className="mt-4 text-xs text-white/40">
           Gateway-ready architecture · currently {paymentProviderLabel} provider

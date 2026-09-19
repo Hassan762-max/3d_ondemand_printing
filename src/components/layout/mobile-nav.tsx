@@ -93,7 +93,7 @@ export function MobileNav({
             ) : (
               <>
                 <Link href="/auth/sign-in" onClick={() => setOpen(false)}>
-                  <Button variant="ghost" className="w-full" size="sm">
+                  <Button variant="outline" className="w-full" size="sm">
                     Sign in
                   </Button>
                 </Link>

@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
 import { Button } from "@/components/ui/button";
-import { auth } from "@/lib/auth";
+import { requireFreshSession } from "@/lib/auth/fresh-session";
 import { prisma } from "@/lib/db";
 import { getPaymentProvider } from "@/lib/orders/payment";
 import { formatPkr } from "@/lib/utils";
@@ -11,11 +10,10 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Checkout" };
 
 export default async function CheckoutPage() {
-  const session = await auth();
-  if (!session?.user) redirect("/auth/sign-in?callbackUrl=/checkout");
+  const user = await requireFreshSession("/checkout");
 
   const cart = await prisma.cart.findUnique({
-    where: { userId: session.user.id },
+    where: { userId: user.id },
     include: {
       items: {
         include: {
@@ -42,13 +40,13 @@ export default async function CheckoutPage() {
   }
 
   const subtotal = items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
-  const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+  const profile = await prisma.user.findUnique({ where: { id: user.id } });
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
       <p className="text-xs uppercase tracking-[0.16em] text-[var(--accent)]">Checkout</p>
       <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl tracking-tight">
-        Confirm & pay advance
+        Confirm & place order
       </h1>
       <p className="mt-3 text-sm text-[var(--muted)]">
         {items.length} item{items.length === 1 ? "" : "s"} · subtotal {formatPkr(subtotal)}
@@ -72,10 +70,10 @@ export default async function CheckoutPage() {
       <div className="mt-10">
         <CheckoutForm
           subtotal={subtotal}
-          defaultName={user?.name ?? undefined}
-          defaultCity={user?.city ?? "Lahore"}
-          defaultPhone={user?.phone ?? undefined}
-          defaultProvince={user?.province ?? undefined}
+          defaultName={profile?.name ?? undefined}
+          defaultCity={profile?.city ?? "Lahore"}
+          defaultPhone={profile?.phone ?? undefined}
+          defaultProvince={profile?.province ?? undefined}
           paymentProviderLabel={getPaymentProvider().name}
         />
       </div>

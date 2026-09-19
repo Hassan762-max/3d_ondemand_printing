@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { PortalSection } from "@/components/portal/portal-section";
 import { VendorJobsTable } from "@/components/vendor/vendor-jobs-table";
@@ -33,13 +32,13 @@ export default async function VendorJobsPage() {
             Every order assigned to {vendor.businessName}.
           </p>
         </div>
-        <Link href="/vendor/queue">
-          <Button variant="outline">Queue</Button>
-        </Link>
+        <Button href="/vendor/queue" variant="outline">
+          Queue
+        </Button>
       </header>
 
       <PortalSection
-        title={`${orders.length} assignments`}
+        title={`${orders.length} Assignments`}
         description="Most recent first"
       >
         <VendorJobsTable orders={orders} />

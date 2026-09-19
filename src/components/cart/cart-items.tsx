@@ -9,6 +9,11 @@ import {
   updateCartItemQuantity,
 } from "@/lib/actions/cart";
 import { Button } from "@/components/ui/button";
+import {
+  DESIGN_SIDE_PRICE,
+  FLAT_DELIVERY_FEE,
+  type LinePriceBreakdown,
+} from "@/lib/orders/pricing";
 import { formatPkr } from "@/lib/utils";
 
 export type CartLine = {
@@ -19,6 +24,10 @@ export type CartLine = {
   color: string;
   product: { name: string; imageUrl: string | null; slug: string };
   design: { title: string; imageUrl: string } | null;
+  /** Front/back print summary when dual designs are present. */
+  printLabel?: string | null;
+  /** Optional breakdown so customers see Front/Back print fees, not a flat sticker. */
+  priceBreakdown?: LinePriceBreakdown | null;
 };
 
 export function CartItems({ items }: { items: CartLine[] }) {
@@ -26,8 +35,7 @@ export function CartItems({ items }: { items: CartLine[] }) {
   const [pending, startTransition] = useTransition();
 
   const subtotal = items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
-  const advance = 500;
-  const remaining = Math.max(0, subtotal - advance);
+  const orderTotal = subtotal + FLAT_DELIVERY_FEE;
 
   return (
     <div className="space-y-8">
@@ -50,8 +58,23 @@ export function CartItems({ items }: { items: CartLine[] }) {
                 <p className="font-medium tracking-tight">{item.product.name}</p>
                 <p className="mt-1 text-sm text-[var(--muted)]">
                   {item.size} · {item.color}
-                  {item.design ? ` · ${item.design.title}` : " · Blank"}
+                  {item.printLabel
+                    ? ` · ${item.printLabel}`
+                    : item.design
+                      ? ` · ${item.design.title}`
+                      : " · Blank"}
                 </p>
+                {item.priceBreakdown && item.priceBreakdown.designSides > 0 ? (
+                  <ul className="mt-2 space-y-0.5 text-xs text-[var(--muted)]">
+                    <li>Blank {formatPkr(item.priceBreakdown.basePrice)}</li>
+                    {item.priceBreakdown.hasFront ? (
+                      <li>Front print +{formatPkr(DESIGN_SIDE_PRICE)}</li>
+                    ) : null}
+                    {item.priceBreakdown.hasBack ? (
+                      <li>Back print +{formatPkr(DESIGN_SIDE_PRICE)}</li>
+                    ) : null}
+                  </ul>
+                ) : null}
                 <p className="mt-2 text-sm">{formatPkr(item.unitPrice)}</p>
               </div>
             </div>
@@ -100,15 +123,17 @@ export function CartItems({ items }: { items: CartLine[] }) {
           <span>{formatPkr(subtotal)}</span>
         </div>
         <div className="mt-3 flex justify-between text-sm">
-          <span className="text-[var(--muted)]">Advance (online)</span>
-          <span>{formatPkr(Math.min(advance, subtotal))}</span>
+          <span className="text-[var(--muted)]">Delivery (flat)</span>
+          <span>{formatPkr(FLAT_DELIVERY_FEE)}</span>
         </div>
         <div className="mt-3 flex justify-between border-t border-[var(--ink)]/8 pt-3 text-sm font-medium">
-          <span>Remaining on COD</span>
-          <span>{formatPkr(remaining)}</span>
+          <span>Order total (COD)</span>
+          <span>{formatPkr(orderTotal)}</span>
         </div>
         <p className="mt-4 text-xs text-[var(--muted)]">
-          Checkout uses Rs. 500 advance + remaining amount on COD.
+          Pay the full amount on delivery. Print fee is{" "}
+          {formatPkr(DESIGN_SIDE_PRICE)} per side (Front and/or Back) — no
+          separate sticker charge.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link href="/checkout">

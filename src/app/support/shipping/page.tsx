@@ -28,15 +28,16 @@ export default function ShippingPage() {
         <div>
           <h2 className="font-medium tracking-tight">Production & delivery</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            After advance payment ({formatPkr(brand.advanceAmount)}), vendors produce and ship.
-            Tracking appears on your order once a courier ID is recorded.
+            After you place an order, vendors produce and ship. Flat delivery is{" "}
+            {formatPkr(brand.deliveryFee)}. Tracking appears on your order once a courier ID is
+            recorded.
           </p>
         </div>
         <div>
           <h2 className="font-medium tracking-tight">COD</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Where available, remaining balance is collected on delivery. Mark COD collected in the
-            vendor console when cash is received.
+            The full order total is collected on delivery. Mark COD collected in the vendor
+            console when cash is received.
           </p>
         </div>
       </div>

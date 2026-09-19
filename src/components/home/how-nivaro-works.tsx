@@ -3,7 +3,7 @@ const steps = [
   { n: "02", title: "AI Enhances", body: "Print-ready quality and guidance." },
   { n: "03", title: "Pick a Product", body: "Apply your design to the right blank." },
   { n: "04", title: "Try It On", body: "See it on your photo with AI." },
-  { n: "05", title: "Order", body: "Advance + COD across Pakistan." },
+  { n: "05", title: "Order", body: "Full COD across Pakistan." },
 ];
 
 export function HowNivaroWorks() {

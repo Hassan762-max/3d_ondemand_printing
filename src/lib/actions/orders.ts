@@ -2,11 +2,18 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import {
+  designIdsFromPlacement,
+  formatOrderItemTitle,
+  parseDualCartPlacement,
+} from "@/lib/catalog/display";
 import { assignVendorToOrder } from "@/lib/fulfillment/router";
 import { prisma } from "@/lib/db";
 import { getPaymentProvider } from "@/lib/orders/payment";
 import {
+  computeLineUnitPrice,
   computeOrderTotals,
+  countDesignSides,
   generateOrderNumber,
 } from "@/lib/orders/pricing";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -72,37 +79,45 @@ export async function placeOrder(
     return { ok: false, message: "Your cart is empty." };
   }
 
+  const secondaryDesignIds = [
+    ...new Set(
+      cart.items.flatMap((item) => {
+        const placement = parseDualCartPlacement(item.placementJson);
+        return designIdsFromPlacement(placement).filter(
+          (id) => id !== item.designId,
+        );
+      }),
+    ),
+  ];
+  const secondaryDesigns =
+    secondaryDesignIds.length > 0
+      ? await prisma.design.findMany({
+          where: { id: { in: secondaryDesignIds } },
+          select: { id: true, title: true },
+        })
+      : [];
+  const designTitleById = new Map(
+    secondaryDesigns.map((d) => [d.id, d.title] as const),
+  );
+
   const subtotal = cart.items.reduce(
     (sum, item) => sum + item.unitPrice * item.quantity,
     0,
   );
   const totals = computeOrderTotals(subtotal, parsed.data.shippingCity);
   const orderNumber = generateOrderNumber();
-
-  const payment = getPaymentProvider();
-  const capture = await payment.capture({
-    orderNumber,
-    amount: totals.advanceAmount,
-    kind: "ADVANCE",
-    customerPhone: parsed.data.shippingPhone,
-  });
-
-  if (!capture.ok || capture.status !== "COMPLETED") {
-    return {
-      ok: false,
-      message: capture.message ?? "Advance payment failed. Try again.",
-    };
-  }
+  const paymentMethod = getPaymentProvider().name;
 
   const order = await prisma.$transaction(async (tx) => {
     const created = await tx.order.create({
       data: {
         orderNumber,
         userId: user.id,
+        // ADVANCE_PAID = order confirmed (legacy enum; no online advance collected).
         status: "ADVANCE_PAID",
         subtotal: totals.subtotal,
         deliveryFee: totals.deliveryFee,
-        advanceAmount: totals.advanceAmount,
+        advanceAmount: 0,
         remainingAmount: totals.remainingAmount,
         vendorCost: totals.vendorCost,
         platformMargin: totals.platformMargin,
@@ -116,9 +131,14 @@ export async function placeOrder(
           create: cart.items.map((item) => ({
             productId: item.productId,
             designId: item.designId,
-            title: item.design
-              ? `${item.product.name} · ${item.design.title}`
-              : item.product.name,
+            title: formatOrderItemTitle(
+              item.product.name,
+              item.placementJson,
+              item.design
+                ? { id: item.design.id, title: item.design.title }
+                : null,
+              designTitleById,
+            ),
             size: item.size,
             color: item.color,
             quantity: item.quantity,
@@ -129,14 +149,6 @@ export async function placeOrder(
         payments: {
           create: [
             {
-              kind: "ADVANCE",
-              amount: totals.advanceAmount,
-              status: "COMPLETED",
-              method: capture.provider,
-              reference: capture.reference,
-              metaJson: JSON.stringify({ message: capture.message }),
-            },
-            {
               kind: "COD_REMAINING",
               amount: totals.remainingAmount,
               status: "PENDING",
@@ -144,6 +156,8 @@ export async function placeOrder(
               metaJson: JSON.stringify({
                 includesDeliveryFee: true,
                 deliveryFee: totals.deliveryFee,
+                paymentProvider: paymentMethod,
+                fullAmountCod: true,
               }),
             },
           ],
@@ -163,7 +177,7 @@ export async function placeOrder(
       data: {
         userId: user.id,
         title: "Order placed",
-        body: `${orderNumber}: advance ${totals.advanceAmount} PKR received. Remaining on COD.`,
+        body: `${orderNumber}: ${totals.totalPayable} PKR due on delivery (COD).`,
         href: `/orders/${created.id}`,
       },
     });
@@ -204,7 +218,7 @@ export async function placeOrder(
     ok: true,
     orderId: order.id,
     orderNumber: order.orderNumber,
-    message: `Order placed. Advance recorded.${assignNote}`,
+    message: `Order placed. Full amount due on COD.${assignNote}`,
   };
 }
 
@@ -230,22 +244,27 @@ export async function cancelOrder(orderId: string): Promise<OrderActionResult> {
       data: { status: "CANCELLED" },
     });
 
-    await tx.paymentLedger.create({
-      data: {
-        orderId: order.id,
-        kind: "REFUND",
-        amount: order.advanceAmount,
-        status: "PENDING",
-        method: "MANUAL_REFUND",
-        metaJson: JSON.stringify({ reason: "customer_cancel_before_production" }),
-      },
-    });
+    if (order.advanceAmount > 0) {
+      await tx.paymentLedger.create({
+        data: {
+          orderId: order.id,
+          kind: "REFUND",
+          amount: order.advanceAmount,
+          status: "PENDING",
+          method: "MANUAL_REFUND",
+          metaJson: JSON.stringify({ reason: "customer_cancel_before_production" }),
+        },
+      });
+    }
 
     await tx.notification.create({
       data: {
         userId: user.id,
         title: "Order cancelled",
-        body: `${order.orderNumber} was cancelled. Advance refund is pending review.`,
+        body:
+          order.advanceAmount > 0
+            ? `${order.orderNumber} was cancelled. Advance refund is pending review.`
+            : `${order.orderNumber} was cancelled. No online payment to refund.`,
         href: `/orders/${order.id}`,
       },
     });
@@ -279,9 +298,19 @@ export async function reorderOrder(orderId: string): Promise<OrderActionResult> 
   for (const item of order.items) {
     if (!item.product.active) continue;
 
-    if (item.designId) {
-      const design = await prisma.design.findUnique({ where: { id: item.designId } });
-      if (!design) continue;
+    const placement = parseDualCartPlacement(item.placementJson);
+    const designIds = designIdsFromPlacement(placement);
+    if (designIds.length === 0 && item.designId) {
+      designIds.push(item.designId);
+    }
+
+    let designsAllowed = true;
+    for (const designId of designIds) {
+      const design = await prisma.design.findUnique({ where: { id: designId } });
+      if (!design) {
+        designsAllowed = false;
+        break;
+      }
       const allowed =
         design.isLibrary ||
         design.ownerId === user.id ||
@@ -290,8 +319,12 @@ export async function reorderOrder(orderId: string): Promise<OrderActionResult> 
             where: { designId: design.id, buyerId: user.id },
           }),
         );
-      if (!allowed) continue;
+      if (!allowed) {
+        designsAllowed = false;
+        break;
+      }
     }
+    if (!designsAllowed) continue;
 
     const existing = await prisma.cartItem.findFirst({
       where: {
@@ -312,6 +345,8 @@ export async function reorderOrder(orderId: string): Promise<OrderActionResult> 
         },
       });
     } else {
+      let designSides = countDesignSides(placement);
+      if (designSides === 0 && item.designId) designSides = 1;
       await prisma.cartItem.create({
         data: {
           cartId: cart.id,
@@ -320,7 +355,7 @@ export async function reorderOrder(orderId: string): Promise<OrderActionResult> 
           size: item.size,
           color: item.color,
           quantity: item.quantity,
-          unitPrice: item.product.basePrice,
+          unitPrice: computeLineUnitPrice(item.product.basePrice, designSides),
           placementJson: item.placementJson,
         },
       });

@@ -15,7 +15,7 @@ export default function PrivacyPage() {
         },
         {
           heading: "How we use it",
-          body: "We use your data to operate the studio, AI tools, try-on sessions, payments (advance + COD), vendor fulfillment, returns, and customer support. We do not sell personal data.",
+          body: "We use your data to operate the studio, AI tools, try-on sessions, COD payments, vendor fulfillment, returns, and customer support. We do not sell personal data.",
         },
         {
           heading: "Designs & media",
@@ -23,7 +23,7 @@ export default function PrivacyPage() {
         },
         {
           heading: "Vendors & partners",
-          body: "Production partners receive the print package and shipping details required to manufacture and deliver your order. Payment processors may receive advance/COD references when configured.",
+          body: "Production partners receive the print package and shipping details required to manufacture and deliver your order. Payment processors may receive COD references when configured.",
         },
         {
           heading: "Contact",

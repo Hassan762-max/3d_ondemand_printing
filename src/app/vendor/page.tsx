@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { PortalSection } from "@/components/portal/portal-section";
 import { PortalStat } from "@/components/portal/portal-stat";
@@ -65,9 +64,9 @@ export default async function VendorDashboardPage() {
             </p>
           ) : null}
         </div>
-        <Link href="/vendor/profile">
-          <Button variant="outline">View profile</Button>
-        </Link>
+        <Button href="/vendor/profile" variant="outline">
+          View profile
+        </Button>
       </div>
     );
   }
@@ -142,21 +141,19 @@ export default async function VendorDashboardPage() {
       </div>
 
       <PortalSection
-        title="Quick actions"
+        title="Quick Actions"
         description="Jump into production work."
       >
         <div className="flex flex-wrap gap-3">
-          <Link href="/vendor/queue">
-            <Button>Queue ({queue.length})</Button>
-          </Link>
-          <Link href="/vendor/jobs">
-            <Button variant="outline">All jobs ({orders.length})</Button>
-          </Link>
+          <Button href="/vendor/queue">Queue ({queue.length})</Button>
+          <Button href="/vendor/jobs" variant="outline">
+            All jobs ({orders.length})
+          </Button>
         </div>
       </PortalSection>
 
       <PortalSection
-        title="Shop profile"
+        title="Shop Profile"
         description="How this vendor is scored for routing."
       >
         <dl className="grid gap-4 rounded-xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-5 sm:grid-cols-2">

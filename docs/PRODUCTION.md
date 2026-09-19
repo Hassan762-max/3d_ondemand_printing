@@ -7,8 +7,11 @@ Use this when moving off local SQLite / stubs toward a live Pakistan deployment.
 - [ ] Switch `DATABASE_URL` to PostgreSQL (Prisma already models for Postgres-compatible SQL)
 - [ ] Run `prisma migrate deploy` (or `db push` once) against production DB
 - [ ] Host uploads on object storage (S3/R2/GCS) instead of `public/uploads`
-- [ ] Set strong `AUTH_SECRET` and correct `AUTH_URL` (HTTPS)
+- [ ] Set strong `AUTH_SECRET` (≥32 chars), `AUTH_URL` (HTTPS), and `APP_ENV=production`
 - [ ] Put the app behind HTTPS with a CDN for `/products` static assets
+- [ ] Confirm `/api/health` returns only `{ ok, latencyMs, timestamp }` in production
+- [ ] Confirm demo login hints are hidden (no `NEXT_PUBLIC_ALLOW_DEMO_CREDENTIALS`)
+- [ ] Confirm wallet stubs (`jazzcash` / `easypaisa`) fail closed unless real gateway is wired
 
 ## 2. Providers
 

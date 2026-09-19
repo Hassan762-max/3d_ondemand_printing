@@ -9,11 +9,12 @@ export function PaymentTrust() {
           Payment
         </p>
         <h2 className="mt-3 font-[family-name:var(--font-display)] text-2xl tracking-tight sm:text-3xl">
-          Start your custom order with {formatPkr(brand.advanceAmount)} advance.
+          Pay the full order total on delivery.
         </h2>
         <p className="mt-3 max-w-xl text-sm leading-relaxed text-[var(--muted)]">
-          Pay the remaining amount through COD where available. Transparent
-          ledger on every order — no surprises at the door.
+          Flat {formatPkr(brand.deliveryFee)} delivery across Pakistan. Print fee
+          is {formatPkr(brand.designSidePrice)} per side (Front and/or Back) — no
+          separate sticker charge. Transparent ledger on every order.
         </p>
       </div>
     </section>

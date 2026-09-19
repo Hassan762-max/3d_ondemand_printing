@@ -3,6 +3,7 @@
  * Run: npx tsx scripts/phase11-smoke.ts
  */
 import {
+  FLAT_DELIVERY_FEE,
   computeOrderTotals,
   computeRefundAmount,
 } from "../src/lib/orders/pricing";
@@ -17,24 +18,24 @@ function assert(cond: boolean, msg: string) {
   if (!cond) throw new Error(msg);
 }
 
-const totals = computeOrderTotals(2499, "Lahore");
-assert(totals.advanceAmount === 500, "advance should be 500");
-assert(totals.remainingAmount === 2199, "COD remainder mismatch");
+const totals = computeOrderTotals(500, "Lahore");
+assert(totals.advanceAmount === 0, "no online advance");
+assert(totals.deliveryFee === FLAT_DELIVERY_FEE, "flat delivery");
+assert(totals.remainingAmount === 500 + FLAT_DELIVERY_FEE, "full COD");
+assert(totals.totalPayable === totals.remainingAmount, "COD equals total");
 
 assert(shouldCollectCodOnDelivery("DELIVERED"), "COD collect on deliver");
 assert(!shouldCollectCodOnDelivery("SHIPPED"), "no COD collect on ship");
 
 const preview = previewCodCollection([
-  { kind: "ADVANCE", status: "COMPLETED", amount: 500 },
-  { kind: "COD_REMAINING", status: "PENDING", amount: 2199 },
+  { kind: "COD_REMAINING", status: "PENDING", amount: 750 },
 ]);
-assert(preview.collected === 2199, "preview COD amount");
+assert(preview.collected === 750, "preview COD amount");
 
 const refundPreDelivery = computeRefundAmount([
-  { kind: "ADVANCE", status: "COMPLETED", amount: 500 },
-  { kind: "COD_REMAINING", status: "PENDING", amount: 2199 },
+  { kind: "COD_REMAINING", status: "PENDING", amount: 750 },
 ]);
-assert(refundPreDelivery === 500, "refund must not invent pending COD");
+assert(refundPreDelivery === 0, "refund must not invent pending COD");
 
 const policy = canRequestReturn({
   orderStatus: "DELIVERED",

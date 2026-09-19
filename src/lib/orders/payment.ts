@@ -1,5 +1,5 @@
 /**
- * Payment adapter — hybrid advance + COD today,
+ * Payment adapter — COD-first checkout today,
  * JazzCash / Easypaisa live-ready stubs for production wiring.
  */
 
@@ -23,7 +23,7 @@ export interface PaymentProvider {
   capture(input: PaymentCaptureInput): Promise<PaymentCaptureResult>;
 }
 
-/** Simulates collecting the Rs. 500 advance until a real gateway is wired. */
+/** COD confirmation stub — checkout collects the full amount on delivery. */
 export class HybridCodProvider implements PaymentProvider {
   readonly name = "COD_HYBRID";
 
@@ -41,9 +41,9 @@ export class HybridCodProvider implements PaymentProvider {
     return {
       ok: true,
       provider: this.name,
-      reference: `ADV-${input.orderNumber}-${Date.now().toString(36).toUpperCase()}`,
+      reference: `COD-${input.orderNumber}-${Date.now().toString(36).toUpperCase()}`,
       status: "COMPLETED",
-      message: "Advance recorded. Remaining amount due on delivery (COD).",
+      message: "Order confirmed. Full amount due on delivery (COD).",
     };
   }
 }
@@ -76,6 +76,21 @@ export class WalletLiveReadyProvider implements PaymentProvider {
         ? Boolean(process.env.JAZZCASH_MERCHANT_ID && process.env.JAZZCASH_PASSWORD)
         : Boolean(process.env.EASYPAISA_STORE_ID && process.env.EASYPAISA_PASSWORD);
 
+    // Never silently mark wallet payments COMPLETED in production without an
+    // explicit drill flag — stub must not be mistaken for a live gateway.
+    if (
+      process.env.NODE_ENV === "production" &&
+      process.env.ALLOW_PAYMENT_STUB !== "true"
+    ) {
+      return {
+        ok: false,
+        provider: this.name,
+        reference: "",
+        status: "FAILED",
+        message: `${this.name} gateway is not wired for live capture. Configure the real API or use PAYMENT_PROVIDER=cod_hybrid.`,
+      };
+    }
+
     return {
       ok: true,
       provider: this.name,
@@ -83,7 +98,7 @@ export class WalletLiveReadyProvider implements PaymentProvider {
       status: "COMPLETED",
       message: configured
         ? `${this.name} live-ready capture (merchant credentials detected — replace stub with real API).`
-        : `${this.name} simulated advance capture. Remaining due on delivery (COD) unless FULL_ONLINE.`,
+        : `${this.name} simulated capture. Prefer COD for full-order collection unless FULL_ONLINE is wired.`,
     };
   }
 }

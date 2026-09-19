@@ -13,13 +13,15 @@ export default async function AdminLayout({
   if (!session?.user) redirect("/auth/sign-in?callbackUrl=/admin");
 
   const role = session.user.role;
+  // Shell entry: admins + managers with an admin-console permission.
+  // Individual pages enforce narrower permissions (finance/catalog/users).
   const allowed =
     role === "ADMIN" ||
     role === "SUPER_ADMIN" ||
     hasAnyPermission(role, [
       "catalog:write",
       "finance:manage",
-      "audit:read",
+      "vendor:manage",
       "user:manage",
     ]);
 

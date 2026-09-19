@@ -1,29 +1,73 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useActionState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { loginUser, type AuthActionState } from "@/lib/actions/auth";
+import { ClearAuthLifetimeOnMount } from "@/components/auth/session-lifetime-root";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { brand } from "@/lib/brand";
+import { safeCallbackUrl } from "@/lib/auth/safe-callback-url";
 
-const initial: AuthActionState = { ok: false };
-
+/**
+ * Native HTML POST to Auth.js — full browser navigation so Set-Cookie is
+ * applied before /auth/establish runs (fetch+redirect was dropping session
+ * behind ngrok).
+ */
 function SignInForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "";
-  const [state, action, pending] = useActionState(loginUser, initial);
   const signUpHref = callbackUrl
     ? `/auth/sign-up?callbackUrl=${encodeURIComponent(callbackUrl)}`
     : "/auth/sign-up";
 
+  const next = safeCallbackUrl(callbackUrl, "/customer");
+  const establishUrl = `/auth/establish?next=${encodeURIComponent(next)}`;
+
+  const [csrfToken, setCsrfToken] = useState("");
+  const [pending, setPending] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch("/api/auth/csrf", {
+          credentials: "include",
+          cache: "no-store",
+          headers: { "ngrok-skip-browser-warning": "1" },
+        });
+        if (!res.ok) throw new Error("csrf");
+        const data = (await res.json()) as { csrfToken?: string };
+        if (!cancelled && data.csrfToken) setCsrfToken(data.csrfToken);
+      } catch {
+        if (!cancelled) {
+          setMessage("Could not start sign-in. Refresh the page.");
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <>
-      <form action={action} className="mt-8 space-y-4">
-        {callbackUrl ? (
-          <input type="hidden" name="callbackUrl" value={callbackUrl} />
-        ) : null}
+      <ClearAuthLifetimeOnMount />
+      <form
+        method="post"
+        action="/api/auth/callback/credentials"
+        className="mt-8 space-y-4"
+        onSubmit={() => {
+          if (!csrfToken) {
+            setMessage("Still preparing sign-in… try again in a moment.");
+            return;
+          }
+          setPending(true);
+        }}
+      >
+        <input type="hidden" name="csrfToken" value={csrfToken} />
+        <input type="hidden" name="callbackUrl" value={establishUrl} />
         <div>
           <Label htmlFor="email">Email</Label>
           <Input id="email" name="email" type="email" required autoComplete="email" />
@@ -39,18 +83,12 @@ function SignInForm() {
             minLength={8}
           />
         </div>
-        {state.message ? (
-          <p className="text-sm text-[var(--danger)]">{state.message}</p>
+        {message ? (
+          <p className="text-sm text-[var(--danger)]">{message}</p>
         ) : null}
-        <Button type="submit" className="w-full" disabled={pending}>
-          {pending ? "Signing in…" : "Sign in"}
+        <Button type="submit" className="w-full" disabled={pending || !csrfToken}>
+          {pending ? "Signing in…" : !csrfToken ? "Preparing…" : "Sign in"}
         </Button>
-        {callbackUrl === "/checkout" || callbackUrl.startsWith("/checkout") ? (
-          <p className="text-xs text-[var(--muted)]">
-            Sign in as a customer to complete checkout. Demo:{" "}
-            <span className="font-mono">customer@printora.pk</span> / password123
-          </p>
-        ) : null}
       </form>
 
       <p className="mt-6 text-sm text-[var(--muted)]">
@@ -62,9 +100,6 @@ function SignInForm() {
         <Link href="/auth/vendor/sign-up" className="text-[var(--ink)] underline">
           Vendor application
         </Link>
-      </p>
-      <p className="mt-4 text-xs text-[var(--muted)]">
-        Demo login: <span className="font-mono">customer@printora.pk</span> / password123
       </p>
     </>
   );

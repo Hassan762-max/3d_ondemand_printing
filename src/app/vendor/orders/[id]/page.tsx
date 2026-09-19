@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { statusLabel } from "@/lib/orders/tracking";
 import { formatPkr } from "@/lib/utils";
+import { generateVendorTrackingNumber } from "@/lib/vendor/tracking";
 
 export const dynamic = "force-dynamic";
 
@@ -145,8 +146,20 @@ export default async function VendorOrderPage({ params }: Props) {
 
       <section className="mt-8 rounded-2xl border border-[var(--ink)]/10 bg-[var(--paper-elevated)] p-6">
         <h2 className="text-lg font-medium tracking-tight">Update status</h2>
+        <p className="mt-1 text-sm text-[var(--muted)]">
+          Each update notifies the customer. Tracking is assigned when production
+          starts.
+        </p>
         <div className="mt-4">
-          <VendorStatusForm orderId={order.id} currentStatus={order.status} />
+          <VendorStatusForm
+            orderId={order.id}
+            currentStatus={order.status}
+            trackingNumber={order.shipments[0]?.trackingNumber}
+            suggestedTracking={generateVendorTrackingNumber({
+              orderNumber: order.orderNumber,
+              vendorCity: vendor.city,
+            })}
+          />
         </div>
       </section>
     </div>

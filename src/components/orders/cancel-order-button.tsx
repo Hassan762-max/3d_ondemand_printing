@@ -15,7 +15,7 @@ export function CancelOrderButton({ orderId }: { orderId: string }) {
       variant="outline"
       disabled={pending}
       onClick={() => {
-        if (!confirm("Cancel this order? Advance refund will be pending review.")) return;
+        if (!confirm("Cancel this order? No online payment was collected.")) return;
         startTransition(async () => {
           await cancelOrder(orderId);
           router.refresh();

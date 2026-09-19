@@ -23,33 +23,40 @@ export default async function AccountProfilePage() {
   const sizes = parseStyleSizes(user.styleProfile?.sizes);
 
   return (
-    <div className="mx-auto max-w-xl px-4 py-14 sm:px-6">
-      <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Account</p>
-      <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl tracking-tight">
-        Profile & style
-      </h1>
-      <p className="mt-3 text-sm text-[var(--muted)]">
-        Keep delivery details and fit preferences current for checkout and AI consults.
-      </p>
+    <div className="space-y-8">
+      <header>
+        <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">
+          Account
+        </p>
+        <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl tracking-tight sm:text-4xl">
+          Profile & style
+        </h1>
+        <p className="mt-2 max-w-xl text-sm text-[var(--muted)]">
+          Keep delivery details and fit preferences current for checkout and AI
+          consults.
+        </p>
+      </header>
 
-      <ProfileForms
-        profile={{
-          name: user.name ?? "",
-          email: user.email,
-          phone: user.phone ?? "",
-          city: user.city ?? "",
-          province: user.province ?? "",
-        }}
-        style={{
-          defaultSize: sizes.default ?? "",
-          fit: prefs.fit ?? "",
-          styles: (prefs.styles ?? []).join(", "),
-        }}
-      />
+      <div className="rounded-xl border border-[var(--ink)]/10 bg-[var(--paper)] p-5 sm:p-6">
+        <ProfileForms
+          profile={{
+            name: user.name ?? "",
+            email: user.email,
+            phone: user.phone ?? "",
+            city: user.city ?? "",
+            province: user.province ?? "",
+          }}
+          style={{
+            defaultSize: sizes.default ?? "",
+            fit: prefs.fit ?? "",
+            styles: (prefs.styles ?? []).join(", "),
+          }}
+        />
+      </div>
 
-      <div className="mt-10">
+      <div>
         <Link href="/account">
-          <Button variant="ghost">Back to account</Button>
+          <Button variant="outline">Back to account</Button>
         </Link>
       </div>
     </div>

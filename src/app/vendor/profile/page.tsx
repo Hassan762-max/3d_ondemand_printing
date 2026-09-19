@@ -112,7 +112,7 @@ export default async function VendorProfilePage() {
       </PortalSection>
 
       <PortalSection
-        title="What you can print"
+        title="What You Can Print"
         description="Product categories you selected for customer jobs."
       >
         {vendor.servicesNote ? (

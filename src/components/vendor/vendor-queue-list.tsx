@@ -1,11 +1,12 @@
 import Link from "next/link";
+import type { OrderStatus } from "@prisma/client";
 import { statusLabel } from "@/lib/orders/tracking";
 import { formatPkr } from "@/lib/utils";
 
 type QueueOrder = {
   id: string;
   orderNumber: string;
-  status: string;
+  status: OrderStatus;
   shippingCity: string;
   subtotal: number;
   vendorCost: number;

@@ -20,9 +20,9 @@ export default async function WishlistPage() {
   });
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+    <div className="space-y-8">
       <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Account</p>
-      <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl tracking-tight">
+      <h1 className="font-[family-name:var(--font-display)] text-3xl tracking-tight sm:text-4xl">
         Wishlist
       </h1>
 

@@ -119,7 +119,7 @@ export async function registerVendor(
     await signIn("credentials", {
       email,
       password: parsed.data.password,
-      redirectTo: "/vendor",
+      redirectTo: `/auth/establish?next=${encodeURIComponent("/vendor")}`,
     });
   } catch (error) {
     if (error instanceof AuthError) {
